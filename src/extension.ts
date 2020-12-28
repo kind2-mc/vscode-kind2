@@ -4,19 +4,27 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as path from 'path';
-import { window, workspace, ExtensionContext, commands, Disposable } from 'vscode';
-
+import { commands, Disposable, ExtensionContext, workspace } from 'vscode';
 import {
-  InitializeRequest,
   LanguageClient,
   LanguageClientOptions,
-  ServerOptions
+  ServerOptions,
+  StreamInfo,
+  TransportKind
 } from 'vscode-languageclient';
+import { setupAdapter } from './adapterSetup';
+import * as net from 'net';
 
 let client: LanguageClient;
 let disposables: Disposable[] = [];
 
-export function activate(context: ExtensionContext) {
+export function getLanguageClient() : LanguageClient {
+  return client;
+}
+
+export async function activate(context: ExtensionContext) {
+  // Setup the test adapter for components
+  setupAdapter(context);
   // The server is implemented in node
   let serverCmd = context.asAbsolutePath(
     path.join('kind2-lsp', 'bin', 'kind2-lsp')
@@ -48,7 +56,8 @@ export function activate(context: ExtensionContext) {
   client = new LanguageClient(
     'vscode-kind2',
     'Kind 2',
-    serverOptions,
+    //serverOptions,
+    connectToTCPServer(),
     clientOptions
   );
 
@@ -61,6 +70,20 @@ export function activate(context: ExtensionContext) {
 
   // Start the client. This will also launch the server
   client.start();
+}
+
+function connectToTCPServer() : ServerOptions {
+  let serverExec: ServerOptions = function () {
+
+    return new Promise((resolve) => {
+      net.createServer(socket => {
+        let res: StreamInfo = { reader: <NodeJS.ReadableStream>socket, writer: socket };
+        resolve(res);
+      }).listen(23555, "localhost");
+
+    });
+  };
+  return serverExec;
 }
 
 export function deactivate(): Thenable<void> | undefined {
