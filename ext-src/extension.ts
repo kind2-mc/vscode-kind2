@@ -14,25 +14,15 @@ import {
   StreamInfo
 } from 'vscode-languageclient';
 import { setupAdapter } from './adapterSetup';
+import { WebPanel } from './webviewPanel';
 
 let client: LanguageClient;
 let disposables: vscode.Disposable[] = [];
 
 export async function activate(context: vscode.ExtensionContext) {
-  let Kind2WebviewContent = fs.readFileSync(context.asAbsolutePath(path.join('src', 'interpreter', 'interpreter.html'))).toString();
-
   context.subscriptions.push(
-    vscode.commands.registerCommand('catCoding.start', () => {
-      // Create and show panel
-      const panel = vscode.window.createWebviewPanel(
-        'catCoding',
-        'Cat Coding',
-        vscode.ViewColumn.One,
-        {}
-      );
-
-      // And set its HTML content
-      panel.webview.html = Kind2WebviewContent;
+    vscode.commands.registerCommand('angular-webview.start', () => {
+      WebPanel.createOrShow(context.extensionPath);
     })
   );
 
@@ -50,8 +40,6 @@ export async function activate(context: vscode.ExtensionContext) {
     debug: { command: serverCmd }
   };
 
-  let x = ["--color", "false"];
-
   // Options to control the language client
   let clientOptions: LanguageClientOptions = {
     // Register the server for plain text documents
@@ -60,7 +48,6 @@ export async function activate(context: vscode.ExtensionContext) {
       // Notify the server about file changes to '.clientrc files contained in the workspace
       fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
     },
-    //initializationOptions: x
   };
 
   // Create the language client and start the client.
@@ -77,19 +64,11 @@ export async function activate(context: vscode.ExtensionContext) {
     client.sendNotification("kind2/check", [uri, name]);
   }));
 
-  //context.subscriptions.push(disposable);
-
   // Setup the test adapter for components
   setupAdapter(context, client);
 
   // Start the client. This will also launch the server
   client.start();
-}
-
-function getWebViewPanel(): vscode.WebviewPanel {
-  //let webViewPanel: vscode.WebviewPanel = vscode.window.createWebviewPanel(, "Kind 2",);
-
-  return undefined;
 }
 
 function connectToTCPServer(): ServerOptions {
@@ -107,6 +86,7 @@ function connectToTCPServer(): ServerOptions {
 }
 
 export function deactivate(): Thenable<void> | undefined {
+  WebPanel.currentPanel?.dispose();
   if (disposables) {
     disposables.forEach(item => item.dispose());
   }

@@ -1,0 +1,23 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
+{
+  //"extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "outDir": "dist",
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "sourceMap": true,
+    "rootDir": ".",
+    //"outDir": "./out-tsc/ext",
+    //"types": []
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "files": [
+    "ext-src/extension.ts",
+  ]
+}

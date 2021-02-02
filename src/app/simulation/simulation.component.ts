@@ -7,14 +7,23 @@ import { Component, OnInit } from '@angular/core';
 })
 export class SimulationComponent implements OnInit {
 
-  constructor() { }
+  constructor() {
+    this.columns = [];
+  }
 
-  columns: number[] = [];
+  columns: number[];
 
-  initialSize: number = 10;
+  readonly initialSize: number = 10;
 
   ngOnInit(): void {
     this.changeColumns(this.initialSize);
+    window.addEventListener('message', () => {
+      
+    });
+  }
+
+  columnsChanged(event: Event): void {
+    this.changeColumns(Number.parseInt((event.target as HTMLInputElement).value));
   }
 
   changeColumns(size: number): void {

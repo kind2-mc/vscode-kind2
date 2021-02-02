@@ -1,6 +1,6 @@
 <div class="run">
     <label>Columns </label>
-    <input class="inputNumber" type="number" min="1" (change)="changeColumns($event.target.value)"
+    <input class="inputNumber" type="number" min="1" (change)="columnsChanged($event)"
         [attr.value]="columns.length">
 </div>
 <div ng-repeat="node in nodes" class="table-responsive">

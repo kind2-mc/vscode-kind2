@@ -13,10 +13,10 @@
             "outFiles": [
                 "${workspaceRoot}/out/**/*.js"
             ],
-            "preLaunchTask": {
+            /* "preLaunchTask": {
                 "type": "npm",
                 "script": "watch"
-            }
+            } */
         },
         {
             "name": "Language Server E2E Test",

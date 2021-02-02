@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient';
 import { TestAdapter, TestLoadStartedEvent, TestLoadFinishedEvent, TestRunStartedEvent, TestRunFinishedEvent, TestSuiteEvent, TestEvent, TestSuiteInfo, TestInfo, RetireEvent } from 'vscode-test-adapter-api';
 import { Log } from 'vscode-test-adapter-util';
+import { CounterExample } from './counterExample';
 
 /**
  * This class is intended as a starting point for implementing a "real" TestAdapter.
@@ -80,16 +81,16 @@ export class ExampleAdapter implements TestAdapter {
         for (const component of components) {
             let isNew: boolean = true;
             for (const child of this.testSuite.children) {
-                if (child.id === component.command.title) {
+                if (child.id === component.command!.title) {
                     isNew = false;
                 }
             }
             if (isNew) {
                 this.testSuite.children.push({
                     type: "suite",
-                    id: component.command.title,
-                    label: component.command.title,
-                    file: component.command.arguments[0].substr(7),
+                    id: component.command!.title,
+                    label: component.command!.title,
+                    file: component.command!.arguments![0].substr(7),
                     line: component.range.start.line,
                     children: []
                 });
@@ -181,6 +182,10 @@ export class ExampleAdapter implements TestAdapter {
         for (let i = 0; i < node.children.length; i++) {
             // TODO: improve on this...
             testStatesEmitter.fire(<TestEvent>{ type: 'test', test: node.children[i].id, state: `${result[i].answer === 0 ? 'passed' : 'failed'}` });
+            if (result[i].answer !== 0) {
+                let ce: [CounterExample] = await this.client.sendRequest("kind2/counterExample", [`file://${node.file}`, node.children[i].id]);
+                console.log(ce);
+            }
         }
 
 /*         for (const child of node.children) {
