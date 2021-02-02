@@ -56,7 +56,14 @@
           "description": "Traces the communication between VS Code and the language server."
         }
       }
-    }
+    },
+    "commands": [
+      {
+        "command": "catCoding.start",
+        "title": "Start new cat coding session",
+        "category": "Cat Coding"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

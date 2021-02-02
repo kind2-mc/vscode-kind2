@@ -3,28 +3,39 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
+import * as fs from 'fs';
+import * as net from 'net';
 import * as path from 'path';
-import { commands, Disposable, ExtensionContext, workspace } from 'vscode';
+import * as vscode from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
-  StreamInfo,
-  TransportKind
+  StreamInfo
 } from 'vscode-languageclient';
 import { setupAdapter } from './adapterSetup';
-import * as net from 'net';
 
 let client: LanguageClient;
-let disposables: Disposable[] = [];
+let disposables: vscode.Disposable[] = [];
 
-export function getLanguageClient() : LanguageClient {
-  return client;
-}
+export async function activate(context: vscode.ExtensionContext) {
+  let Kind2WebviewContent = fs.readFileSync(context.asAbsolutePath(path.join('src', 'interpreter', 'interpreter.html'))).toString();
 
-export async function activate(context: ExtensionContext) {
-  // Setup the test adapter for components
-  setupAdapter(context);
+  context.subscriptions.push(
+    vscode.commands.registerCommand('catCoding.start', () => {
+      // Create and show panel
+      const panel = vscode.window.createWebviewPanel(
+        'catCoding',
+        'Cat Coding',
+        vscode.ViewColumn.One,
+        {}
+      );
+
+      // And set its HTML content
+      panel.webview.html = Kind2WebviewContent;
+    })
+  );
+
   // The server is implemented in node
   let serverCmd = context.asAbsolutePath(
     path.join('kind2-lsp', 'bin', 'kind2-lsp')
@@ -47,7 +58,7 @@ export async function activate(context: ExtensionContext) {
     documentSelector: [{ scheme: 'file', language: 'lustre' }],
     synchronize: {
       // Notify the server about file changes to '.clientrc files contained in the workspace
-      fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
+      fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
     },
     //initializationOptions: x
   };
@@ -61,18 +72,27 @@ export async function activate(context: ExtensionContext) {
     clientOptions
   );
 
-  disposables.push(commands.registerCommand('kind2/check', (uri: String, name: String) => {
+  disposables.push(vscode.commands.registerCommand('kind2/check', (uri: String, name: String) => {
     client.traceOutputChannel.appendLine("Sending notification 'kind2/check'.")
     client.sendNotification("kind2/check", [uri, name]);
   }));
 
   //context.subscriptions.push(disposable);
 
+  // Setup the test adapter for components
+  setupAdapter(context, client);
+
   // Start the client. This will also launch the server
   client.start();
 }
 
-function connectToTCPServer() : ServerOptions {
+function getWebViewPanel(): vscode.WebviewPanel {
+  //let webViewPanel: vscode.WebviewPanel = vscode.window.createWebviewPanel(, "Kind 2",);
+
+  return undefined;
+}
+
+function connectToTCPServer(): ServerOptions {
   let serverExec: ServerOptions = function () {
 
     return new Promise((resolve) => {
