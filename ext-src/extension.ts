@@ -14,6 +14,7 @@ import {
   StreamInfo
 } from 'vscode-languageclient';
 import { setupAdapter } from './adapterSetup';
+import { CounterExample } from './counterExample';
 import { WebPanel } from './webviewPanel';
 
 let client: LanguageClient;
@@ -62,6 +63,14 @@ export async function activate(context: vscode.ExtensionContext) {
   disposables.push(vscode.commands.registerCommand('kind2/check', (uri: String, name: String) => {
     client.traceOutputChannel.appendLine("Sending notification 'kind2/check'.")
     client.sendNotification("kind2/check", [uri, name]);
+  }));
+
+  disposables.push(vscode.commands.registerCommand('kind2/counterExample', async (name: String) => {
+    let ce: CounterExample = await client.sendRequest("kind2/counterExample", name).then(result => {
+      return JSON.parse(result as string);
+    });
+    WebPanel.createOrShow(context.extensionPath);
+    WebPanel.currentPanel?.sendMessage(ce);
   }));
 
   // Setup the test adapter for components

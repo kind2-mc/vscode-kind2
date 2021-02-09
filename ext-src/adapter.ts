@@ -3,6 +3,7 @@ import { LanguageClient } from 'vscode-languageclient';
 import { TestAdapter, TestLoadStartedEvent, TestLoadFinishedEvent, TestRunStartedEvent, TestRunFinishedEvent, TestSuiteEvent, TestEvent, TestSuiteInfo, TestInfo, RetireEvent } from 'vscode-test-adapter-api';
 import { Log } from 'vscode-test-adapter-util';
 import { CounterExample } from './counterExample';
+import { WebPanel } from './webviewPanel';
 
 /**
  * This class is intended as a starting point for implementing a "real" TestAdapter.
@@ -64,7 +65,7 @@ export class ExampleAdapter implements TestAdapter {
 
         this.testsEmitter.fire(<TestLoadFinishedEvent>{ type: 'finished', suite: this.testSuite });
 
-        this.retireEmitter.fire({tests: []});
+        this.retireEmitter.fire({ tests: [] });
 
         this.isLoading = false;
     }
@@ -157,7 +158,9 @@ export class ExampleAdapter implements TestAdapter {
 
         testStatesEmitter.fire(<TestSuiteEvent>{ type: 'suite', suite: node.id, state: 'running' });
 
-        let result: Array<any> = await this.client.sendRequest("kind2/check2", [`file://${node.file}`, node.label]);
+        let result: any[] = await this.client.sendRequest("kind2/check2", [`file://${node.file}`, node.label]).then(result => {
+            return (result as string[]).map((s: string) => JSON.parse(s));
+        });
 
         node.children = [];
         result[0];
@@ -165,8 +168,8 @@ export class ExampleAdapter implements TestAdapter {
         for (const property of result) {
             node.children.push({
                 type: "test",
-                id: property.jsonName,
-                label: property.jsonName,
+                id: property.name,
+                label: property.name,
                 file: property.file,
                 line: property.line - 1
             });
@@ -181,17 +184,13 @@ export class ExampleAdapter implements TestAdapter {
 
         for (let i = 0; i < node.children.length; i++) {
             // TODO: improve on this...
-            testStatesEmitter.fire(<TestEvent>{ type: 'test', test: node.children[i].id, state: `${result[i].answer === 0 ? 'passed' : 'failed'}` });
-            if (result[i].answer !== 0) {
-                let ce: [CounterExample] = await this.client.sendRequest("kind2/counterExample", [`file://${node.file}`, node.children[i].id]);
-                console.log(ce);
-            }
+            testStatesEmitter.fire(<TestEvent>{ type: 'test', test: node.children[i].id, state: `${result[i].answer.value === "valid" ? 'passed' : 'failed'}` });
         }
 
-/*         for (const child of node.children) {
-            // TODO: improve on this...
-            testStatesEmitter.fire(<TestEvent>{ type: 'test', test: node.id, state: `${result. ? 'passed' : 'failed'}` });
-        } */
+        /*         for (const child of node.children) {
+                    // TODO: improve on this...
+                    testStatesEmitter.fire(<TestEvent>{ type: 'test', test: node.id, state: `${result. ? 'passed' : 'failed'}` });
+                } */
 
         testStatesEmitter.fire(<TestSuiteEvent>{ type: 'suite', suite: node.id, state: 'completed' });
     }

@@ -19,7 +19,7 @@ export class WebPanel {
   private disposables: vscode.Disposable[] = [];
 
   public static createOrShow(extensionPath: string) {
-    const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
+    const column = vscode.ViewColumn.Beside;
 
     // If we already have a panel, show it.
     // Otherwise, create angular panel.
@@ -29,6 +29,10 @@ export class WebPanel {
       WebPanel.currentPanel = new WebPanel(extensionPath, column || vscode.ViewColumn.One);
     }
     return WebPanel.currentPanel;
+  }
+
+  public sendMessage(message: any): void {
+    this.panel.webview.postMessage(message);
   }
 
   private constructor(extensionPath: string, column: vscode.ViewColumn) {

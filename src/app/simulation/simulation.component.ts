@@ -17,9 +17,6 @@ export class SimulationComponent implements OnInit {
 
   ngOnInit(): void {
     this.changeColumns(this.initialSize);
-    window.addEventListener('message', () => {
-      
-    });
   }
 
   columnsChanged(event: Event): void {

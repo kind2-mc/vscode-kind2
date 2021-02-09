@@ -1,0 +1,24 @@
+<div class="counterExample">
+  <div *ngFor="let component of components" class="table-responsive">
+    <label class="componentName">{{component.blockType}}: {{component.name}}</label>
+    <table class="table table-striped interpreter table-hover">
+      <thead>
+        <tr>
+          <th class="streamName">Time</th>
+          <th *ngFor="let value of component.streams[0].instantValues">{{value[0]}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let stream of component.streams">
+          <td class="streamName" [ngSwitch]="stream.class">
+            <i ng *ngSwitchCase="&quot;input&quot;" class="fa fa-sign-in inputIcon" aria-hidden="true"></i>
+            <i *ngSwitchCase="&quot;output&quot;" class="fa fa-sign-out outputIcon" aria-hidden="true"></i>
+            <i *ngSwitchCase="&quot;local&quot;" class="fa fa-map-marker localIcon" aria-hidden="true"></i>
+            {{stream.name}} ({{stream.type}})
+          </td>
+          <td *ngFor="let value of stream.instantValues">{{value[1]}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
