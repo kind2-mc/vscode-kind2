@@ -37,7 +37,7 @@ export class WebPanel {
 
   private constructor(extensionPath: string, column: vscode.ViewColumn) {
     this.extensionPath = extensionPath;
-    this.builtAppFolder = path.join('dist', 'Kind2Simulation');
+    this.builtAppFolder = path.join('kind2-simulation');
 
     // Create and show a new webview panel
     this.panel = vscode.window.createWebviewPanel(WebPanel.viewType, 'My Angular Webview', column, {
@@ -57,12 +57,9 @@ export class WebPanel {
 
     // Handle messages from the webview
     this.panel.webview.onDidReceiveMessage(
-      (message: any) => {
-        switch (message.command) {
-          case 'alert':
-            vscode.window.showErrorMessage(message.text);
-            return;
-        }
+      async (message: any) => {
+        await vscode.commands.executeCommand(message.command, message.args[0], message.args[1], message.args[2]);
+        console.log("here");
       },
       null,
       this.disposables
@@ -88,7 +85,7 @@ export class WebPanel {
    */
   private _getHtmlForWebview() {
     // path to dist folder
-    const appDistPath = path.join(this.extensionPath, 'dist', 'Kind2Simulation');
+    const appDistPath = path.join(this.extensionPath, 'kind2-simulation');
     const appDistPathUri = vscode.Uri.file(appDistPath);
 
     // path as uri

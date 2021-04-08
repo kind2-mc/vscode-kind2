@@ -65,12 +65,16 @@ export async function activate(context: vscode.ExtensionContext) {
     client.sendNotification("kind2/check", [uri, name]);
   }));
 
-  disposables.push(vscode.commands.registerCommand('kind2/counterExample', async (name: String) => {
-    let ce: CounterExample = await client.sendRequest("kind2/counterExample", name).then(result => {
-      return JSON.parse(result as string);
-    });
+  disposables.push(vscode.commands.registerCommand('kind2/counterExample', async (uri: String, main: String, name: String) => {
+    let ce: String = await client.sendRequest("kind2/counterExample", name);
     WebPanel.createOrShow(context.extensionPath);
-    WebPanel.currentPanel?.sendMessage(ce);
+    WebPanel.currentPanel?.sendMessage({ uri: uri, main: main, json: ce });
+  }));
+
+  disposables.push(vscode.commands.registerCommand('kind2/interpret', async (uri: String, main: String, json: String) => {
+    let interp: String = await client.sendRequest("kind2/interpret", [uri, main, json]);
+    WebPanel.createOrShow(context.extensionPath);
+    WebPanel.currentPanel?.sendMessage({ uri: uri, main: main, json: interp });
   }));
 
   // Setup the test adapter for components

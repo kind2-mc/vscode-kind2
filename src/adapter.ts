@@ -2,8 +2,6 @@ import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient';
 import { TestAdapter, TestLoadStartedEvent, TestLoadFinishedEvent, TestRunStartedEvent, TestRunFinishedEvent, TestSuiteEvent, TestEvent, TestSuiteInfo, TestInfo, RetireEvent } from 'vscode-test-adapter-api';
 import { Log } from 'vscode-test-adapter-util';
-import { CounterExample } from './counterExample';
-import { WebPanel } from './webviewPanel';
 
 /**
  * This class is intended as a starting point for implementing a "real" TestAdapter.
