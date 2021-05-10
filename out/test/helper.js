@@ -27,12 +27,14 @@ exports.activate = activate;
 async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-exports.getDocPath = (p) => {
+const getDocPath = (p) => {
     return path.resolve(__dirname, '../../testFixture', p);
 };
-exports.getDocUri = (p) => {
+exports.getDocPath = getDocPath;
+const getDocUri = (p) => {
     return vscode.Uri.file(exports.getDocPath(p));
 };
+exports.getDocUri = getDocUri;
 async function setTestContent(content) {
     const all = new vscode.Range(exports.doc.positionAt(0), exports.doc.positionAt(exports.doc.getText().length));
     return exports.editor.edit(eb => eb.replace(all, content));

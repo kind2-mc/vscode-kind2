@@ -5,33 +5,29 @@
  * ------------------------------------------------------------------------------------------ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
-const fs = require("fs");
 const net = require("net");
 const path = require("path");
 const vscode = require("vscode");
 const vscode_languageclient_1 = require("vscode-languageclient");
-const adapterSetup_1 = require("./adapterSetup");
+const Kind2_1 = require("./Kind2");
+const webviewPanel_1 = require("./webviewPanel");
 let client;
-let disposables = [];
+let kind2;
 async function activate(context) {
-    let Kind2WebviewContent = fs.readFileSync(context.asAbsolutePath(path.join('src', 'interpreter', 'interpreter.html'))).toString();
-    context.subscriptions.push(vscode.commands.registerCommand('catCoding.start', () => {
-        // Create and show panel
-        const panel = vscode.window.createWebviewPanel('catCoding', 'Cat Coding', vscode.ViewColumn.One, {});
-        // And set its HTML content
-        panel.webview.html = Kind2WebviewContent;
-    }));
+    let registerCommand = (command, callback) => {
+        context.subscriptions.push(vscode.commands.registerCommand(command, callback));
+    };
+    registerCommand('angular-webview.start', () => {
+        webviewPanel_1.WebPanel.createOrShow(context.extensionPath);
+    });
     // The server is implemented in node
     let serverCmd = context.asAbsolutePath(path.join('kind2-lsp', 'bin', 'kind2-lsp'));
-    // The debug options for the server
-    // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
     // If the extension is launched in debug mode then the debug server options are used
     // Otherwise the run options are used
     let serverOptions = {
         run: { command: serverCmd },
         debug: { command: serverCmd }
     };
-    let x = ["--color", "false"];
     // Options to control the language client
     let clientOptions = {
         // Register the server for plain text documents
@@ -45,23 +41,35 @@ async function activate(context) {
     client = new vscode_languageclient_1.LanguageClient('vscode-kind2', 'Kind 2', 
     //serverOptions,
     connectToTCPServer(), clientOptions);
-    disposables.push(vscode.commands.registerCommand('kind2/check', (uri, name) => {
-        client.traceOutputChannel.appendLine("Sending notification 'kind2/check'.");
-        client.sendNotification("kind2/check", [uri, name]);
-    }));
-    //context.subscriptions.push(disposable);
+    kind2 = new Kind2_1.Kind2(context, client);
+    registerCommand('kind2/check', async (node) => await kind2.check(node));
+    registerCommand('kind2/raw', (component) => kind2.raw(component));
+    registerCommand('kind2/counterExample', async (property) => {
+        await kind2.counterExample(property);
+    });
+    registerCommand('kind2/interpret', async (component, json) => {
+        if (component instanceof Array) {
+            await kind2.interpret(component[0], component[1], json);
+        }
+        else {
+            await kind2.interpret(component.uri, component.name, json);
+        }
+    });
+    registerCommand('kind2/showSource', (node) => kind2.showSource(node));
+    const treeView = vscode.window.createTreeView("properties", { treeDataProvider: kind2, canSelectMany: false, showCollapseAll: true });
+    registerCommand('kind2/reveal', (node) => kind2.reveal(node, treeView));
+    context.subscriptions.push(treeView);
+    const documentSelector = { language: "lustre" };
+    context.subscriptions.push(vscode.languages.registerCodeLensProvider(documentSelector, kind2));
     // Setup the test adapter for components
-    adapterSetup_1.setupAdapter(context, client);
+    // setupAdapter(context, client);
     // Start the client. This will also launch the server
     client.start();
+    await client.onReady().then(async () => client.onNotification("kind2/updateComponents", (uri) => kind2.updateComponents(uri)));
 }
 exports.activate = activate;
-function getWebViewPanel() {
-    //let webViewPanel: vscode.WebviewPanel = vscode.window.createWebviewPanel(, "Kind 2",);
-    return undefined;
-}
 function connectToTCPServer() {
-    let serverExec = function () {
+    let serverExec = () => {
         return new Promise((resolve) => {
             net.createServer(socket => {
                 let res = { reader: socket, writer: socket };
@@ -72,10 +80,8 @@ function connectToTCPServer() {
     return serverExec;
 }
 function deactivate() {
-    if (disposables) {
-        disposables.forEach(item => item.dispose());
-    }
-    disposables = [];
+    var _a;
+    (_a = webviewPanel_1.WebPanel.currentPanel) === null || _a === void 0 ? void 0 : _a.dispose();
     if (!client) {
         return undefined;
     }

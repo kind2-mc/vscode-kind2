@@ -1,8 +1,9 @@
-export type CounterExample = {
+export type Interpretation = {
     blockType: string,
     name: string,
     streams: Stream[],
     activeModes: any
+    subnodes: Interpretation[] | undefined
 }
 
 export type Stream = {

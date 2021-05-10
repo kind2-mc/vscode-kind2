@@ -1,2 +1,3 @@
 cp ../kind2-lsp/build/distributions/kind2-lsp.tar .
 tar -xf kind2-lsp.tar
+cp -r ../kind2-simulation/dist/kind2-simulation .

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ExampleAdapter = void 0;
 const vscode = require("vscode");
+const vscode_1 = require("vscode");
 /**
  * This class is intended as a starting point for implementing a "real" TestAdapter.
  * The file `README.md` contains further instructions.
@@ -44,9 +45,10 @@ class ExampleAdapter {
         this.isLoading = false;
     }
     async loadFakeTests() {
+        var _a;
         if (!(this.client === undefined || this.client.needsStart())) {
             this.client.traceOutputChannel.appendLine("Sending request 'kind2/getComponents'.");
-            const components = await this.client.sendRequest("kind2/getComponents");
+            const components = await this.client.sendRequest("kind2/getComponents", (_a = vscode.window.activeTextEditor) === null || _a === void 0 ? void 0 : _a.document.uri.toString());
             this.buildTree(components);
         }
     }
@@ -111,14 +113,16 @@ class ExampleAdapter {
     }
     async runComponent(node, testStatesEmitter) {
         testStatesEmitter.fire({ type: 'suite', suite: node.id, state: 'running' });
-        let result = await this.client.sendRequest("kind2/check2", [`file://${node.file}`, node.label]);
+        let result = await this.client.sendRequest("kind2/check2", [vscode_1.Uri.file(node.file).toString(), node.label]).then(result => {
+            return result.map((s) => JSON.parse(s));
+        });
         node.children = [];
         result[0];
         for (const property of result) {
             node.children.push({
                 type: "test",
-                id: property.jsonName,
-                label: property.jsonName,
+                id: property.name,
+                label: property.name,
                 file: property.file,
                 line: property.line - 1
             });
@@ -130,7 +134,7 @@ class ExampleAdapter {
         }
         for (let i = 0; i < node.children.length; i++) {
             // TODO: improve on this...
-            testStatesEmitter.fire({ type: 'test', test: node.children[i].id, state: `${result[i].answer === 0 ? 'passed' : 'failed'}` });
+            testStatesEmitter.fire({ type: 'test', test: node.children[i].id, state: `${result[i].answer.value === "valid" ? 'passed' : 'failed'}` });
         }
         /*         for (const child of node.children) {
                     // TODO: improve on this...

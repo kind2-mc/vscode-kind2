@@ -3,7 +3,6 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import * as fs from 'fs';
 import * as net from 'net';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -13,26 +12,26 @@ import {
   ServerOptions,
   StreamInfo
 } from 'vscode-languageclient';
-import { setupAdapter } from './adapterSetup';
-import { CounterExample } from './counterExample';
+import { Kind2 } from './Kind2';
+import { TreeNode } from './treeNode';
 import { WebPanel } from './webviewPanel';
 
 let client: LanguageClient;
-let disposables: vscode.Disposable[] = [];
+let kind2: Kind2;
 
 export async function activate(context: vscode.ExtensionContext) {
-  context.subscriptions.push(
-    vscode.commands.registerCommand('angular-webview.start', () => {
-      WebPanel.createOrShow(context.extensionPath);
-    })
-  );
+  let registerCommand = (command: string, callback: (...args: any[]) => any): void => {
+    context.subscriptions.push(vscode.commands.registerCommand(command, callback));
+  };
+
+  registerCommand('angular-webview.start', () => {
+    WebPanel.createOrShow(context.extensionPath);
+  });
 
   // The server is implemented in node
   let serverCmd = context.asAbsolutePath(
     path.join('kind2-lsp', 'bin', 'kind2-lsp')
   );
-  // The debug options for the server
-  // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
@@ -60,32 +59,47 @@ export async function activate(context: vscode.ExtensionContext) {
     clientOptions
   );
 
-  disposables.push(vscode.commands.registerCommand('kind2/check', (uri: String, name: String) => {
-    client.traceOutputChannel.appendLine("Sending notification 'kind2/check'.")
-    client.sendNotification("kind2/check", [uri, name]);
-  }));
+  kind2 = new Kind2(context, client);
 
-  disposables.push(vscode.commands.registerCommand('kind2/counterExample', async (uri: String, main: String, name: String) => {
-    let ce: String = await client.sendRequest("kind2/counterExample", name);
-    WebPanel.createOrShow(context.extensionPath);
-    WebPanel.currentPanel?.sendMessage({ uri: uri, main: main, json: ce });
-  }));
+  registerCommand('kind2/check', async (node: TreeNode) => await kind2.check(node));
 
-  disposables.push(vscode.commands.registerCommand('kind2/interpret', async (uri: String, main: String, json: String) => {
-    let interp: String = await client.sendRequest("kind2/interpret", [uri, main, json]);
-    WebPanel.createOrShow(context.extensionPath);
-    WebPanel.currentPanel?.sendMessage({ uri: uri, main: main, json: interp });
-  }));
+  registerCommand('kind2/raw', (component: TreeNode) => kind2.raw(component));
+
+  registerCommand('kind2/counterExample', async (property: TreeNode) => {
+    await kind2.counterExample(property);
+  });
+
+  registerCommand('kind2/interpret', async (component: TreeNode | [string, string], json: string) => {
+    if (component instanceof Array) {
+      await kind2.interpret(component[0], component[1], json);
+    }
+    else {
+      await kind2.interpret(component.uri, component.name, json);
+    }
+  });
+
+  registerCommand('kind2/showSource', (node: TreeNode) => kind2.showSource(node));
+
+  const treeView = vscode.window.createTreeView("properties", { treeDataProvider: kind2, canSelectMany: false, showCollapseAll: true });
+
+  registerCommand('kind2/reveal', (node: TreeNode) => kind2.reveal(node, treeView));
+
+  context.subscriptions.push(treeView);
+  const documentSelector: vscode.DocumentFilter = { language: "lustre" };
+  context.subscriptions.push(vscode.languages.registerCodeLensProvider(documentSelector, kind2));
 
   // Setup the test adapter for components
-  setupAdapter(context, client);
+  // setupAdapter(context, client);
 
   // Start the client. This will also launch the server
   client.start();
+
+  await client.onReady().then(async () =>
+    client.onNotification("kind2/updateComponents", (uri: string) => kind2.updateComponents(uri)));
 }
 
 function connectToTCPServer(): ServerOptions {
-  let serverExec: ServerOptions = function () {
+  let serverExec: ServerOptions = () => {
 
     return new Promise((resolve) => {
       net.createServer(socket => {
@@ -100,10 +114,6 @@ function connectToTCPServer(): ServerOptions {
 
 export function deactivate(): Thenable<void> | undefined {
   WebPanel.currentPanel?.dispose();
-  if (disposables) {
-    disposables.forEach(item => item.dispose());
-  }
-  disposables = [];
   if (!client) {
     return undefined;
   }
