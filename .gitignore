@@ -1,4 +1,6 @@
-.vscode
-node_modules
-out
-kind2-lsp
+/.vscode
+/node_modules
+/out
+/kind2-language-server
+/linux
+/macos

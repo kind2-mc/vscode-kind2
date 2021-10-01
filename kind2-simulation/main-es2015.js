@@ -163,262 +163,23 @@ function SimulationComponent_div_7_Template(rf, ctx) { if (rf & 1) {
 } }
 class SimulationComponent {
     constructor() {
-        this._main = { name: "Stopwatch", uri: "" };
-        // this.components = [];
-        this._components = this.flatten(JSON.parse(`[
-    {
-      "blockType" : "node",
-      "name" : "Stopwatch",
-      "streams" :
-      [
-        {
-          "name" : "toggle",
-          "type" : "bool",
-          "class" : "input",
-          "instantValues" : []
-        },
-        {
-          "name" : "reset",
-          "type" : "bool",
-          "class" : "input",
-          "instantValues" : []
-        },
-        {
-          "name" : "count",
-          "type" : "int",
-          "class" : "output",
-          "instantValues" : []
-        },
-        {
-          "name" : "running",
-          "type" : "bool",
-          "class" : "local",
-          "instantValues" : []
-        }
-      ],
-      "subnodes" :
-      [
-        {
-          "blockType" : "node",
-          "name" : "Count",
-          "streams" :
-          [
-            {
-              "name" : "X",
-              "type" : "bool",
-              "class" : "input",
-              "instantValues" : []
-            },
-            {
-              "name" : "N",
-              "type" : "int",
-              "class" : "output",
-              "instantValues" : []
+        this._uri = "";
+        this._main = "";
+        this._components = [];
+        // Handle the message inside the webview
+        window.addEventListener('message', event => {
+            console.log(event);
+            if (event.data.uri !== undefined && event.data.main !== undefined && event.data.json !== undefined) {
+                this._uri = event.data.uri;
+                this._main = event.data.main;
+                this._components = this.flatten(JSON.parse(event.data.json)[0]);
             }
-          ],
-          "subnodes" :
-          [
-            {
-              "blockType" : "function",
-              "name" : "toInt",
-              "streams" :
-              [
-                {
-                  "name" : "X",
-                  "type" : "bool",
-                  "class" : "input",
-                  "instantValues" : []
-                },
-                {
-                  "name" : "N",
-                  "type" : "subrange",
-                  "typeInfo" :
-                  {
-                    "min" : 0,
-                    "max" : 1
-                  },
-                  "class" : "output",
-                  "instantValues" : []
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "blockType" : "node",
-          "name" : "Increased",
-          "streams" :
-          [
-            {
-              "name" : "N",
-              "type" : "int",
-              "class" : "input",
-              "instantValues" : []
-            },
-            {
-              "name" : "B",
-              "type" : "bool",
-              "class" : "output",
-              "instantValues" : []
-            }
-          ]
-        },
-        {
-          "blockType" : "node",
-          "name" : "Since",
-          "streams" :
-          [
-            {
-              "name" : "X",
-              "type" : "bool",
-              "class" : "input",
-              "instantValues" : []
-            },
-            {
-              "name" : "Y",
-              "type" : "bool",
-              "class" : "input",
-              "instantValues" : []
-            },
-            {
-              "name" : "Z",
-              "type" : "bool",
-              "class" : "output",
-              "instantValues" : []
-            }
-          ]
-        },
-        {
-          "blockType" : "node",
-          "name" : "Stable",
-          "streams" :
-          [
-            {
-              "name" : "N",
-              "type" : "int",
-              "class" : "input",
-              "instantValues" : []
-            },
-            {
-              "name" : "B",
-              "type" : "bool",
-              "class" : "output",
-              "instantValues" : []
-            }
-          ]
-        },
-        {
-          "blockType" : "node",
-          "name" : "Since",
-          "streams" :
-          [
-            {
-              "name" : "X",
-              "type" : "bool",
-              "class" : "input",
-              "instantValues" : []
-            },
-            {
-              "name" : "Y",
-              "type" : "bool",
-              "class" : "input",
-              "instantValues" : []
-            },
-            {
-              "name" : "Z",
-              "type" : "bool",
-              "class" : "output",
-              "instantValues" : []
-            }
-          ]
-        },
-        {
-          "blockType" : "function",
-          "name" : "even",
-          "streams" :
-          [
-            {
-              "name" : "N",
-              "type" : "int",
-              "class" : "input",
-              "instantValues" : []
-            },
-            {
-              "name" : "B",
-              "type" : "bool",
-              "class" : "output",
-              "instantValues" : []
-            },
-            {
-              "name" : "x",
-              "type" : "int",
-              "class" : "local",
-              "instantValues" : []
-            }
-          ]
-        },
-        {
-          "blockType" : "node",
-          "name" : "Count",
-          "streams" :
-          [
-            {
-              "name" : "X",
-              "type" : "bool",
-              "class" : "input",
-              "instantValues" : []
-            },
-            {
-              "name" : "N",
-              "type" : "int",
-              "class" : "output",
-              "instantValues" : []
-            }
-          ],
-          "subnodes" :
-          [
-            {
-              "blockType" : "function",
-              "name" : "toInt",
-              "streams" :
-              [
-                {
-                  "name" : "X",
-                  "type" : "bool",
-                  "class" : "input",
-                  "instantValues" : []
-                },
-                {
-                  "name" : "N",
-                  "type" : "subrange",
-                  "typeInfo" :
-                  {
-                    "min" : 0,
-                    "max" : 1
-                  },
-                  "class" : "output",
-                  "instantValues" : []
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]`)[0]);
+        });
     }
     get components() {
         return this._components;
     }
     ngOnInit() {
-        // Handle the message inside the webview
-        window.addEventListener('message', event => {
-            console.log(event);
-            if (event.data.main !== undefined && event.data.json !== undefined) {
-                this._main = event.data.main;
-                this._components = this.flatten(JSON.parse(event.data.json)[0]);
-            }
-        });
     }
     flatten(interp) {
         console.log(interp);
@@ -519,7 +280,7 @@ class SimulationComponent {
             }
             json.push(object);
         }
-        vscode.postMessage({ command: "kind2/interpret", args: [this._main, JSON.stringify(json)] });
+        vscode.postMessage({ command: "kind2/interpret", args: [{ uri: this._uri, name: this._main }, JSON.stringify(json)] });
     }
 }
 SimulationComponent.ɵfac = function SimulationComponent_Factory(t) { return new (t || SimulationComponent)(); };
