@@ -27,7 +27,7 @@ Windows is only supported through [WSL2](https://docs.microsoft.com/en-us/window
 ![WSL window](gifs/wsl.png)
 5. Press `` Ctrl+Shift+` `` to open a Linux terminal on the new VS Code window. Use the terminal to install the Java run-time and the ZeroMQ messaging library (follow the instructions in the above section for your Linux distribution).
 6. In the same VS Code window, go to the extension view in the activity bar to the left and lookup the `Kind 2` extension. Click `Install in WSL: <distro name>`.
-
+![Install extension](gifs/install.png)
 Refer to [this page](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-vscode) to learn more about using WSL with VS Code.
 
 ## Main Features
