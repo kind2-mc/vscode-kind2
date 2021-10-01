@@ -1,4 +1,28 @@
-export interface TreeNode {
+/*
+ * Copyright (c) 2021, Board of Trustees of the University of Iowa All rights reserved.
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
+import { TextEditorDecorationType, ThemeColor, ThemeIcon, window } from "vscode";
+
+export type TreeNode = File | Component | Property;
+
+export interface File {
+  readonly kind: "file";
+  readonly parent: undefined;
+}
+
+export class File implements File {
+  components: Component[];
+  readonly line: number;
+  constructor(readonly uri: string) {
+    this.components = [];
+    this.line = 1;
+  }
+}
+
+export interface TreeNode2 {
   readonly name: string;
   readonly uri: string;
   readonly line: number;
@@ -6,57 +30,59 @@ export interface TreeNode {
   readonly parent: TreeNode | undefined;
 }
 
-export class ComponentNode implements TreeNode {
+export interface Component {
+  readonly kind: "component";
+}
+
+export class Component implements Component {
   private _state: State;
-  private _children: TreeNode[];
-  get name(): string { return this._name; }
-  get uri(): string { return this._uri; }
-  get line(): number { return this._line; }
-  get parent(): TreeNode | undefined { return this._parent; }
-  get children(): TreeNode[] { return this._children; }
+  private _properties: Property[];
+  set properties(properties: Property[]) { this._properties = properties; }
+  get properties(): Property[] { return this._properties; }
   set state(state: State) {
-    if (this._children.length == 0) {
+    if (this._properties.length == 0) {
       this._state = state;
     }
-    for (let child of this._children) {
+    for (let child of this._properties) {
       child.state = state;
     }
   }
   get state(): State {
-    if (this._children.length == 0) {
+    if (this._properties.length == 0) {
       return this._state;
     }
-    for (const child of this._children) {
+    for (const child of this._properties) {
       if (child.state === "running") { return "running"; }
     }
-    for (const child of this._children) {
+    for (const child of this._properties) {
       if (child.state === "failed") { return "failed"; }
     }
-    for (const child of this._children) {
+    for (const child of this._properties) {
       if (child.state === "passed") { return "passed"; }
     }
     return "pending";
   }
-  constructor(private _name: string, private _uri: string, private _line: number, private _parent: TreeNode | undefined = undefined) {
+  get uri(): string { return this.parent.uri; }
+  constructor(readonly name: string, readonly line: number, readonly parent: File) {
     this._state = "pending";
-    this._children = [];
+    this._properties = [];
   }
 }
 
-export class PropertyNode implements TreeNode {
+export interface Property {
+  readonly kind: "property";
+}
+
+export class Property implements Property {
   private _state: State;
-  get name(): string { return this._name; }
-  get uri(): string { return this._uri; }
-  get line(): number { return this._line; }
   set state(state: State) { this._state = state; }
   get state(): State { return this._state; }
-  get parent(): TreeNode { return this._parent; }
-  constructor(private _name: string, private _uri: string, private _line: number, private _parent: TreeNode) {
+  constructor(readonly name: string, readonly line: number, readonly uri: string, readonly parent: Component) {
     this._state = "pending";
   }
 }
 
-type State = "pending" | "running" | "passed" | "failed"
+export type State = "pending" | "running" | "passed" | "failed";
 
 export function statePath(state: State) {
   switch (state) {
@@ -68,5 +94,18 @@ export function statePath(state: State) {
       return "icons/passed.svg";
     case "failed":
       return "icons/failed.svg";
+  }
+}
+
+export function stateIcon(state: State) {
+  switch (state) {
+    case "pending":
+      return new ThemeIcon("$(testing-unset-icon)", new ThemeColor("testing.iconUnset"));
+    case "running":
+      return new ThemeIcon("$(testing-queued-icon)", new ThemeColor("testing.iconQueued"));
+    case "passed":
+      return new ThemeIcon("$(testing-passed-icon)", new ThemeColor("testing.iconPassed"));
+    case "failed":
+      return new ThemeIcon("$(testing-failed-icon)", new ThemeColor("testing.iconFailed"));
   }
 }

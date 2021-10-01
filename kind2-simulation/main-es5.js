@@ -334,14 +334,23 @@
 
       var SimulationComponent = /*#__PURE__*/function () {
         function SimulationComponent() {
+          var _this = this;
+
           _classCallCheck(this, SimulationComponent);
 
-          this._main = {
-            name: "Stopwatch",
-            uri: ""
-          }; // this.components = [];
+          this._uri = "";
+          this._main = "";
+          this._components = []; // Handle the message inside the webview
 
-          this._components = this.flatten(JSON.parse("[\n    {\n      \"blockType\" : \"node\",\n      \"name\" : \"Stopwatch\",\n      \"streams\" :\n      [\n        {\n          \"name\" : \"toggle\",\n          \"type\" : \"bool\",\n          \"class\" : \"input\",\n          \"instantValues\" : []\n        },\n        {\n          \"name\" : \"reset\",\n          \"type\" : \"bool\",\n          \"class\" : \"input\",\n          \"instantValues\" : []\n        },\n        {\n          \"name\" : \"count\",\n          \"type\" : \"int\",\n          \"class\" : \"output\",\n          \"instantValues\" : []\n        },\n        {\n          \"name\" : \"running\",\n          \"type\" : \"bool\",\n          \"class\" : \"local\",\n          \"instantValues\" : []\n        }\n      ],\n      \"subnodes\" :\n      [\n        {\n          \"blockType\" : \"node\",\n          \"name\" : \"Count\",\n          \"streams\" :\n          [\n            {\n              \"name\" : \"X\",\n              \"type\" : \"bool\",\n              \"class\" : \"input\",\n              \"instantValues\" : []\n            },\n            {\n              \"name\" : \"N\",\n              \"type\" : \"int\",\n              \"class\" : \"output\",\n              \"instantValues\" : []\n            }\n          ],\n          \"subnodes\" :\n          [\n            {\n              \"blockType\" : \"function\",\n              \"name\" : \"toInt\",\n              \"streams\" :\n              [\n                {\n                  \"name\" : \"X\",\n                  \"type\" : \"bool\",\n                  \"class\" : \"input\",\n                  \"instantValues\" : []\n                },\n                {\n                  \"name\" : \"N\",\n                  \"type\" : \"subrange\",\n                  \"typeInfo\" :\n                  {\n                    \"min\" : 0,\n                    \"max\" : 1\n                  },\n                  \"class\" : \"output\",\n                  \"instantValues\" : []\n                }\n              ]\n            }\n          ]\n        },\n        {\n          \"blockType\" : \"node\",\n          \"name\" : \"Increased\",\n          \"streams\" :\n          [\n            {\n              \"name\" : \"N\",\n              \"type\" : \"int\",\n              \"class\" : \"input\",\n              \"instantValues\" : []\n            },\n            {\n              \"name\" : \"B\",\n              \"type\" : \"bool\",\n              \"class\" : \"output\",\n              \"instantValues\" : []\n            }\n          ]\n        },\n        {\n          \"blockType\" : \"node\",\n          \"name\" : \"Since\",\n          \"streams\" :\n          [\n            {\n              \"name\" : \"X\",\n              \"type\" : \"bool\",\n              \"class\" : \"input\",\n              \"instantValues\" : []\n            },\n            {\n              \"name\" : \"Y\",\n              \"type\" : \"bool\",\n              \"class\" : \"input\",\n              \"instantValues\" : []\n            },\n            {\n              \"name\" : \"Z\",\n              \"type\" : \"bool\",\n              \"class\" : \"output\",\n              \"instantValues\" : []\n            }\n          ]\n        },\n        {\n          \"blockType\" : \"node\",\n          \"name\" : \"Stable\",\n          \"streams\" :\n          [\n            {\n              \"name\" : \"N\",\n              \"type\" : \"int\",\n              \"class\" : \"input\",\n              \"instantValues\" : []\n            },\n            {\n              \"name\" : \"B\",\n              \"type\" : \"bool\",\n              \"class\" : \"output\",\n              \"instantValues\" : []\n            }\n          ]\n        },\n        {\n          \"blockType\" : \"node\",\n          \"name\" : \"Since\",\n          \"streams\" :\n          [\n            {\n              \"name\" : \"X\",\n              \"type\" : \"bool\",\n              \"class\" : \"input\",\n              \"instantValues\" : []\n            },\n            {\n              \"name\" : \"Y\",\n              \"type\" : \"bool\",\n              \"class\" : \"input\",\n              \"instantValues\" : []\n            },\n            {\n              \"name\" : \"Z\",\n              \"type\" : \"bool\",\n              \"class\" : \"output\",\n              \"instantValues\" : []\n            }\n          ]\n        },\n        {\n          \"blockType\" : \"function\",\n          \"name\" : \"even\",\n          \"streams\" :\n          [\n            {\n              \"name\" : \"N\",\n              \"type\" : \"int\",\n              \"class\" : \"input\",\n              \"instantValues\" : []\n            },\n            {\n              \"name\" : \"B\",\n              \"type\" : \"bool\",\n              \"class\" : \"output\",\n              \"instantValues\" : []\n            },\n            {\n              \"name\" : \"x\",\n              \"type\" : \"int\",\n              \"class\" : \"local\",\n              \"instantValues\" : []\n            }\n          ]\n        },\n        {\n          \"blockType\" : \"node\",\n          \"name\" : \"Count\",\n          \"streams\" :\n          [\n            {\n              \"name\" : \"X\",\n              \"type\" : \"bool\",\n              \"class\" : \"input\",\n              \"instantValues\" : []\n            },\n            {\n              \"name\" : \"N\",\n              \"type\" : \"int\",\n              \"class\" : \"output\",\n              \"instantValues\" : []\n            }\n          ],\n          \"subnodes\" :\n          [\n            {\n              \"blockType\" : \"function\",\n              \"name\" : \"toInt\",\n              \"streams\" :\n              [\n                {\n                  \"name\" : \"X\",\n                  \"type\" : \"bool\",\n                  \"class\" : \"input\",\n                  \"instantValues\" : []\n                },\n                {\n                  \"name\" : \"N\",\n                  \"type\" : \"subrange\",\n                  \"typeInfo\" :\n                  {\n                    \"min\" : 0,\n                    \"max\" : 1\n                  },\n                  \"class\" : \"output\",\n                  \"instantValues\" : []\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]")[0]);
+          window.addEventListener('message', function (event) {
+            console.log(event);
+
+            if (event.data.uri !== undefined && event.data.main !== undefined && event.data.json !== undefined) {
+              _this._uri = event.data.uri;
+              _this._main = event.data.main;
+              _this._components = _this.flatten(JSON.parse(event.data.json)[0]);
+            }
+          });
         }
 
         _createClass(SimulationComponent, [{
@@ -351,19 +360,7 @@
           }
         }, {
           key: "ngOnInit",
-          value: function ngOnInit() {
-            var _this = this;
-
-            // Handle the message inside the webview
-            window.addEventListener('message', function (event) {
-              console.log(event);
-
-              if (event.data.main !== undefined && event.data.json !== undefined) {
-                _this._main = event.data.main;
-                _this._components = _this.flatten(JSON.parse(event.data.json)[0]);
-              }
-            });
-          }
+          value: function ngOnInit() {}
         }, {
           key: "flatten",
           value: function flatten(interp) {
@@ -573,7 +570,10 @@
 
             vscode.postMessage({
               command: "kind2/interpret",
-              args: [this._main, JSON.stringify(json)]
+              args: [{
+                uri: this._uri,
+                name: this._main
+              }, JSON.stringify(json)]
             });
           }
         }]);

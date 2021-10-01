@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021, Board of Trustees of the University of Iowa All rights reserved.
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -40,7 +46,7 @@ export class WebPanel {
     this.builtAppFolder = path.join('kind2-simulation');
 
     // Create and show a new webview panel
-    this.panel = vscode.window.createWebviewPanel(WebPanel.viewType, 'My Angular Webview', column, {
+    this.panel = vscode.window.createWebviewPanel(WebPanel.viewType, 'Kind 2 Simulation View', column, {
       // Enable javascript in the webview
       enableScripts: true,
 

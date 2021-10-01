@@ -1,19 +1,19 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+/*
+ * Copyright (c) 2021, Board of Trustees of the University of Iowa All rights reserved.
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
 
 import * as net from 'net';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
   LanguageClient,
-  LanguageClientOptions,
-  ServerOptions,
+  LanguageClientOptions, ServerOptions,
   StreamInfo
 } from 'vscode-languageclient';
 import { Kind2 } from './Kind2';
-import { TreeNode } from './treeNode';
+import { Component as Component, Property, TreeNode } from './treeNode';
 import { WebPanel } from './webviewPanel';
 
 let client: LanguageClient;
@@ -30,7 +30,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // The server is implemented in node
   let serverCmd = context.asAbsolutePath(
-    path.join('kind2-lsp', 'bin', 'kind2-lsp')
+    path.join('kind2-language-server', 'bin', 'kind2-language-server')
   );
 
   // If the extension is launched in debug mode then the debug server options are used
@@ -47,55 +47,56 @@ export async function activate(context: vscode.ExtensionContext) {
     synchronize: {
       // Notify the server about file changes to '.clientrc files contained in the workspace
       fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
-    },
+    }
   };
 
   // Create the language client and start the client.
   client = new LanguageClient(
     'vscode-kind2',
     'Kind 2',
-    //serverOptions,
-    connectToTCPServer(),
+    serverOptions,
+    // connectToTCPServer(),
     clientOptions
   );
 
   kind2 = new Kind2(context, client);
 
-  registerCommand('kind2/check', async (node: TreeNode) => await kind2.check(node));
+  vscode.window.onDidChangeActiveTextEditor(() => kind2.updateDecorations());
 
-  registerCommand('kind2/raw', (component: TreeNode) => kind2.raw(component));
+  registerCommand('kind2/check', async (node: Component) => {
+    kind2.reveal(node, treeView);
+    await kind2.check(node);
+  });
 
-  registerCommand('kind2/counterExample', async (property: TreeNode) => {
+  registerCommand('kind2/raw', async (component: Component) => await kind2.raw(component));
+
+  registerCommand('kind2/counterExample', async (property: Property) => {
     await kind2.counterExample(property);
   });
 
-  registerCommand('kind2/interpret', async (component: TreeNode | [string, string], json: string) => {
-    if (component instanceof Array) {
-      await kind2.interpret(component[0], component[1], json);
-    }
-    else {
-      await kind2.interpret(component.uri, component.name, json);
-    }
+  registerCommand('kind2/interpret', async (component: { uri: string, name: string }, json: string) => {
+    await kind2.interpret(component.uri, component.name, json);
   });
 
-  registerCommand('kind2/showSource', (node: TreeNode) => kind2.showSource(node));
+  registerCommand('kind2/showSource', async (node: TreeNode) => await kind2.showSource(node));
 
   const treeView = vscode.window.createTreeView("properties", { treeDataProvider: kind2, canSelectMany: false, showCollapseAll: true });
 
-  registerCommand('kind2/reveal', (node: TreeNode) => kind2.reveal(node, treeView));
+  registerCommand('kind2/reveal', async (node: TreeNode) => await kind2.reveal(node, treeView));
 
   context.subscriptions.push(treeView);
   const documentSelector: vscode.DocumentFilter = { language: "lustre" };
   context.subscriptions.push(vscode.languages.registerCodeLensProvider(documentSelector, kind2));
 
-  // Setup the test adapter for components
-  // setupAdapter(context, client);
-
   // Start the client. This will also launch the server
   client.start();
 
-  await client.onReady().then(async () =>
-    client.onNotification("kind2/updateComponents", (uri: string) => kind2.updateComponents(uri)));
+  client.onReady().then(() => {
+    client.onNotification("kind2/updateComponents", (uri: string) => kind2.updateComponents(uri));
+    client.onRequest("kind2/getKind2Path", () => kind2.getKind2Path());
+    client.onRequest("kind2/getSmtSolverOption", () => kind2.getSmtSolverOption());
+    client.onRequest("kind2/getSmtSolverPath", () => kind2.getSmtSolverPath());
+  });
 }
 
 function connectToTCPServer(): ServerOptions {
@@ -103,10 +104,9 @@ function connectToTCPServer(): ServerOptions {
 
     return new Promise((resolve) => {
       net.createServer(socket => {
-        let res: StreamInfo = { reader: <NodeJS.ReadableStream>socket, writer: socket };
+        let res: StreamInfo = { writer: socket, reader: socket };
         resolve(res);
       }).listen(23555, "localhost");
-
     });
   };
   return serverExec;

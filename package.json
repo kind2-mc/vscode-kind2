@@ -1,27 +1,27 @@
 {
   "name": "vscode-kind2",
-  "description": "A language client for kind2",
+  "displayName": "Kind 2",
+  "icon": "icons/kind.png",
+  "description": "Language support for Kind 2",
   "author": "Abdalrhman M Mohamed",
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "0.1.0",
+  "preview": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/kind2-mc/vscode-kind2"
   },
-  "publisher": "Kind 2 Developers",
+  "publisher": "kind2-mc",
   "categories": [
     "Programming Languages"
   ],
   "engines": {
-    "vscode": "^1.43.0"
+    "vscode": "^1.60.0"
   },
   "activationEvents": [
     "onLanguage:lustre"
   ],
-  "extensionDependencies": [
-    "MercierCorentin.lustre"
-  ],
-  "main": "./out/extension",
+  "main": "out/extension",
   "contributes": {
     "languages": [
       {
@@ -34,11 +34,23 @@
         ]
       }
     ],
+    "grammars": [
+      {
+        "language": "lustre",
+        "scopeName": "source.lus",
+        "path": "./syntaxes/lustre.tmLanguage.json"
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "kind2"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Kind 2",
       "properties": {
-        "vscode-kind2.trace.server": {
+        "kind2.trace.server": {
           "scope": "window",
           "type": "string",
           "enum": [
@@ -48,6 +60,31 @@
           ],
           "default": "off",
           "description": "Traces the communication between VS Code and the language server."
+        },
+        "kind2.kind2Path": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "",
+          "description": "Path to the kind2 executable used by the extension."
+        },
+        "kind2.smtSolver": {
+          "scope": "machine-overridable",
+          "enum": [
+            "Z3",
+            "CVC",
+            "Yices",
+            "Yices2",
+            "Boolector",
+            "MathSAT"
+          ],
+          "default": "Z3",
+          "description": "SMT solver backend used by kind2."
+        },
+        "kind2.smtSolverPath": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "",
+          "description": "Path to the SMT solver backend used by kind2."
         }
       }
     },
@@ -56,7 +93,7 @@
         {
           "id": "kind2",
           "title": "Kind 2",
-          "icon": "./icons/beaker.svg"
+          "icon": "./icons/kind.png"
         }
       ]
     },
@@ -71,6 +108,11 @@
     "menus": {
       "view/item/context": [
         {
+          "command": "kind2/counterExample",
+          "group": "inline@1",
+          "when": "view == properties && viewItem == failed"
+        },
+        {
           "command": "kind2/check",
           "group": "inline@2",
           "when": "view == properties && viewItem == component"
@@ -84,46 +126,44 @@
     },
     "commands": [
       {
-        "command": "angular-webview.start",
-        "title": "Start new cat coding session",
-        "category": "Cat Coding"
+        "command": "kind2/counterExample",
+        "title": "Show Counter Example",
+        "icon": "$(output)"
       },
       {
         "command": "kind2/check",
         "title": "Check component",
-        "icon": {
-          "dark": "./icons/start-dark.svg",
-          "light": "./icons/start-light.svg"
-        }
+        "icon": "$(run)"
       },
       {
         "command": "kind2/showSource",
         "title": "Show source",
-        "icon": {
-          "dark": "./icons/open-file-dark.svg",
-          "light": "./icons/open-file-light.svg"
-        }
+        "icon": "$(go-to-file)"
       }
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -b",
-    "watch": "tsc -b -w",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
     "test": "sh ./scripts/e2e.sh"
   },
   "dependencies": {
-    "vscode-languageclient": "^6.1.3"
+    "vscode-languageclient": "^6.1.4"
   },
   "devDependencies": {
-    "@types/glob": "^7.1.3",
-    "@types/mocha": "^8.0.3",
-    "@types/node": "^12.12.62",
-    "@types/vscode": "1.43.0",
+    "@types/glob": "^7.1.4",
+    "@types/mocha": "^8.2.3",
+    "@types/node": "^12.20.21",
+    "@types/vscode": "^1.43.0",
     "@typescript-eslint/parser": "^2.3.0",
+    "esbuild": "^0.13.3",
     "eslint": "^6.4.0",
-    "mocha": "^8.1.1",
-    "typescript": "^4.0.2",
-    "vscode-test": "^1.3.0"
+    "js-yaml": "^4.1.0",
+    "mocha": "^8.4.0",
+    "typescript": "^4.4.2",
+    "vsce": "^1.100.1",
+    "vscode-test": "^1.6.1"
   }
 }
