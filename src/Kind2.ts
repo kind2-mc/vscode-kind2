@@ -228,11 +228,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   public async interpret(uri: string, main: string, json: string): Promise<void> {
     let interp: String = await this._client.sendRequest("kind2/interpret", [uri, main, json]);
     WebPanel.createOrShow(this._context.extensionPath);
-    WebPanel.currentPanel?.sendMessage({ uri: uri, main: main, json: interp });
+    await WebPanel.currentPanel?.sendMessage({ uri: uri, main: main, json: interp })
   }
 
   public async raw(component: Component): Promise<void> {
-    await tasks.executeTask(new Task({ type: "kind2" }, TaskScope.Workspace, component.name, "Kind 2", new ShellExecution(this.getKind2Path(), ["--old_frontend", "false", this.getSmtSolverOption(), this.getSmtSolverPath(), "--lus_main", component.name, component.uri.substr(7)])));
+    await tasks.executeTask(new Task({ type: "kind2" }, TaskScope.Workspace, component.name, "Kind 2", new ShellExecution(this.getKind2Path(), [this.getSmtSolverOption(), this.getSmtSolverPath(), "--lus_main", component.name, component.uri.substr(7)])));
   }
 
   public async reveal(node: TreeNode, treeView: TreeView<TreeNode>): Promise<void> {

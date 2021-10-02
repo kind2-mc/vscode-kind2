@@ -175,6 +175,7 @@ class SimulationComponent {
                 this._components = this.flatten(JSON.parse(event.data.json)[0]);
             }
         });
+        vscode.postMessage("ready");
     }
     get components() {
         return this._components;
