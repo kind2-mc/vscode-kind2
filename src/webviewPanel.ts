@@ -22,9 +22,11 @@ export class WebPanel {
   private readonly panel: vscode.WebviewPanel;
   private readonly extensionPath: string;
   private readonly builtAppFolder: string;
+  private ready: boolean;
+  private onReady: () => void;
   private disposables: vscode.Disposable[] = [];
 
-  public static createOrShow(extensionPath: string) {
+  public static createOrShow(extensionPath: string): WebPanel {
     const column = vscode.ViewColumn.Beside;
 
     // If we already have a panel, show it.
@@ -37,11 +39,22 @@ export class WebPanel {
     return WebPanel.currentPanel;
   }
 
-  public sendMessage(message: any): void {
-    this.panel.webview.postMessage(message);
+  public async sendMessage(message: any): Promise<boolean> {
+    await new Promise<void>((resolve) => {
+      if (this.ready) {
+        resolve();
+      }
+      else {
+        this.onReady = () => {
+          resolve();
+        }
+      }
+    });
+    return await this.panel.webview.postMessage(message);
   }
 
   private constructor(extensionPath: string, column: vscode.ViewColumn) {
+    this.ready = false;
     this.extensionPath = extensionPath;
     this.builtAppFolder = path.join('kind2-simulation');
 
@@ -56,6 +69,7 @@ export class WebPanel {
 
     // Set the webview's initial html content
     this.panel.webview.html = this._getHtmlForWebview();
+    this.panel.iconPath = vscode.Uri.file(path.join(this.extensionPath, "icons", "kind.png"));
 
     // Listen for when the panel is disposed
     // This happens when the user closes the panel or when the panel is closed programatically
@@ -64,15 +78,19 @@ export class WebPanel {
     // Handle messages from the webview
     this.panel.webview.onDidReceiveMessage(
       async (message: any) => {
-        await vscode.commands.executeCommand(message.command, message.args[0], message.args[1], message.args[2]);
-        console.log("here");
+        if (message === "ready") {
+          this.ready = true;
+          this.onReady();
+        } else {
+          await vscode.commands.executeCommand(message.command, message.args[0], message.args[1], message.args[2]);
+        }
       },
       null,
       this.disposables
     );
   }
 
-  public dispose() {
+  public dispose(): void {
     WebPanel.currentPanel = undefined;
 
     // Clean up our resources
@@ -89,7 +107,7 @@ export class WebPanel {
   /**
    * Returns html of the start page (index.html)
    */
-  private _getHtmlForWebview() {
+  private _getHtmlForWebview(): string {
     // path to dist folder
     const appDistPath = path.join(this.extensionPath, 'kind2-simulation');
     const appDistPathUri = vscode.Uri.file(appDistPath);

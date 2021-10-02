@@ -21,7 +21,7 @@
   "activationEvents": [
     "onLanguage:lustre"
   ],
-  "main": "out/extension",
+  "main": "out/main",
   "contributes": {
     "languages": [
       {
@@ -31,14 +31,15 @@
         ],
         "extensions": [
           "lus"
-        ]
+        ],
+        "configuration": "language-configuration.json"
       }
     ],
     "grammars": [
       {
         "language": "lustre",
         "scopeName": "source.lus",
-        "path": "./syntaxes/lustre.tmLanguage.json"
+        "path": "syntaxes/lustre.tmLanguage.json"
       }
     ],
     "taskDefinitions": [
@@ -93,7 +94,7 @@
         {
           "id": "kind2",
           "title": "Kind 2",
-          "icon": "./icons/kind.png"
+          "icon": "icons/kind.png"
         }
       ]
     },
@@ -147,7 +148,7 @@
     "esbuild-base": "esbuild src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
     "esbuild": "npm run esbuild-base -- --sourcemap",
     "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
-    "test": "sh ./scripts/e2e.sh"
+    "test": "sh scripts/e2e.sh"
   },
   "dependencies": {
     "vscode-languageclient": "^6.1.4"

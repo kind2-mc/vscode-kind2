@@ -1,5 +1,5 @@
 # Kind 2 Extension for VS Code
-This extension provides basic support for Lustre programming language with Kind 2 annotations.
+This extension provides basic support for the Lustre programming language with Kind 2 annotations.
 
 ## Requirements
 ### Linux and MacOS
@@ -16,7 +16,7 @@ This extension provides basic support for Lustre programming language with Kind 
 
 ***Note:*** This extension only works with the latest nightly releases of `kind2` and does ***not*** support any current stable release.
 
-### Windows
+### Windows (Advanced)
 Windows is only supported through [WSL2](https://docs.microsoft.com/en-us/windows/wsl/about) (Windows 10 version 1903+ or Windows 11). WSL1 is not supported. Follow these steps to run the extension on WSL2:
 1. Install WSL
     * Windows 10 version 2004+ and Windows 11: Run `wsl --install` in PowerShell or Windows Command Prompt and restart your machine.

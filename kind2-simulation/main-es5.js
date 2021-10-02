@@ -351,6 +351,7 @@
               _this._components = _this.flatten(JSON.parse(event.data.json)[0]);
             }
           });
+          vscode.postMessage("ready");
         }
 
         _createClass(SimulationComponent, [{
