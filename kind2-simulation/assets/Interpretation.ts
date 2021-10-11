@@ -11,5 +11,5 @@ export type Stream = {
     type: string,
     typeInfo: any,
     class: string,
-    instantValues: (boolean | number | string)[][]
+    instantValues: (boolean | number | string | { num: number, den: number })[][]
 }

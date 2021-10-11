@@ -200,7 +200,7 @@
 
           _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵproperty"]("disabled", ctx_r12.isDisabled(component_r1, stream_r5));
 
-          _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵattribute"]("value", value_r10[1]);
+          _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵattribute"]("value", ctx_r12.valueToString(value_r10[1]));
         }
       }
 
@@ -411,6 +411,19 @@
             return component !== this._components[0] || stream["class"] !== "input";
           }
         }, {
+          key: "valueToString",
+          value: function valueToString(value) {
+            if (value === undefined) {
+              return undefined;
+            }
+
+            if (value.num !== undefined && value.den !== undefined) {
+              return value.num.toString() + "/" + value.den.toString();
+            }
+
+            return value.toString();
+          }
+        }, {
           key: "inputChanged",
           value: function inputChanged(type, value, event) {
             switch (type) {
@@ -423,7 +436,18 @@
                 break;
 
               case "real":
-                value[1] = Number.parseFloat(event.target.value);
+                var str = event.target.value;
+                var i = str.indexOf("/");
+
+                if (i === -1) {
+                  value[1] = Number.parseFloat(event.target.value);
+                } else {
+                  value[1] = {
+                    num: Number.parseInt(str.substr(0, i)),
+                    den: Number.parseInt(str.substr(i + 1))
+                  };
+                }
+
                 break;
 
               case "enum":
@@ -558,7 +582,7 @@
               try {
                 for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
                   var stream = _step7.value;
-                  object[stream.name] = stream.instantValues[i][1];
+                  object[stream.name] = this.valueToString(stream.instantValues[i][1]);
                 }
               } catch (err) {
                 _iterator7.e(err);

@@ -95,7 +95,7 @@ function SimulationComponent_div_7_tr_10_td_6_input_2_Template(rf, ctx) { if (rf
     const component_r1 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"]().$implicit;
     const ctx_r12 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵproperty"]("disabled", ctx_r12.isDisabled(component_r1, stream_r5));
-    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵattribute"]("value", value_r10[1]);
+    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵattribute"]("value", ctx_r12.valueToString(value_r10[1]));
 } }
 function SimulationComponent_div_7_tr_10_td_6_Template(rf, ctx) { if (rf & 1) {
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](0, "td", 18);
@@ -209,6 +209,15 @@ class SimulationComponent {
     isDisabled(component, stream) {
         return component !== this._components[0] || stream.class !== "input";
     }
+    valueToString(value) {
+        if (value === undefined) {
+            return undefined;
+        }
+        if (value.num !== undefined && value.den !== undefined) {
+            return value.num.toString() + "/" + value.den.toString();
+        }
+        return value.toString();
+    }
     inputChanged(type, value, event) {
         switch (type) {
             case "bool":
@@ -218,7 +227,14 @@ class SimulationComponent {
                 value[1] = Number.parseInt(event.target.value);
                 break;
             case "real":
-                value[1] = Number.parseFloat(event.target.value);
+                let str = event.target.value;
+                let i = str.indexOf("/");
+                if (i === -1) {
+                    value[1] = Number.parseFloat(event.target.value);
+                }
+                else {
+                    value[1] = { num: Number.parseInt(str.substr(0, i)), den: Number.parseInt(str.substr(i + 1)) };
+                }
                 break;
             case "enum":
                 value[1] = event.target.value;
@@ -277,7 +293,7 @@ class SimulationComponent {
         for (let i = 0; i < time; ++i) {
             let object = {};
             for (let stream of inputStreams) {
-                object[stream.name] = stream.instantValues[i][1];
+                object[stream.name] = this.valueToString(stream.instantValues[i][1]);
             }
             json.push(object);
         }
