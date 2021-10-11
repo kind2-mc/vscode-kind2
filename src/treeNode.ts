@@ -4,7 +4,7 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
-import { TextEditorDecorationType, ThemeColor, ThemeIcon, window } from "vscode";
+import { ThemeColor, ThemeIcon } from "vscode";
 
 export type TreeNode = File | Component | Property;
 
@@ -82,7 +82,7 @@ export class Property implements Property {
   }
 }
 
-export type State = "pending" | "running" | "passed" | "failed";
+export type State = "pending" | "running" | "passed" | "failed" | "errored";
 
 export function statePath(state: State) {
   switch (state) {
@@ -94,6 +94,8 @@ export function statePath(state: State) {
       return "icons/passed.svg";
     case "failed":
       return "icons/failed.svg";
+    case "errored":
+      return "icons/errored.svg";
   }
 }
 
@@ -107,5 +109,7 @@ export function stateIcon(state: State) {
       return new ThemeIcon("$(testing-passed-icon)", new ThemeColor("testing.iconPassed"));
     case "failed":
       return new ThemeIcon("$(testing-failed-icon)", new ThemeColor("testing.iconFailed"));
+    case "errored":
+      return new ThemeIcon("$(testing-error-icon)", new ThemeColor("testing.iconErrored"));
   }
 }

@@ -29,7 +29,8 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       ["pending", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("pending")) })],
       ["running", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("running")) })],
       ["passed", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("passed")) })],
-      ["failed", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("failed")) })]]);
+      ["failed", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("failed")) })],
+      ["errored", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("errored")) })]]);
   }
 
   onDidChangeCodeLenses?: Event<void> | undefined;
@@ -92,7 +93,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   public updateDecorations(): void {
     let decorations = new Map<string, Map<State, DecorationOptions[]>>();
     for (const file of this._files) {
-      decorations.set(file.uri, new Map<State, DecorationOptions[]>([["pending", []], ["running", []], ["passed", []], ["failed", []]]));
+      decorations.set(file.uri, new Map<State, DecorationOptions[]>([["pending", []], ["running", []], ["passed", []], ["failed", []], ["errored", []]]));
     }
     for (const file of this._files) {
       for (const component of file.components) {
@@ -107,7 +108,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     for (const uri of decorations.keys()) {
       let editor = window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri);
-      for (const state of <State[]>["pending", "running", "passed", "failed"]) {
+      for (const state of <State[]>["pending", "running", "passed", "failed", "errored"]) {
         editor?.setDecorations(this._decorationTypeMap.get(state)!, decorations.get(uri)?.get(state)!);
       }
     }
@@ -209,17 +210,20 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     this.updateDecorations();
     this._treeDataChanged.fire(component);
     this._codeLensesChanged.fire();
-    let results: any[] = await this._client.sendRequest("kind2/check", [component.uri, component.name]).then(value => {
-      return (value as string[]).map((s: string) => JSON.parse(s));
+    await this._client.sendRequest("kind2/check", [component.uri, component.name]).then(value => {
+      let results: any[] = (value as string[]).map((s: string) => JSON.parse(s));
+      for (const result of results) {
+        let property = new Property(result.name, result.line - 1, result.file, component);
+        property.state = result.answer.value === "valid" ? "passed" : "failed";
+        component.properties.push(property);
+      }
+      if (results.length == 0) {
+        component.state = "passed";
+      }
+    }).catch(reason => {
+      window.showErrorMessage(reason.message);
+      component.state = "errored";
     });
-    for (const result of results) {
-      let property = new Property(result.name, result.line - 1, result.file, component);
-      property.state = result.answer.value === "valid" ? "passed" : "failed";
-      component.properties.push(property);
-    }
-    if (results.length == 0) {
-      component.state = "passed";
-    }
     this._treeDataChanged.fire(component);
     this._codeLensesChanged.fire();
     this.updateDecorations();
