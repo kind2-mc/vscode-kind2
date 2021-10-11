@@ -112,8 +112,7 @@ repository:
     begin: '(?=contract)'
     end: '(?<=tel)'
     patterns:
-    - include: '#nodePref'
-    - include: '#nodeRet'
+    - include: '#componentDecl'
     - include: '#comment'
     - begin: '\b(let)\b'
       end: '\b(tel)\b'
@@ -250,8 +249,7 @@ repository:
     begin: '(?=(node|function)\s*\bimported\b)'
     end: '(?<=;)'
     patterns:
-    - include: '#nodePref'
-    - include: '#nodeRet'
+    - include: '#componentDecl'
     - include: '#blockContract'
     - include: '#comment'
 
@@ -259,73 +257,64 @@ repository:
     begin: '(?=node|function)'
     end: '(?<=tel)'
     patterns:
-    - include: '#nodePref'
-    - include: '#nodeRet'
+    - include: '#componentDecl'
     - include: '#blockContract'
     - include: '#comment'
     - include: '#var'
     - include: '#body'
     - include: '#const'
 
-  nodePref:
+  componentDecl:
     comment: More precisely, a node, a contract, or a function prefix.
-    begin: '\b(contract|node|function)\b(\s+\bimported\b\s+|\s+)(\w+)\s*\('
+    begin: '\b(contract|node|function)\b'
+    end: ';'
     beginCaptures:
       '1': {name: keyword.other.lustre}
-      '2': {name: keyword.other.lustre}
-      '3': {name: entity.name.function.lustre}
-    end: '\)'
     patterns:
-    - include: '#comment'
-    - comment: Input name.
-      begin: '\s*(\w+)\s*'
-      end: ',|(?=:)'
-      beginCaptures:
-        '1': {name: variable.parameter.lustre}
-    - comment: Type for an input.
-      begin: ':'
-      end: ';|(?=\))'
+    - match: '\b(imported|returns)\b'
+      captures:
+        '1': {name: keyword.other.lustre}
+    - name: entity.name.function.lustre
+      match: '\w+'
+    - begin: '\('
+      end: '\)'
       patterns:
-      - include: '#type'
-    - include: '#constKey'
-
-  nodeRet:
-    begin: '(returns)\s*\('
-    beginCaptures:
-      '1': {name: keyword.lustre}
-    end: '\)\s*;'
-    patterns:
+      - comment: Input/output name.
+        begin: '(?<=;|\(|,)'
+        end: ',|(?=:)'
+        patterns:
+        - match: '\b(const)\b'
+          captures:
+            '1': {name: storage.modifier.lustre}
+        - name: variable.parameter.lustre
+          match: '\w+'
+        - include: "#comment"
+      - comment: Type for an input/output.
+        begin: ':'
+        end: ';|(?=\))'
+        patterns:
+        - include: '#type'
+        - include: '#comment'
+      - include: '#comment'
     - include: '#comment'
-    - comment: Output name.
-      begin: '\s*(\w+)\s*'
-      end: ',|(?=:)'
-      beginCaptures:
-        '1': {name: variable.parameter.lustre}
-    - comment: Type for an output.
-      begin: ':'
-      end: ';|(?=\))'
-      patterns:
-      - include: '#type'
 
 
   # Constants
 
   intCst:
-    name: constant.numeric.lustre
-    match: '\b(0|[1-9]\d*)\b'
-    captures:
-      '2': {name: constant.numeric.lustre}
-
-  floatCst:
-    name: constant.numeric.lustre
-    match: '\b(\d+)\.(\d*)\b'
+    match: '\b(\d+|0x\h+)\b'
     captures:
       '1': {name: constant.numeric.lustre}
-      '2': {name: constant.numeric.lustre}
+
+  floatCst:
+    match: '\b(\d*\.\d*((E|e)(\-|\+)\d+)?|0x\h*\.\h*(p(\-|\+)\d+)?)\b'
+    captures:
+      '1': {name: constant.numeric.lustre}
 
   boolCst:
-    name: constant.language.lustre
     match: '\b(true|false)\b'
+    captures:
+      '1': {name: constant.language.lustre}
 
   stringCst:
     name: string.quoted.double.lustre
@@ -342,16 +331,19 @@ repository:
   # Include
 
   include:
-    match: '(include)\s+(\".*\")'
-    captures:
+    begin: '\b(include)\b'
+    end: '\".*\"'
+    beginCaptures:
       '1': {name: keyword.other.lustre}
-      '2': {name: string.quoted.double}
+    endCaptures:
+      '0': {name: string.quoted.double}
 
 
   # Expressions.
 
   expression:
     patterns:
+    - include: '#cst'
     - include: '#comment'
     - comment: Keywords
       name: keyword.control.lustre
@@ -381,7 +373,6 @@ repository:
     - comment: Operators
       name: keyword.operator.lustre
       match: '<>|=|>=|>|<=|<|\+|\-|\*|/|%'
-    - include: '#cst'
     - comment: Node / function call
       begin: '(\w+)\s*\('
       beginCaptures:
@@ -439,11 +430,10 @@ repository:
         patterns:
           - comment: Rest of tuples.
             begin: ','
-            end: '='
+            end: ',|\)|(?==)'
             patterns:
               - name: variable.other.lustre
                 match: '\w+'
-          - match: '\)?\s*='
           - include: '#expression'
 
 
@@ -453,15 +443,16 @@ repository:
     begin: '\b(var)\b'
     beginCaptures:
       '1': {name: keyword.other.lustre}
-    end: ';'
+    end: '(?=const|let|var)'
     patterns:
-    - include: '#comment'
     - name: variable.other.lustre
       match: '\w+'
     - begin: ':'
-      end: '(?=;)'
+      end: ';'
       patterns:
       - include: '#type'
+      - include: '#comment'
+    - include: '#comment'
 
 
   # Body
@@ -529,17 +520,24 @@ repository:
   # Const declaration
 
   const:
-    begin: '(const)\s+(\w+)'
+    begin: '\b(const)\b'
+    end: '(?=const|contract|function|node|let|type|var)'
     beginCaptures:
       '1': {name: keyword.other.lustre}
-      '2': {name: variable.other}
-    end: ';'
     patterns:
+    - name: variable.other.lustre
+      match: '\w+'
     - begin: ':'
       end: '(?=;|=)'
       patterns:
       - include: '#type'
-    - name: keyword.operator.lustre
-      match: '='
-    - include: '#expression'
+      - include: '#comment'
+    - begin: '='
+      end: ';'
+      beginCaptures:
+        '0': {name: keyword.operator.lustre}
+      patterns:
+      - include: '#expression'
+      - include: '#comment'
+    - include: '#comment'
 ...
