@@ -72,7 +72,7 @@
           "scope": "machine-overridable",
           "enum": [
             "Z3",
-            "CVC",
+            "CVC4",
             "Yices",
             "Yices2",
             "Boolector",

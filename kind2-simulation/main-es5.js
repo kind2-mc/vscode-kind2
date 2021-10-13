@@ -582,7 +582,12 @@
               try {
                 for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
                   var stream = _step7.value;
-                  object[stream.name] = this.valueToString(stream.instantValues[i][1]);
+
+                  if (typeof stream.instantValues[i][1] === "boolean") {
+                    object[stream.name] = stream.instantValues[i][1];
+                  } else {
+                    object[stream.name] = this.valueToString(stream.instantValues[i][1]);
+                  }
                 }
               } catch (err) {
                 _iterator7.e(err);
