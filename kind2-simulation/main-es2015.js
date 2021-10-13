@@ -293,7 +293,12 @@ class SimulationComponent {
         for (let i = 0; i < time; ++i) {
             let object = {};
             for (let stream of inputStreams) {
-                object[stream.name] = this.valueToString(stream.instantValues[i][1]);
+                if (typeof stream.instantValues[i][1] === "boolean") {
+                    object[stream.name] = stream.instantValues[i][1];
+                }
+                else {
+                    object[stream.name] = this.valueToString(stream.instantValues[i][1]);
+                }
             }
             json.push(object);
         }

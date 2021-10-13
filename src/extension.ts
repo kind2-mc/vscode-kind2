@@ -94,7 +94,7 @@ export async function activate(context: vscode.ExtensionContext) {
   client.onReady().then(() => {
     client.onNotification("kind2/updateComponents", (uri: string) => kind2.updateComponents(uri));
     client.onRequest("kind2/getKind2Path", () => kind2.getKind2Path());
-    client.onRequest("kind2/getSmtSolverOption", () => kind2.getSmtSolverOption());
+    client.onRequest("kind2/getSmtSolver", () => kind2.getSmtSolver());
     client.onRequest("kind2/getSmtSolverPath", () => kind2.getSmtSolverPath());
   });
 }

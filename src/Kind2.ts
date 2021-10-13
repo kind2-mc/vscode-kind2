@@ -11,7 +11,7 @@ import { LanguageClient } from "vscode-languageclient";
 import { Component, File, Property, State, stateIcon, statePath, TreeNode } from "./treeNode";
 import { WebPanel } from "./webviewPanel";
 
-type SmtSolver = "Z3" | "CVC" | "Yices" | "Yices2" | "Boolector" | "MathSAT";
+type SmtSolver = "Z3" | "CVC4" | "Yices" | "Yices2" | "Boolector" | "MathSAT";
 
 export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   private _files: File[];
@@ -136,7 +136,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
   }
 
-  private getSmtSolver(): SmtSolver {
+  public getSmtSolver(): SmtSolver {
     return workspace.getConfiguration("kind2").get<SmtSolver>("smtSolver")!;
   }
 
@@ -144,7 +144,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     switch (this.getSmtSolver()) {
       case "Z3":
         return "--z3_bin";
-      case "CVC":
+      case "CVC4":
         return "--cvc4_bin";
       case "Yices":
         return "--yices_bin";
@@ -210,8 +210,8 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     this.updateDecorations();
     this._treeDataChanged.fire(component);
     this._codeLensesChanged.fire();
-    await this._client.sendRequest("kind2/check", [component.uri, component.name]).then(value => {
-      let results: any[] = (value as string[]).map((s: string) => JSON.parse(s));
+    await this._client.sendRequest("kind2/check", [component.uri, component.name]).then((values: string[]) => {
+      let results: any[] = values.map(s => JSON.parse(s));
       for (const result of results) {
         let property = new Property(result.name, result.line - 1, result.file, component);
         property.state = result.answer.value === "valid" ? "passed" : "failed";
@@ -230,13 +230,21 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   }
 
   public async interpret(uri: string, main: string, json: string): Promise<void> {
-    let interp: String = await this._client.sendRequest("kind2/interpret", [uri, main, json]);
-    WebPanel.createOrShow(this._context.extensionPath);
-    await WebPanel.currentPanel?.sendMessage({ uri: uri, main: main, json: interp })
+    await this._client.sendRequest("kind2/interpret", [uri, main, json]).then(async (interp: string) => {
+      WebPanel.createOrShow(this._context.extensionPath);
+      await WebPanel.currentPanel?.sendMessage({ uri: uri, main: main, json: interp });
+    }).catch(reason => {
+      window.showErrorMessage(reason.message);
+    });
   }
 
   public async raw(component: Component): Promise<void> {
-    await tasks.executeTask(new Task({ type: "kind2" }, TaskScope.Workspace, component.name, "Kind 2", new ShellExecution(this.getKind2Path(), [this.getSmtSolverOption(), this.getSmtSolverPath(), "--lus_main", component.name, component.uri.substr(7)])));
+    let options = ["--smt_solver", this.getSmtSolver()];
+    if (this.getSmtSolverPath() !== "") {
+      options.push(this.getSmtSolverOption(), this.getSmtSolverPath());
+    }
+    options.push("--lus_main", component.name, component.uri.substr(7));
+    await tasks.executeTask(new Task({ type: "kind2" }, TaskScope.Workspace, component.name, "Kind 2", new ShellExecution(this.getKind2Path(), options)));
   }
 
   public async reveal(node: TreeNode, treeView: TreeView<TreeNode>): Promise<void> {
@@ -244,8 +252,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   }
 
   public async counterExample(property: Property): Promise<void> {
-    let ce: String = await this._client.sendRequest("kind2/counterExample", [property.parent.uri, property.parent.name, property.name]);
-    WebPanel.createOrShow(this._context.extensionPath);
-    WebPanel.currentPanel?.sendMessage({ uri: property.parent.uri, main: property.parent.name, json: ce });
+    await this._client.sendRequest("kind2/counterExample", [property.parent.uri, property.parent.name, property.name]).then((ce: string) => {
+      WebPanel.createOrShow(this._context.extensionPath);
+      WebPanel.currentPanel?.sendMessage({ uri: property.parent.uri, main: property.parent.name, json: ce });
+    }).catch(reason => {
+      window.showErrorMessage(reason.message);
+    });
   }
 }

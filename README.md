@@ -7,12 +7,12 @@ This extension provides basic support for the Lustre programming language with K
   * Debian-based Linux: `sudo apt install openjdk-17-jdk`
   * RHEL-based Linux: `sudo yum install java-17-openjdk`
   * MacOS: `brew install --cask temurin`
-* ZeroMQ messaging library.
-  * (Optional) Debian-based Linux: `sudo apt install libzmq3-dev`
-  * (Optional) RHEL-based Linux: `sudo yum install libzmq3-devel`
+* (Optional) ZeroMQ messaging library.
+  * Debian-based Linux: `sudo apt install libzmq3-dev`
+  * RHEL-based Linux: `sudo yum install libzmq3-devel`
   * MacOS: `brew install zmq`
 
-  The `kind2` executable for Linux bundled with this extension is _statically_ linked against the ZeroMQ messaging library and does not require it to be installed in the system. Dynamically linked executables, however, *do* require the library to be installed in the system.
+  The `kind2` executable bundled with this extension is _statically_ linked against the ZeroMQ messaging library and does not require it to be installed in the system. Dynamically linked executables, however, *do* require the library to be installed in the system.
 
 ***Note:*** This extension only works with the latest nightly releases of `kind2` and does ***not*** support any current stable release.
 
