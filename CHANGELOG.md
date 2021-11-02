@@ -1,3 +1,7 @@
+### Version 0.3.2
+- Fix an issue where abstract nodes appear in both abstract and concrete sections.
+- Hide `show source` button for analysis results.
+
 ### Version 0.3.1
 - Fix an issue where codelens do not appear when a user opens a Lustre file.
 - Cancel all checks when a user modifies a file.
