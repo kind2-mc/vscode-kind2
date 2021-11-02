@@ -6,21 +6,25 @@
 
 import * as os from "os";
 import * as path from "path";
-import { CancellationToken, CodeLens, CodeLensProvider, DecorationOptions, Event, EventEmitter, ExtensionContext, MarkdownString, Position, ProviderResult, Range, ShellExecution, Task, tasks, TaskScope, TextDocument, TextEditorDecorationType, ThemeColor, ThemeIcon, TreeDataProvider, TreeItem, TreeItemCollapsibleState, TreeView, Uri, window, workspace } from "vscode";
+import { CancellationToken, CancellationTokenSource, CodeLens, CodeLensProvider, DecorationOptions, Event, EventEmitter, ExtensionContext, MarkdownString, Position, ProviderResult, Range, ShellExecution, ShellQuotedString, ShellQuoting, Task, tasks, TaskScope, TextDocument, TextEditorDecorationType, ThemeColor, ThemeIcon, TreeDataProvider, TreeItem, TreeItemCollapsibleState, TreeView, Uri, window, workspace } from "vscode";
 import { LanguageClient } from "vscode-languageclient";
-import { Component, File, Property, State, stateIcon, statePath, TreeNode } from "./treeNode";
+import { Analysis, Component, File, Property, State, stateIcon, statePath, TreeNode } from "./treeNode";
 import { WebPanel } from "./webviewPanel";
 
 type SmtSolver = "Z3" | "CVC4" | "Yices" | "Yices2" | "Boolector" | "MathSAT";
 
 export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
+  private _fileMap: Map<String, Set<String>>;
   private _files: File[];
+  private _runningChecks: Map<Component, CancellationTokenSource>;
   private readonly _treeDataChanged: EventEmitter<TreeNode | null | undefined>;
   private readonly _codeLensesChanged: EventEmitter<void>;
   private readonly _decorationTypeMap: Map<State, TextEditorDecorationType>;
 
   constructor(private _context: ExtensionContext, private _client: LanguageClient) {
+    this._fileMap = new Map<String, Set<String>>();
     this._files = [];
+    this._runningChecks = new Map<Component, CancellationTokenSource>();
     this._treeDataChanged = new EventEmitter<TreeNode | undefined | null>();
     this._codeLensesChanged = new EventEmitter<void>();
     this.onDidChangeTreeData = this._treeDataChanged.event;
@@ -41,7 +45,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     if (file) {
       for (const component of file.components) {
         let range = new Range(component.line, 0, component.line, 0);
-        codeLenses.push(new CodeLens(range, { title: "Check", command: "kind2/check", arguments: [component] }));
+        if (component.state === "running") {
+          codeLenses.push(new CodeLens(range, { title: "Cancel", command: "kind2/cancel", arguments: [component] }));
+        } else {
+          codeLenses.push(new CodeLens(range, { title: "Check", command: "kind2/check", arguments: [component] }));
+        }
         codeLenses.push(new CodeLens(range, { title: "Simulate", command: "kind2/interpret", arguments: [component, "[]"] }));
         codeLenses.push(new CodeLens(range, { title: "Raw Output", command: "kind2/raw", arguments: [component] }));
         codeLenses.push(new CodeLens(range, { title: "Show in Explorer", command: "kind2/reveal", arguments: [component] }));
@@ -58,10 +66,15 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       item = new TreeItem(element.uri, element.components.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
     }
     else if (element instanceof Component) {
-      item = new TreeItem(element.name, element.properties.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
-      item.contextValue = "component";
+      item = new TreeItem(element.name, element.analyses.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
+      item.contextValue = element.state === "running" ? "running" : "component";
       item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath(element.state)));
       // item.iconPath = stateIcon(element.state);
+    }
+    else if (element instanceof Analysis) {
+      let label = "abstract: " + (element.abstract.length == 0 ? "none" : "[" + element.abstract.toString() + "]");
+      label += "concrete: " + (element.abstract.length == 0 ? "none" : "[" + element.abstract.toString() + "]");
+      item = new TreeItem(label, element.properties.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
     }
     else {
       item = new TreeItem(element.name, TreeItemCollapsibleState.None);
@@ -82,6 +95,9 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       return element.components;
     }
     if (element instanceof Component) {
+      return element.analyses;
+    }
+    if (element instanceof Analysis) {
       return element.properties;
     }
   }
@@ -126,73 +142,29 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
   }
 
-  public getKind2Path(): string {
-    let kind2Path = workspace.getConfiguration("kind2").get<string>("kind2Path")!;
-    if (kind2Path == "") {
-      return this._context.asAbsolutePath(path.join(this.getPlatform(), "kind2"));
-    }
-    else {
-      return kind2Path;
-    }
+  public getDefaultKind2Path(): string {
+    return this._context.asAbsolutePath(path.join(this.getPlatform(), "kind2"));
   }
 
-  public getSmtSolver(): SmtSolver {
-    return workspace.getConfiguration("kind2").get<SmtSolver>("smtSolver")!;
-  }
-
-  public getSmtSolverOption(): string {
-    switch (this.getSmtSolver()) {
-      case "Z3":
-        return "--z3_bin";
-      case "CVC4":
-        return "--cvc4_bin";
-      case "Yices":
-        return "--yices_bin";
-      case "Yices2":
-        return "--yices2_bin";
-      case "Boolector":
-        return "--boolector_bin";
-      case "MathSAT":
-        return "--Mathsat_bin";
-    }
-  }
-
-  public getSmtSolverPath(): string {
-    let smtSolverPath = workspace.getConfiguration("kind2").get<string>("smtSolverPath")!;
-    if (smtSolverPath == "") {
-      let smtSolver = this.getSmtSolver();
-      if (smtSolver == "Z3") {
-        return this._context.asAbsolutePath(path.join(this.getPlatform(), "z3"));
-      }
-      else {
-        window.showErrorMessage(`Kind 2 extension is only bundled with the Z3 solver. Please provide the path to ${smtSolver}`);
-        throw `Path to ${smtSolver} unkown.`
-      }
-    }
-    else {
-      return smtSolverPath;
-    }
+  public getDefaultZ3Path(): string {
+    return this._context.asAbsolutePath(path.join(this.getPlatform(), "z3"));
   }
 
   public async updateComponents(uri: string): Promise<void> {
-    if (window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri) === undefined) {
-      this._files = this._files.filter(file => file.uri !== uri);
-    } else {
-      let file = this._files.find(file => file.uri === uri);
-      const components: any[] = await this._client.sendRequest("kind2/getComponents", uri).then(values => {
-        return (values as string[]).map(value => JSON.parse(value));
-      });
-      if (components.length > 0) {
-        if (file) {
-          file.components = [];
-        } else {
-          file = new File(uri);
-          this._files.push(file);
-        }
-        for (const component of components) {
-          file.components.push(new Component(component.name, component.startLine - 1, file));
-        }
+    this._files = this._files.filter(subFile => !this._fileMap.get(uri).has(subFile.uri));
+    this._fileMap.set(uri, new Set<String>());
+    const components: any[] = await this._client.sendRequest("kind2/getComponents", uri).then(values => {
+      return (values as string[]).map(value => JSON.parse(value));
+    });
+    for (let component of components) {
+      component.file = (component.file as string).replace("%2520", "%20");
+      this._fileMap.get(uri).add(component.file);
+      let file = this._files.find(file => file.uri === component.file);
+      if (file === undefined) {
+        file = new File(component.file);
+        this._files.push(file);
       }
+      file.components.push(new Component(component.name, component.startLine - 1, file));
     }
     this._treeDataChanged.fire(undefined);
     this._codeLensesChanged.fire();
@@ -200,22 +172,54 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   }
 
   public async showSource(node: TreeNode): Promise<void> {
+    if (node instanceof Analysis) {
+      return;
+    }
     let range = new Range(node.line, 0, node.line, 0);
     await window.showTextDocument(Uri.parse(node.uri, true), { selection: range });
   }
 
   public async check(component: Component): Promise<void> {
-    component.properties = [];
+    component.analyses = [];
     component.state = "running";
-    this.updateDecorations();
-    this._treeDataChanged.fire(component);
+    let files: File[] = [];
+    for (const uri of this._fileMap.get(component.uri)) {
+      let file = this._files.find(f => f.uri === uri);
+      files.push(file);
+    }
+    let modifiedComponents: Component[] = [];
+    modifiedComponents.push(component);
+    for (const component of modifiedComponents) {
+      this._treeDataChanged.fire(component);
+    }
     this._codeLensesChanged.fire();
-    await this._client.sendRequest("kind2/check", [component.uri, component.name]).then((values: string[]) => {
+    this.updateDecorations();
+    let tokenSource = new CancellationTokenSource();
+    this._runningChecks.set(component, tokenSource);
+    await this._client.sendRequest("kind2/check", [component.uri, component.name], tokenSource.token).then((values: string[]) => {
       let results: any[] = values.map(s => JSON.parse(s));
-      for (const result of results) {
-        let property = new Property(result.name, result.line - 1, result.file, component);
-        property.state = result.answer.value === "valid" ? "passed" : "failed";
-        component.properties.push(property);
+      for (const nodeResult of results) {
+        // TODO: fix file issue and add a link to kind2 website.
+        let component = undefined;
+        let i = 0;
+        while (component === undefined) {
+          component = files[i].components.find(c => c.name === nodeResult.name);
+          ++i;
+        }
+        component.analyses = [];
+        for (const analysisResult of nodeResult.analyses) {
+          let analysis: Analysis = new Analysis(analysisResult.abstract, analysisResult.concrete, component);
+          for (const propertyResult of analysisResult.properties) {
+            let property = new Property(propertyResult.name, propertyResult.line - 1, propertyResult.file, analysis);
+            property.state = propertyResult.answer.value === "valid" ? "passed" : "failed";
+            analysis.properties.push(property);
+          }
+          component.analyses.push(analysis);
+        }
+        if (component.analyses.length == 0) {
+          component.state = "passed";
+        }
+        modifiedComponents.push(component);
       }
       if (results.length == 0) {
         component.state = "passed";
@@ -224,9 +228,15 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       window.showErrorMessage(reason.message);
       component.state = "errored";
     });
-    this._treeDataChanged.fire(component);
+    for (const component of modifiedComponents) {
+      this._treeDataChanged.fire(component);
+    }
     this._codeLensesChanged.fire();
     this.updateDecorations();
+  }
+
+  public cancel(component: Component) {
+    this._runningChecks.get(component).cancel();
   }
 
   public async interpret(uri: string, main: string, json: string): Promise<void> {
@@ -239,12 +249,12 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   }
 
   public async raw(component: Component): Promise<void> {
-    let options = ["--smt_solver", this.getSmtSolver()];
-    if (this.getSmtSolverPath() !== "") {
-      options.push(this.getSmtSolverOption(), this.getSmtSolverPath());
-    }
-    options.push("--lus_main", component.name, component.uri.substr(7));
-    await tasks.executeTask(new Task({ type: "kind2" }, TaskScope.Workspace, component.name, "Kind 2", new ShellExecution(this.getKind2Path(), options)));
+    await this._client.sendRequest("kind2/getKind2Cmd", [component.uri, component.name]).then(async (cmd: string[]) => {
+      cmd = cmd.map(o => o.replace("%20", " "));
+      await tasks.executeTask(new Task({ type: "kind2" }, TaskScope.Workspace, component.name, "Kind 2", new ShellExecution(cmd[0], cmd.slice(1))));
+    }).catch(reason => {
+      window.showErrorMessage(reason.message);
+    });
   }
 
   public async reveal(node: TreeNode, treeView: TreeView<TreeNode>): Promise<void> {
@@ -252,9 +262,10 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   }
 
   public async counterExample(property: Property): Promise<void> {
-    await this._client.sendRequest("kind2/counterExample", [property.parent.uri, property.parent.name, property.name]).then((ce: string) => {
+    await this._client.sendRequest("kind2/counterExample", [property.parent.parent.uri, property.parent.parent.name,
+    property.parent.abstract, property.parent.concrete, property.name]).then((ce: string) => {
       WebPanel.createOrShow(this._context.extensionPath);
-      WebPanel.currentPanel?.sendMessage({ uri: property.parent.uri, main: property.parent.name, json: ce });
+      WebPanel.currentPanel?.sendMessage({ uri: property.parent.parent.uri, main: property.parent.parent.name, json: ce });
     }).catch(reason => {
       window.showErrorMessage(reason.message);
     });

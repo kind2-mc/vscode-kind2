@@ -68,6 +68,10 @@ export async function activate(context: vscode.ExtensionContext) {
     await kind2.check(node);
   });
 
+  registerCommand('kind2/cancel', async (node: Component) => {
+    kind2.cancel(node);
+  });
+
   registerCommand('kind2/raw', async (component: Component) => await kind2.raw(component));
 
   registerCommand('kind2/counterExample', async (property: Property) => {
@@ -93,9 +97,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   client.onReady().then(() => {
     client.onNotification("kind2/updateComponents", (uri: string) => kind2.updateComponents(uri));
-    client.onRequest("kind2/getKind2Path", () => kind2.getKind2Path());
-    client.onRequest("kind2/getSmtSolver", () => kind2.getSmtSolver());
-    client.onRequest("kind2/getSmtSolverPath", () => kind2.getSmtSolverPath());
+    client.onRequest("kind2/getDefaultKind2Path", () => kind2.getDefaultKind2Path());
+    client.onRequest("kind2/getDefaultZ3Path", () => kind2.getDefaultZ3Path());
   });
 }
 

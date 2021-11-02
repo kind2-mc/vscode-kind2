@@ -147,9 +147,11 @@
 
             var stream_r5 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"]().$implicit;
 
-            var ctx_r13 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"](2);
+            var component_r1 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"]().$implicit;
 
-            return ctx_r13.inputChanged(stream_r5.type, value_r10, $event);
+            var ctx_r13 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"]();
+
+            return ctx_r13.checkboxChanged(component_r1, stream_r5, value_r10, $event);
           });
 
           _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
@@ -158,32 +160,26 @@
         if (rf & 2) {
           var value_r10 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"]().$implicit;
 
-          var stream_r5 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"]().$implicit;
-
-          var component_r1 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"]().$implicit;
-
-          var ctx_r11 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"]();
-
-          _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵproperty"]("disabled", ctx_r11.isDisabled(component_r1, stream_r5))("checked", value_r10[1]);
+          _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵproperty"]("checked", value_r10[1]);
         }
       }
 
       function SimulationComponent_div_7_tr_10_td_6_input_2_Template(rf, ctx) {
         if (rf & 1) {
-          var _r22 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵgetCurrentView"]();
+          var _r21 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵgetCurrentView"]();
 
           _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](0, "input", 22);
 
           _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵlistener"]("change", function SimulationComponent_div_7_tr_10_td_6_input_2_Template_input_change_0_listener($event) {
-            _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵrestoreView"](_r22);
+            _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵrestoreView"](_r21);
 
             var value_r10 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"]().$implicit;
 
             var stream_r5 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"]().$implicit;
 
-            var ctx_r20 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"](2);
+            var ctx_r19 = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵnextContext"](2);
 
-            return ctx_r20.inputChanged(stream_r5.type, value_r10, $event);
+            return ctx_r19.inputChanged(stream_r5.type, value_r10, $event);
           });
 
           _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
@@ -208,7 +204,7 @@
         if (rf & 1) {
           _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](0, "td", 18);
 
-          _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtemplate"](1, SimulationComponent_div_7_tr_10_td_6_input_1_Template, 1, 2, "input", 19);
+          _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtemplate"](1, SimulationComponent_div_7_tr_10_td_6_input_1_Template, 1, 1, "input", 19);
 
           _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtemplate"](2, SimulationComponent_div_7_tr_10_td_6_input_2_Template, 1, 2, "input", 20);
 
@@ -424,6 +420,17 @@
             return value.toString();
           }
         }, {
+          key: "checkboxChanged",
+          value: function checkboxChanged(component, stream, value, event) {
+            if (this.isDisabled(component, stream)) {
+              if (typeof value[1] === "boolean") {
+                event.target.checked = value[1];
+              }
+            } else {
+              value[1] = event.target.checked;
+            }
+          }
+        }, {
           key: "inputChanged",
           value: function inputChanged(type, value, event) {
             switch (type) {
@@ -620,7 +627,7 @@
         selectors: [["app-simulation"]],
         decls: 8,
         vars: 2,
-        consts: [[1, "run"], ["type", "number", "min", "1", 1, "textbox", 3, "change"], [1, "button", 3, "click"], [1, "simulation"], [4, "ngFor", "ngForOf"], [1, "componentName"], [1, "table"], [1, "monaco-list"], [1, "streamName"], ["class", "monaco-list", 4, "ngFor", "ngForOf"], [1, "streamName", 3, "ngSwitch"], ["class", "bi bi-box-arrow-in-right inputIcon", 4, "ngSwitchCase"], ["class", "bi bi-box-arrow-right outputIcon", 4, "ngSwitchCase"], ["class", "bi bi-geo-fill localIcon", 4, "ngSwitchCase"], [3, "ngSwitch", 4, "ngFor", "ngForOf"], [1, "bi", "bi-box-arrow-in-right", "inputIcon"], [1, "bi", "bi-box-arrow-right", "outputIcon"], [1, "bi", "bi-geo-fill", "localIcon"], [3, "ngSwitch"], ["class", "checkbox", "type", "checkbox", 3, "disabled", "checked", "change", 4, "ngSwitchCase"], ["class", "textbox", "type", "text", 3, "disabled", "change", 4, "ngSwitchDefault"], ["type", "checkbox", 1, "checkbox", 3, "disabled", "checked", "change"], ["type", "text", 1, "textbox", 3, "disabled", "change"]],
+        consts: [[1, "run"], ["type", "number", "min", "1", 1, "textbox", 3, "change"], [1, "button", 3, "click"], [1, "simulation"], [4, "ngFor", "ngForOf"], [1, "componentName"], [1, "table"], [1, "monaco-list"], [1, "streamName"], ["class", "monaco-list", 4, "ngFor", "ngForOf"], [1, "streamName", 3, "ngSwitch"], ["class", "bi bi-box-arrow-in-right inputIcon", 4, "ngSwitchCase"], ["class", "bi bi-box-arrow-right outputIcon", 4, "ngSwitchCase"], ["class", "bi bi-geo-fill localIcon", 4, "ngSwitchCase"], [3, "ngSwitch", 4, "ngFor", "ngForOf"], [1, "bi", "bi-box-arrow-in-right", "inputIcon"], [1, "bi", "bi-box-arrow-right", "outputIcon"], [1, "bi", "bi-geo-fill", "localIcon"], [3, "ngSwitch"], ["class", "checkbox", "type", "checkbox", 3, "checked", "change", 4, "ngSwitchCase"], ["class", "textbox", "type", "text", 3, "disabled", "change", 4, "ngSwitchDefault"], ["type", "checkbox", 1, "checkbox", 3, "checked", "change"], ["type", "text", 1, "textbox", 3, "disabled", "change"]],
         template: function SimulationComponent_Template(rf, ctx) {
           if (rf & 1) {
             _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](0, "div", 0);
