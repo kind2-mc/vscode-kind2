@@ -11,8 +11,6 @@ import { LanguageClient } from "vscode-languageclient";
 import { Analysis, Component, File, Property, State, stateIcon, statePath, TreeNode } from "./treeNode";
 import { WebPanel } from "./webviewPanel";
 
-type SmtSolver = "Z3" | "CVC4" | "Yices" | "Yices2" | "Boolector" | "MathSAT";
-
 export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   private _fileMap: Map<String, Set<String>>;
   private _files: File[];
@@ -73,7 +71,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     else if (element instanceof Analysis) {
       let label = "abstract: " + (element.abstract.length == 0 ? "none" : "[" + element.abstract.toString() + "]");
-      label += "concrete: " + (element.abstract.length == 0 ? "none" : "[" + element.abstract.toString() + "]");
+      label += " concrete: " + (element.abstract.length == 0 ? "none" : "[" + element.abstract.toString() + "]");
       item = new TreeItem(label, element.properties.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
     }
     else {
@@ -151,21 +149,58 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   }
 
   public async updateComponents(uri: string): Promise<void> {
-    this._files = this._files.filter(subFile => !this._fileMap.get(uri).has(subFile.uri));
+    // First, cancel all running checks.
+    for (const check of this._runningChecks.values()) {
+      check.cancel();
+    }
+    this._runningChecks = new Map<Component, CancellationTokenSource>();
+    // Then, remove all components of files depending on this one.
+    // for (const file of this._files) {
+    //   if (this._fileMap.has(file.uri) && this._fileMap.get(file.uri).has(uri)) {
+    //     file.components = [];
+    //   }
+    // }
+    // This is now a main file.
     this._fileMap.set(uri, new Set<String>());
     const components: any[] = await this._client.sendRequest("kind2/getComponents", uri).then(values => {
       return (values as string[]).map(value => JSON.parse(value));
     });
+    // Remove this file, if we need to replace its components.
+    let mainFile = this._files.find(f => f.uri === uri);
+    let newFiles: File[] = [];
+    if (components.length !== 0 && mainFile) {
+      this._files = this._files.filter(f => f.uri !== uri);
+      mainFile.components = []
+      newFiles.push(mainFile);
+    }
     for (let component of components) {
       component.file = (component.file as string).replace("%2520", "%20");
       this._fileMap.get(uri).add(component.file);
-      let file = this._files.find(file => file.uri === component.file);
-      if (file === undefined) {
-        file = new File(component.file);
-        this._files.push(file);
+      // Only add components if this is the first time we see their files.
+      if (this._files.find(f => f.uri === component.file) === undefined) {
+        let file = newFiles.find(f => f.uri === component.file);
+        if (!file) {
+          file = new File(component.file);
+          newFiles.push(file);
+        }
+        file.components.push(new Component(component.name, component.startLine - 1, file));
       }
-      file.components.push(new Component(component.name, component.startLine - 1, file));
     }
+    this._files = this._files.concat(newFiles);
+    // Finally, remove files that no main file depends on.
+    let values = new Set<String>();
+    for (const value of this._fileMap.values()) {
+      for (const uri of value) {
+        values.add(uri);
+      }
+    }
+    let toRemove = new Set<File>();
+    for (const file of this._files) {
+      if (!values.has(file.uri)) {
+        toRemove.add(file);
+      }
+    }
+    this._files = this._files.filter(f => !toRemove.has(f));
     this._treeDataChanged.fire(undefined);
     this._codeLensesChanged.fire();
     this.updateDecorations();
@@ -233,6 +268,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     this._codeLensesChanged.fire();
     this.updateDecorations();
+    this._runningChecks.delete(component);
   }
 
   public cancel(component: Component) {
