@@ -5,7 +5,7 @@
   "description": "Language support for Kind 2",
   "author": "Abdalrhman M Mohamed",
   "license": "MIT",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "preview": true,
   "repository": {
     "type": "git",
