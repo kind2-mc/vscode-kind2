@@ -5,7 +5,7 @@
   "description": "Language support for Kind 2",
   "author": "Abdalrhman M Mohamed",
   "license": "MIT",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "preview": true,
   "repository": {
     "type": "git",
@@ -62,30 +62,107 @@
           "default": "off",
           "description": "Traces the communication between VS Code and the language server."
         },
-        "kind2.kind2Path": {
+        "kind2.kind2_path": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": "",
+          "default": null,
           "description": "Path to the kind2 executable used by the extension."
         },
-        "kind2.smtSolver": {
+        "kind2.smt.smt_solver": {
+          "type": "string",
           "scope": "machine-overridable",
           "enum": [
-            "Z3",
+            "Boolector",
             "CVC4",
+            "MathSAT",
             "Yices",
             "Yices2",
-            "Boolector",
-            "MathSAT"
+            "Z3"
           ],
-          "default": "Z3",
-          "description": "SMT solver backend used by kind2."
+          "description": "Set the main SMT solver",
+          "default": null
         },
-        "kind2.smtSolverPath": {
+        "kind2.smt.boolector_bin": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": "",
-          "description": "Path to the SMT solver backend used by kind2."
+          "default": null,
+          "description": "Executable of Boolector solver."
+        },
+        "kind2.smt.cvc4_bin": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": null,
+          "description": "Executable of CVC4 solver."
+        },
+        "kind2.smt.mathsat_bin": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": null,
+          "description": "Executable of MathSAT solver."
+        },
+        "kind2.smt.yices_bin": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": null,
+          "description": "Executable of Yices solver."
+        },
+        "kind2.smt.yices2_bin": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": null,
+          "description": "Executable of Yices2 SMT2 solver."
+        },
+        "kind2.smt.z3_bin": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": null,
+          "description": "Executable of Z3 solver."
+        },
+        "kind2.contracts.compositional": {
+          "type": "boolean",
+          "scope": "machine-overridable",
+          "description": "Abstract subnodes with a contract",
+          "default": null
+        },
+        "kind2.timeout": {
+          "type": "number",
+          "scope": "machine-overridable",
+          "minimum": 0.0,
+          "maximum": 300.0,
+          "description": "Wallclock timeout in seconds",
+          "default": null
+        },
+        "kind2.modular": {
+          "type": "boolean",
+          "scope": "machine-overridable",
+          "description": "Bottom-up analysis of each node",
+          "default": null
+        },
+        "kind2.log_level": {
+          "type": "string",
+          "enum": [
+            "off",
+            "fatal",
+            "error",
+            "warn",
+            "note",
+            "info",
+            "debug",
+            "trace"
+          ],
+          "scope": "machine-overridable",
+          "enumDescriptions": [
+            "Disable output completely",
+            "Disable output, fatal errors only",
+            "Silence output, errors only",
+            "Output potentially harmful situations",
+            "Output important notes (soft warning)",
+            "Output informational messages",
+            "Output informational and debug messages",
+            "Output informational, debug and trace messages"
+          ],
+          "description": "Levels of log messages",
+          "default": null
         }
       }
     },
@@ -119,6 +196,11 @@
           "when": "view == properties && viewItem == component"
         },
         {
+          "command": "kind2/cancel",
+          "group": "inline@2",
+          "when": "view == properties && viewItem == running"
+        },
+        {
           "command": "kind2/showSource",
           "group": "inline@3",
           "when": "view == properties"
@@ -135,6 +217,11 @@
         "command": "kind2/check",
         "title": "Check component",
         "icon": "$(run)"
+      },
+      {
+        "command": "kind2/cancel",
+        "title": "Cancel check",
+        "icon": "$(close)"
       },
       {
         "command": "kind2/showSource",
@@ -158,9 +245,9 @@
     "@types/mocha": "^8.2.3",
     "@types/node": "^12.20.21",
     "@types/vscode": "^1.43.0",
-    "@typescript-eslint/parser": "^2.3.0",
+    "@typescript-eslint/parser": "^5.0.0",
     "esbuild": "^0.13.3",
-    "eslint": "^6.4.0",
+    "eslint": "^8.0.1",
     "js-yaml": "^4.1.0",
     "mocha": "^8.4.0",
     "typescript": "^4.4.2",

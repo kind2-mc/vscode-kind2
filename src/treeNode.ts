@@ -6,7 +6,7 @@
 
 import { ThemeColor, ThemeIcon } from "vscode";
 
-export type TreeNode = File | Component | Property;
+export type TreeNode = File | Component | Analysis | Property;
 
 export interface File {
   readonly kind: "file";
@@ -22,49 +22,75 @@ export class File implements File {
   }
 }
 
-export interface TreeNode2 {
-  readonly name: string;
-  readonly uri: string;
-  readonly line: number;
-  state: State;
-  readonly parent: TreeNode | undefined;
-}
-
 export interface Component {
   readonly kind: "component";
 }
 
 export class Component implements Component {
   private _state: State;
-  private _properties: Property[];
-  set properties(properties: Property[]) { this._properties = properties; }
-  get properties(): Property[] { return this._properties; }
+  private _analyses: Analysis[];
+  set analyses(analyses: Analysis[]) { this._analyses = analyses; }
+  get analyses(): Analysis[] { return this._analyses; }
   set state(state: State) {
-    if (this._properties.length == 0) {
+    if (this._analyses.length == 0) {
       this._state = state;
     }
-    for (let child of this._properties) {
-      child.state = state;
+  }
+  get properties(): Property[] {
+    let passedProperties = new Map<string, Property>();
+    let failedProperties = new Map<string, Property>();
+    for (const analysis of this._analyses) {
+      for (const property of analysis.properties) {
+        if (property.state === "passed") { passedProperties.set(property.name, property); }
+        if (property.state === "failed") { failedProperties.set(property.name, property); }
+      }
     }
+    let properties: Property[] = [];
+    for (const entry of passedProperties) {
+      failedProperties.delete(entry[0]);
+      properties.push(entry[1]);
+    }
+    for (const entry of failedProperties) {
+      properties.push(entry[1]);
+    }
+    return properties;
   }
   get state(): State {
-    if (this._properties.length == 0) {
+    if (this._analyses.length == 0) {
       return this._state;
     }
-    for (const child of this._properties) {
-      if (child.state === "running") { return "running"; }
+    let passedProperties = new Set<string>();
+    let failedProperties = new Set<string>();
+    for (const analysis of this._analyses) {
+      for (const property of analysis.properties) {
+        if (property.state === "passed") { passedProperties.add(property.name); }
+        if (property.state === "failed") { failedProperties.add(property.name); }
+      }
     }
-    for (const child of this._properties) {
-      if (child.state === "failed") { return "failed"; }
+    for (const name of passedProperties) {
+      failedProperties.delete(name);
     }
-    for (const child of this._properties) {
-      if (child.state === "passed") { return "passed"; }
+    if (failedProperties.size !== 0) {
+      return "failed"
     }
-    return "pending";
+    return "passed";
   }
   get uri(): string { return this.parent.uri; }
   constructor(readonly name: string, readonly line: number, readonly parent: File) {
     this._state = "pending";
+    this._analyses = [];
+  }
+}
+
+export interface Analysis {
+  readonly kind: "analysis";
+}
+
+export class Analysis implements Analysis {
+  private _properties: Property[];
+  set properties(properties: Property[]) { this._properties = properties; }
+  get properties(): Property[] { return this._properties; }
+  constructor(readonly abstract: String[], readonly concrete: String[], readonly parent: Component) {
     this._properties = [];
   }
 }
@@ -77,7 +103,7 @@ export class Property implements Property {
   private _state: State;
   set state(state: State) { this._state = state; }
   get state(): State { return this._state; }
-  constructor(readonly name: string, readonly line: number, readonly uri: string, readonly parent: Component) {
+  constructor(readonly name: string, readonly line: number, readonly uri: string, readonly parent: Analysis) {
     this._state = "pending";
   }
 }
