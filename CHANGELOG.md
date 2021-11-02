@@ -1,3 +1,7 @@
+### Version 0.3.1
+- Fix an issue where codelens do not appear when a user opens a Lustre file.
+- Cancel all checks when a user modifies a file.
+
 ### Version 0.3.0
 - Add support for modular and compositional analysis.
 - Add options to cancel running checks and specify timeout values.

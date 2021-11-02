@@ -1,5 +1,5 @@
 # Kind 2 Extension for VS Code
-This extension provides basic support for the Lustre programming language with Kind 2 annotations.
+This extension provides basic support for the Lustre programming language with [Kind 2 Model Checker](https://kind2-mc.github.io/kind2) annotations.
 
 ## Requirements
 ### Linux and MacOS
@@ -12,7 +12,7 @@ This extension provides basic support for the Lustre programming language with K
   * RHEL-based Linux: `sudo yum install libzmq3-devel`
   * MacOS: `brew install zmq`
 
-  The `kind2` executable bundled with this extension is _statically_ linked against the ZeroMQ messaging library and does not require it to be installed in the system. Dynamically linked executables, however, *do* require the library to be installed in the system.
+  The `kind2` executable bundled with this extension is _statically_ linked against the ZeroMQ messaging library and does not require it to be installed in the system. Dynamically linked `kind2` executables, however, *do* require the library to be installed in the system.
 
 ***Note:*** This extension only works with the latest nightly releases of `kind2` and does ***not*** support any current stable release.
 
