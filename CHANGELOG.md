@@ -1,4 +1,10 @@
 ### Version 0.3.2
+- Change default values for options to mirror Kind 2's defaults.
+- Fix issues with white spaces in paths.
+- Fix issues where the extension hangs when Kind 2 generates long outputs. This also fixes issues with high verbosity levels.
+- Remove diagnostic messages when Lustre files are closed.
+
+### Version 0.3.2
 - Fix an issue where abstract nodes appear in both abstract and concrete sections.
 - Hide `show source` button for analysis results.
 

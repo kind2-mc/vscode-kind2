@@ -39,10 +39,12 @@ export class Component implements Component {
   get properties(): Property[] {
     let passedProperties = new Map<string, Property>();
     let failedProperties = new Map<string, Property>();
+    let erroredProperties = new Map<string, Property>();
     for (const analysis of this._analyses) {
       for (const property of analysis.properties) {
         if (property.state === "passed") { passedProperties.set(property.name, property); }
         if (property.state === "failed") { failedProperties.set(property.name, property); }
+        if (property.state === "errored") { erroredProperties.set(property.name, property); }
       }
     }
     let properties: Property[] = [];
@@ -53,6 +55,9 @@ export class Component implements Component {
     for (const entry of failedProperties) {
       properties.push(entry[1]);
     }
+    for (const entry of erroredProperties) {
+      properties.push(entry[1]);
+    }
     return properties;
   }
   get state(): State {
@@ -61,17 +66,22 @@ export class Component implements Component {
     }
     let passedProperties = new Set<string>();
     let failedProperties = new Set<string>();
+    let erroredProperties = new Set<string>();
     for (const analysis of this._analyses) {
       for (const property of analysis.properties) {
         if (property.state === "passed") { passedProperties.add(property.name); }
         if (property.state === "failed") { failedProperties.add(property.name); }
+        if (property.state === "errored") { erroredProperties.add(property.name); }
       }
     }
     for (const name of passedProperties) {
       failedProperties.delete(name);
     }
+    if (erroredProperties.size !== 0) {
+      return "errored";
+    }
     if (failedProperties.size !== 0) {
-      return "failed"
+      return "failed";
     }
     return "passed";
   }

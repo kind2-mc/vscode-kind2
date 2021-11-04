@@ -175,7 +175,6 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       newFiles.push(mainFile);
     }
     for (let component of components) {
-      component.file = (component.file as string).replace("%2520", "%20");
       this._fileMap.get(uri).add(component.file);
       // Only add components if this is the first time we see their files.
       if (this._files.find(f => f.uri === component.file) === undefined) {
@@ -215,27 +214,26 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     await window.showTextDocument(Uri.parse(node.uri, true), { selection: range });
   }
 
-  public async check(component: Component): Promise<void> {
-    component.analyses = [];
-    component.state = "running";
+  public async check(mainComponent: Component): Promise<void> {
+    mainComponent.analyses = [];
+    mainComponent.state = "running";
     let files: File[] = [];
-    for (const uri of this._fileMap.get(component.uri)) {
+    for (const uri of this._fileMap.get(mainComponent.uri)) {
       let file = this._files.find(f => f.uri === uri);
       files.push(file);
     }
     let modifiedComponents: Component[] = [];
-    modifiedComponents.push(component);
+    modifiedComponents.push(mainComponent);
     for (const component of modifiedComponents) {
       this._treeDataChanged.fire(component);
     }
     this._codeLensesChanged.fire();
     this.updateDecorations();
     let tokenSource = new CancellationTokenSource();
-    this._runningChecks.set(component, tokenSource);
-    await this._client.sendRequest("kind2/check", [component.uri, component.name], tokenSource.token).then((values: string[]) => {
+    this._runningChecks.set(mainComponent, tokenSource);
+    await this._client.sendRequest("kind2/check", [mainComponent.uri, mainComponent.name], tokenSource.token).then((values: string[]) => {
       let results: any[] = values.map(s => JSON.parse(s));
       for (const nodeResult of results) {
-        // TODO: fix file issue and add a link to kind2 website.
         let component = undefined;
         let i = 0;
         while (component === undefined) {
@@ -247,7 +245,16 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
           let analysis: Analysis = new Analysis(analysisResult.abstract, analysisResult.concrete, component);
           for (const propertyResult of analysisResult.properties) {
             let property = new Property(propertyResult.name, propertyResult.line - 1, propertyResult.file, analysis);
-            property.state = propertyResult.answer.value === "valid" ? "passed" : "failed";
+            switch (propertyResult.answer.value) {
+              case "valid":
+                property.state = "passed";
+                break;
+              case "falsifiable":
+                property.state = "failed";
+                break;
+              default:
+                property.state = "errored";
+            }
             analysis.properties.push(property);
           }
           component.analyses.push(analysis);
@@ -258,18 +265,21 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         modifiedComponents.push(component);
       }
       if (results.length == 0) {
-        component.state = "passed";
+        mainComponent.state = "passed";
       }
     }).catch(reason => {
       window.showErrorMessage(reason.message);
-      component.state = "errored";
+      mainComponent.state = "errored";
     });
+    if (mainComponent.state === "running") {
+      mainComponent.state = "errored";
+    }
     for (const component of modifiedComponents) {
       this._treeDataChanged.fire(component);
     }
     this._codeLensesChanged.fire();
     this.updateDecorations();
-    this._runningChecks.delete(component);
+    this._runningChecks.delete(mainComponent);
   }
 
   public cancel(component: Component) {
