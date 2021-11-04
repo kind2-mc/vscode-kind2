@@ -5,7 +5,7 @@
   "description": "Language support for Kind 2",
   "author": "Abdalrhman M Mohamed",
   "license": "MIT",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "preview": true,
   "repository": {
     "type": "git",
@@ -65,13 +65,14 @@
         "kind2.kind2_path": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": null,
+          "default": "",
           "description": "Path to the kind2 executable used by the extension."
         },
         "kind2.smt.smt_solver": {
           "type": "string",
           "scope": "machine-overridable",
           "enum": [
+            "detect",
             "Boolector",
             "CVC4",
             "MathSAT",
@@ -80,63 +81,62 @@
             "Z3"
           ],
           "description": "Set the main SMT solver",
-          "default": null
+          "default": "detect"
         },
         "kind2.smt.boolector_bin": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": null,
+          "default": "boolector",
           "description": "Executable of Boolector solver."
         },
         "kind2.smt.cvc4_bin": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": null,
+          "default": "cvc4",
           "description": "Executable of CVC4 solver."
         },
         "kind2.smt.mathsat_bin": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": null,
+          "default": "mathsat",
           "description": "Executable of MathSAT solver."
         },
         "kind2.smt.yices_bin": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": null,
+          "default": "yices",
           "description": "Executable of Yices solver."
         },
         "kind2.smt.yices2_bin": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": null,
+          "default": "yices-smt2",
           "description": "Executable of Yices2 SMT2 solver."
         },
         "kind2.smt.z3_bin": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": null,
-          "description": "Executable of Z3 solver."
+          "default": "",
+          "description": "Executable of Z3 solver. Defaults to the Z3 executable bundled with the extension."
         },
         "kind2.contracts.compositional": {
           "type": "boolean",
           "scope": "machine-overridable",
           "description": "Abstract subnodes with a contract",
-          "default": null
+          "default": false
         },
         "kind2.timeout": {
           "type": "number",
           "scope": "machine-overridable",
-          "minimum": 0.0,
-          "maximum": 300.0,
+          "minimum": 0,
           "description": "Wallclock timeout in seconds",
-          "default": null
+          "default": 0
         },
         "kind2.modular": {
           "type": "boolean",
           "scope": "machine-overridable",
           "description": "Bottom-up analysis of each node",
-          "default": null
+          "default": false
         },
         "kind2.log_level": {
           "type": "string",
@@ -162,7 +162,7 @@
             "Output informational, debug and trace messages"
           ],
           "description": "Levels of log messages",
-          "default": null
+          "default": "note"
         }
       }
     },
