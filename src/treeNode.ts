@@ -8,25 +8,19 @@ import { ThemeColor, ThemeIcon } from "vscode";
 
 export type TreeNode = File | Component | Analysis | Property;
 
-export interface File {
-  readonly kind: "file";
-  readonly parent: undefined;
-}
-
 export class File implements File {
   components: Component[];
+  readonly parent: undefined;
   readonly line: number;
-  constructor(readonly uri: string) {
+
+  constructor(readonly uri: string, public name: string) {
     this.components = [];
     this.line = 1;
+    this.parent = undefined;
   }
 }
 
-export interface Component {
-  readonly kind: "component";
-}
-
-export class Component implements Component {
+export class Component {
   private _state: State;
   private _analyses: Analysis[];
   set analyses(analyses: Analysis[]) { this._analyses = analyses; }
@@ -39,20 +33,26 @@ export class Component implements Component {
   get properties(): Property[] {
     let passedProperties = new Map<string, Property>();
     let failedProperties = new Map<string, Property>();
+    let unknownProperties = new Map<string, Property>();
     let erroredProperties = new Map<string, Property>();
     for (const analysis of this._analyses) {
       for (const property of analysis.properties) {
         if (property.state === "passed") { passedProperties.set(property.name, property); }
         if (property.state === "failed") { failedProperties.set(property.name, property); }
+        if (property.state === "unknown") { failedProperties.set(property.name, property); }
         if (property.state === "errored") { erroredProperties.set(property.name, property); }
       }
     }
     let properties: Property[] = [];
     for (const entry of passedProperties) {
       failedProperties.delete(entry[0]);
+      unknownProperties.delete(entry[0]);
       properties.push(entry[1]);
     }
     for (const entry of failedProperties) {
+      properties.push(entry[1]);
+    }
+    for (const entry of unknownProperties) {
       properties.push(entry[1]);
     }
     for (const entry of erroredProperties) {
@@ -66,22 +66,28 @@ export class Component implements Component {
     }
     let passedProperties = new Set<string>();
     let failedProperties = new Set<string>();
+    let unknownProperties = new Set<string>();
     let erroredProperties = new Set<string>();
     for (const analysis of this._analyses) {
       for (const property of analysis.properties) {
         if (property.state === "passed") { passedProperties.add(property.name); }
         if (property.state === "failed") { failedProperties.add(property.name); }
+        if (property.state === "unknown") { unknownProperties.add(property.name); }
         if (property.state === "errored") { erroredProperties.add(property.name); }
       }
     }
     for (const name of passedProperties) {
       failedProperties.delete(name);
+      unknownProperties.delete(name);
     }
     if (erroredProperties.size !== 0) {
       return "errored";
     }
     if (failedProperties.size !== 0) {
       return "failed";
+    }
+    if (unknownProperties.size !== 0) {
+      return "unknown";
     }
     return "passed";
   }
@@ -92,11 +98,7 @@ export class Component implements Component {
   }
 }
 
-export interface Analysis {
-  readonly kind: "analysis";
-}
-
-export class Analysis implements Analysis {
+export class Analysis {
   private _properties: Property[];
   set properties(properties: Property[]) { this._properties = properties; }
   get properties(): Property[] { return this._properties; }
@@ -105,11 +107,7 @@ export class Analysis implements Analysis {
   }
 }
 
-export interface Property {
-  readonly kind: "property";
-}
-
-export class Property implements Property {
+export class Property {
   private _state: State;
   set state(state: State) { this._state = state; }
   get state(): State { return this._state; }
@@ -118,7 +116,7 @@ export class Property implements Property {
   }
 }
 
-export type State = "pending" | "running" | "passed" | "failed" | "errored";
+export type State = "pending" | "running" | "passed" | "failed" | "unknown" | "stopped" | "errored";
 
 export function statePath(state: State) {
   switch (state) {
@@ -130,6 +128,10 @@ export function statePath(state: State) {
       return "icons/passed.svg";
     case "failed":
       return "icons/failed.svg";
+    case "unknown":
+      return "icons/unknown.svg";
+    case "stopped":
+      return "icons/stopped.svg";
     case "errored":
       return "icons/errored.svg";
   }
@@ -140,11 +142,13 @@ export function stateIcon(state: State) {
     case "pending":
       return new ThemeIcon("$(testing-unset-icon)", new ThemeColor("testing.iconUnset"));
     case "running":
-      return new ThemeIcon("$(testing-queued-icon)", new ThemeColor("testing.iconQueued"));
+      return new ThemeIcon("$(history)", new ThemeColor("testing.iconQueued"));
     case "passed":
       return new ThemeIcon("$(testing-passed-icon)", new ThemeColor("testing.iconPassed"));
     case "failed":
       return new ThemeIcon("$(testing-failed-icon)", new ThemeColor("testing.iconFailed"));
+    case "unknown":
+      return new ThemeIcon("$(question)", new ThemeColor("testing.iconQueued"));
     case "errored":
       return new ThemeIcon("$(testing-error-icon)", new ThemeColor("testing.iconErrored"));
   }

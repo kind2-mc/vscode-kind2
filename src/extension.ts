@@ -7,6 +7,7 @@
 import * as net from 'net';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { workspace } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions, ServerOptions,
@@ -62,6 +63,19 @@ export async function activate(context: vscode.ExtensionContext) {
   kind2 = new Kind2(context, client);
 
   vscode.window.onDidChangeActiveTextEditor(() => kind2.updateDecorations());
+
+  registerCommand('kind2/enableModular', () => {
+    workspace.getConfiguration("kind2").update("modular", true);
+  });
+  registerCommand('kind2/disableModular', () => {
+    workspace.getConfiguration("kind2").update("modular", false);
+  });
+  registerCommand('kind2/enableCompositional', () => {
+    workspace.getConfiguration("kind2.contracts").update("compositional", true);
+  });
+  registerCommand('kind2/disableCompositional', () => {
+    workspace.getConfiguration("kind2.contracts").update("compositional", false);
+  });
 
   registerCommand('kind2/check', async (node: Component) => {
     kind2.reveal(node, treeView);

@@ -1,7 +1,7 @@
 .gitignore
 .vscode
-gifs
-src
+images
 package-lock.json
 package.json
+src
 tsconfig.json

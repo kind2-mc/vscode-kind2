@@ -6,9 +6,9 @@
 
 import * as os from "os";
 import * as path from "path";
-import { CancellationToken, CancellationTokenSource, CodeLens, CodeLensProvider, DecorationOptions, Event, EventEmitter, ExtensionContext, MarkdownString, Position, ProviderResult, Range, ShellExecution, ShellQuotedString, ShellQuoting, Task, tasks, TaskScope, TextDocument, TextEditorDecorationType, ThemeColor, ThemeIcon, TreeDataProvider, TreeItem, TreeItemCollapsibleState, TreeView, Uri, window, workspace } from "vscode";
+import { CancellationToken, CancellationTokenSource, CodeLens, CodeLensProvider, DecorationOptions, Event, EventEmitter, ExtensionContext, Position, ProviderResult, Range, ShellExecution, Task, tasks, TaskScope, TextDocument, TextEditorDecorationType, TreeDataProvider, TreeItem, TreeItemCollapsibleState, TreeView, Uri, window, workspace } from "vscode";
 import { LanguageClient } from "vscode-languageclient";
-import { Analysis, Component, File, Property, State, stateIcon, statePath, TreeNode } from "./treeNode";
+import { Analysis, Component, File, Property, State, statePath, TreeNode } from "./treeNode";
 import { WebPanel } from "./webviewPanel";
 
 export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
@@ -32,7 +32,9 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       ["running", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("running")) })],
       ["passed", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("passed")) })],
       ["failed", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("failed")) })],
-      ["errored", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("errored")) })]]);
+      ["stopped", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("stopped")) })],
+      ["unknown", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("unknown")) })],
+      ["errored", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("errored")) })]])
   }
 
   onDidChangeCodeLenses?: Event<void> | undefined;
@@ -61,7 +63,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   public getTreeItem(element: TreeNode): TreeItem | Thenable<TreeItem> {
     let item: TreeItem;
     if (element instanceof File) {
-      item = new TreeItem(element.uri, element.components.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
+      item = new TreeItem(element.name, element.components.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
     }
     else if (element instanceof Component) {
       item = new TreeItem(element.name, element.analyses.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
@@ -108,7 +110,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   public updateDecorations(): void {
     let decorations = new Map<string, Map<State, DecorationOptions[]>>();
     for (const file of this._files) {
-      decorations.set(file.uri, new Map<State, DecorationOptions[]>([["pending", []], ["running", []], ["passed", []], ["failed", []], ["errored", []]]));
+      decorations.set(file.uri, new Map<State, DecorationOptions[]>([["pending", []], ["running", []], ["passed", []], ["failed", []], ["stopped", []], ["unknown", []], ["errored", []]]));
     }
     for (const file of this._files) {
       for (const component of file.components) {
@@ -123,7 +125,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     for (const uri of decorations.keys()) {
       let editor = window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri);
-      for (const state of <State[]>["pending", "running", "passed", "failed", "errored"]) {
+      for (const state of <State[]>["pending", "running", "passed", "failed", "stopped", "unknown", "errored"]) {
         editor?.setDecorations(this._decorationTypeMap.get(state)!, decorations.get(uri)?.get(state)!);
       }
     }
@@ -147,6 +149,32 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
 
   public getDefaultZ3Path(): string {
     return this._context.asAbsolutePath(path.join(this.getPlatform(), "z3"));
+  }
+
+  private updateFileNames(): void {
+    for (let file of this._files) {
+      let path = Uri.parse(file.uri).path.split("/");
+      let name = path[path.length - 1];
+      for (let other of this._files) {
+        if (other !== file && other.name.endsWith(name)) {
+          let otherPath = Uri.parse(other.uri).path.split("/");
+          let i = path.length - 1, j = otherPath.length - 1;
+          while (i > 0 && j > 0 && path[i] === otherPath[j]) {
+            --i;
+            --j;
+          }
+          // A path may be a postfix of another.
+          if (i == 0) { --j; }
+          else if (j == 0) { --i; }
+          name = path.slice(i).join("/");
+          let otherNewName = otherPath.slice(j).join("/");
+          if (other.name.length < otherNewName.length) {
+            other.name = otherNewName;
+          }
+        }
+      }
+      file.name = name;
+    }
   }
 
   public async updateComponents(uri: string): Promise<void> {
@@ -180,7 +208,10 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       if (this._files.find(f => f.uri === component.file) === undefined) {
         let file = newFiles.find(f => f.uri === component.file);
         if (!file) {
-          file = new File(component.file);
+          // Check if any other file ends with the same name.
+          let path = Uri.parse(component.file).path.split("/");
+          let name = path[path.length - 1];
+          file = new File(component.file, name);
           newFiles.push(file);
         }
         file.components.push(new Component(component.name, component.startLine - 1, file));
@@ -201,6 +232,8 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       }
     }
     this._files = this._files.filter(f => !toRemove.has(f));
+    // Finally, update file names.
+    this.updateFileNames();
     this._treeDataChanged.fire(undefined);
     this._codeLensesChanged.fire();
     this.updateDecorations();
@@ -253,7 +286,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
                 property.state = "failed";
                 break;
               default:
-                property.state = "errored";
+                property.state = "unknown";
             }
             analysis.properties.push(property);
           }
@@ -268,11 +301,15 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         mainComponent.state = "passed";
       }
     }).catch(reason => {
-      window.showErrorMessage(reason.message);
-      mainComponent.state = "errored";
+      if (reason.message.includes("cancelled")) {
+        mainComponent.state = "stopped";
+      } else {
+        window.showErrorMessage(reason.message);
+        mainComponent.state = "errored";
+      }
     });
     if (mainComponent.state === "running") {
-      mainComponent.state = "errored";
+      mainComponent.state = "unknown";
     }
     for (const component of modifiedComponents) {
       this._treeDataChanged.fire(component);
