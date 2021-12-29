@@ -1,4 +1,11 @@
-### Version 0.3.2
+### Version 0.4.0
+- Add support for more Kind 2 options.
+- (Advanced) Add an option to pass command-line arguments to Kind 2's executable.
+- Replace file URIs displayed in Kind's view with unique path suffixes.
+- Add icons for stopped and unknown results.
+- Update Z3 version 4.8.14 and Kind 2's latest nightly release.
+
+### Version 0.3.3
 - Change default values for options to mirror Kind 2's defaults.
 - Fix issues with white spaces in paths.
 - Fix issues where the extension hangs when Kind 2 generates long outputs. This also fixes issues with high verbosity levels.
