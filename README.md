@@ -38,15 +38,17 @@ The extension supports modular and compositional analysis modes of Kind 2. Those
   ![Kind 2 settings](images/guiOptions.png)
 3. Enable modular, compositional, and/or other options.
   ![GUI Options](images/kind2Options.png)
-4. If you prefer an editor interface, click on _ icon at the top-right corner of the settings page to switch the JSON view:
+4. If you prefer an editor interface, click on <span style="background-color: white">![go-to-file](https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/go-to-file.svg?)</span> icon at the top-right corner of the settings page to switch the JSON view:
   ![JSON settings](images/jsonSettings.png)
 5. Type `kind2`. VS Code will provide an autocompletion menu with available Kind 2 options. Select the options you want to configure and save your changes.
   ![JSON options](images/jsonOptions.png)
 
 You can also enable/disable modular and compositional analysis modes from Kind's view. Click on their icons to enable them.
 ![Analysis modes icons](images/icons.png)
+
 ## Main Features
 * Syntax highlighting for Lustre and Kind 2 constructs.
+* Go-to-definition for top level declarations.
 * Document symbol outline.
   ![Outline](images/outline.gif)
 * Syntax and type error reports.

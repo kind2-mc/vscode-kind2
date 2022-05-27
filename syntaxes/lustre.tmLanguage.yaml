@@ -21,6 +21,7 @@ patterns:
 - include: '#contract'
 - include: '#importedComponent'
 - include: '#component'
+- include: '#blockContract'
 - include: '#comment'
 
 
@@ -241,13 +242,9 @@ repository:
       name: support.type.lustre
       match: '\w+'
 
-  constKey:
-    name: storage.modifier
-    match: '\bconst\b'
-
   importedComponent:
     begin: '(?=(node|function)\s*\bimported\b)'
-    end: '(?<=;)'
+    end: '(?<=;|\))'
     patterns:
     - include: '#componentDecl'
     - include: '#blockContract'
@@ -267,7 +264,7 @@ repository:
   componentDecl:
     comment: More precisely, a node, a contract, or a function prefix.
     begin: '\b(contract|node|function)\b'
-    end: ';'
+    end: ';|(?=\(\*@contract|const|var|let)'
     beginCaptures:
       '1': {name: keyword.other.lustre}
     patterns:
@@ -281,7 +278,7 @@ repository:
       patterns:
       - comment: Input/output name.
         begin: '(?<=;|\(|,)'
-        end: ',|(?=:)'
+        end: ',|(?=:|\))'
         patterns:
         - match: '\b(const)\b'
           captures:
@@ -347,7 +344,7 @@ repository:
     - include: '#comment'
     - comment: Keywords
       name: keyword.control.lustre
-      match: '\b(if|then|else|not|and|xor|or|pre|fby|mod)\b'
+      match: '\b(if|then|else|not|and|xor|or|pre|fby|div|mod|lsh|rsh)\b'
     - comment: Merge
       begin: '(merge)\s*\('
       beginCaptures:
@@ -372,7 +369,10 @@ repository:
       match: '->'
     - comment: Operators
       name: keyword.operator.lustre
-      match: '<>|=|>=|>|<=|<|\+|\-|\*|/|%'
+      match: '<>|=|>=|>|<=|<|\+|\-|\*|/|%|&&|\|\||!'
+    - comment: Machine integers
+      name: support.type.lustre
+      match: '\b(int8|int16|int32|int64|uint8|uint16|uint32|uint64)'
     - comment: Node / function call
       begin: '(\w+)\s*\('
       beginCaptures:
@@ -483,20 +483,34 @@ repository:
   typeDeclRhs:
     patterns:
     - enum:
-      begin: '\b(enum)\b\s*{'
-      end: '}'
+      begin: '\b(enum)\b'
+      end: '(?=;)'
       beginCaptures:
         '1': {name: keyword.other.lustre}
       patterns:
-      - name: entity.name.tag.lustre
-        match: \w+
-    - comment: Struct.
-      begin: '(\b(struct)\b)?\s*{'
-      end: '}'
+      - begin: '{'
+        end: '}'
+        patterns:
+        - name: entity.name.tag.lustre
+          match: \w+
+        - include: '#comment'
+    - comment: Struct (syntax 1).
+      begin: '\b(struct)\b'
+      end: '(?=;)'
       beginCaptures:
         '1': {name: keyword.other.lustre}
+      patterns:
+      - begin: '{'
+        end: '}'
+        patterns:
+        - include: '#structField'
+        - include: '#comment'
+    - comment: Struct (syntax 2).
+      begin: '{'
+      end: '}'
       patterns:
       - include: '#structField'
+      - include: '#comment'
 
   typeDecl:
     begin: '\b(type)\b'
@@ -506,7 +520,7 @@ repository:
     patterns:
     - name: support.type.lustre
       match: '\w+'
-    - begin: '(=)'
+    - begin: '='
       end: '(?=;)'
       beginCaptures:
         '1': {name: keyword.operator.lustre}
