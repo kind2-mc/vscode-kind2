@@ -1,9 +1,14 @@
+### Version 0.5.0
+- Improve syntax highlighting for type definitions, contracts, machine integer casts, and type definitions.
+- Add support for go-to-definition for top level constants, type definitions, (imported) functions, (imported) nodes, and contract nodes.
+- Update Z3 to version 4.8.17 and Kind 2 to version 1.6.0.
+
 ### Version 0.4.0
 - Add support for more Kind 2 options.
 - (Advanced) Add an option to pass command-line arguments to Kind 2's executable.
 - Replace file URIs displayed in Kind's view with unique path suffixes.
 - Add icons for stopped and unknown results.
-- Update Z3 version 4.8.14 and Kind 2's latest nightly release.
+- Update Z3 to version 4.8.14 and Kind 2 to latest nightly release.
 
 ### Version 0.3.3
 - Change default values for options to mirror Kind 2's defaults.

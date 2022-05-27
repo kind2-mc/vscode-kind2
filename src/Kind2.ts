@@ -73,7 +73,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     else if (element instanceof Analysis) {
       let label = "Abstract: " + (element.abstract.length == 0 ? "none" : "[" + element.abstract.toString() + "]");
-      label += " | Concrete: " + (element.concrete.length == 0 ? "none" : "[" + element.concrete.toString() + "]");
+      label += " - Concrete: " + (element.concrete.length == 0 ? "none" : "[" + element.concrete.toString() + "]");
       item = new TreeItem(label, element.properties.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
       item.contextValue = "analysis";
     }
