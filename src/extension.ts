@@ -14,7 +14,7 @@ import {
   StreamInfo
 } from 'vscode-languageclient';
 import { Kind2 } from './Kind2';
-import { Component as Component, Property, TreeNode } from './treeNode';
+import { Component, Property, TreeNode } from './treeNode';
 import { WebPanel } from './webviewPanel';
 
 let client: LanguageClient;
