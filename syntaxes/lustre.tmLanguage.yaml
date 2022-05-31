@@ -195,14 +195,9 @@ repository:
     - name: comment.lustre
       begin: '\(\*'
       end: '\*\)'
-      patterns:
-      - include: '#comment'
     - name: comment.lustre
       begin: '/\*'
       end: '\*/'
-      patterns:
-      - include: '#comment'
-
 
   # Helpers for nodes and expressions.
 
