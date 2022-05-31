@@ -358,22 +358,12 @@
         {
           "name": "comment.lustre",
           "begin": "\\(\\*",
-          "end": "\\*\\)",
-          "patterns": [
-            {
-              "include": "#comment"
-            }
-          ]
+          "end": "\\*\\)"
         },
         {
           "name": "comment.lustre",
           "begin": "/\\*",
-          "end": "\\*/",
-          "patterns": [
-            {
-              "include": "#comment"
-            }
-          ]
+          "end": "\\*/"
         }
       ]
     },
@@ -453,7 +443,7 @@
     },
     "importedComponent": {
       "begin": "(?=(node|function)\\s*\\bimported\\b)",
-      "end": "(?<=\\)|;)",
+      "end": "(?<=;|\\))",
       "patterns": [
         {
           "include": "#componentDecl"
