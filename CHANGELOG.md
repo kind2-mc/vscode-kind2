@@ -1,3 +1,7 @@
+### Version 0.5.1
+- Fix highlighting issues for line comments inside block comments.
+- Fix go-to-definition bugs.
+
 ### Version 0.5.0
 - Improve syntax highlighting for type definitions, contracts, machine integer casts, and type definitions.
 - Add support for go-to-definition for top level constants, type definitions, (imported) functions, (imported) nodes, and contract nodes.
