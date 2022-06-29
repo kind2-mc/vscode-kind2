@@ -1,7 +1,0 @@
-.gitignore
-.vscode
-images
-package-lock.json
-package.json
-src
-tsconfig.json

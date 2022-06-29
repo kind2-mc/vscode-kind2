@@ -1,0 +1,467 @@
+{
+  "name": "vscode-kind2",
+  "displayName": "Kind 2",
+  "icon": "icons/kind.png",
+  "description": "Language support for Kind 2",
+  "author": "Abdalrhman M Mohamed",
+  "license": "MIT",
+  "version": "0.5.1",
+  "preview": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kind2-mc/vscode-kind2"
+  },
+  "publisher": "kind2-mc",
+  "categories": [
+    "Programming Languages"
+  ],
+  "engines": {
+    "vscode": "^1.67.0"
+  },
+  "activationEvents": [
+    "onLanguage:lustre"
+  ],
+  "main": "out/main",
+  "contributes": {
+    "languages": [
+      {
+        "id": "lustre",
+        "aliases": [
+          "lus"
+        ],
+        "extensions": [
+          "lus"
+        ],
+        "configuration": "language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "lustre",
+        "scopeName": "source.lus",
+        "path": "syntaxes/lustre.tmLanguage.json"
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "kind2"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Kind 2",
+      "properties": {
+        "kind2.trace.server": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "order": 0,
+          "description": "Traces the communication between VS Code and the language server."
+        },
+        "kind2.kind2_path": {
+          "title": "Kind2 Path",
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "",
+          "order": 0,
+          "description": "Path to the kind2 executable used by the extension."
+        },
+        "kind2.smt.smt_solver": {
+          "title": "SMT Solver",
+          "scope": "machine-overridable",
+          "type": "string",
+          "enum": [
+            "detect",
+            "Boolector",
+            "CVC4",
+            "MathSAT",
+            "Yices",
+            "Yices2",
+            "Z3"
+          ],
+          "default": "detect",
+          "order": 0,
+          "description": "Set the main SMT solver"
+        },
+        "kind2.smt.check_sat_assume": {
+          "title": "Check Sat Assuming",
+          "scope": "machine-overridable",
+          "type": "boolean",
+          "default": true,
+          "order": 0,
+          "description": "Use check-sat-assuming, or simulate with push/pop."
+        },
+        "kind2.smt.mathsat_bin": {
+          "title": "MathSAT Bin",
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "mathsat",
+          "order": 0,
+          "description": "Executable of MathSAT solver."
+        },
+        "kind2.smt.boolector_bin": {
+          "title": "Boolector Bin",
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "boolector",
+          "order": 0,
+          "description": "Executable of Boolector solver."
+        },
+        "kind2.smt.z3_bin": {
+          "title": "Z3 Bin",
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "",
+          "order": 0,
+          "description": "Executable of Z3 solver. Defaults to the Z3 executable bundled with the extension."
+        },
+        "kind2.smt.cvc4_bin": {
+          "title": "CVC4 Bin",
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "cvc4",
+          "order": 0,
+          "description": "Executable of CVC4 solver."
+        },
+        "kind2.smt.yices_bin": {
+          "title": "Yices Bin",
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "yices",
+          "order": 0,
+          "description": "Executable of Yices solver."
+        },
+        "kind2.smt.yices2_bin": {
+          "title": "Yices 2 Bin",
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "yices-smt2",
+          "order": 0,
+          "description": "Executable of Yices2 SMT2 solver."
+        },
+        "kind2.ind.ind_print_cex": {
+          "title": "Induction Print Counterexamples",
+          "scope": "machine-overridable",
+          "type": "boolean",
+          "default": false,
+          "order": 0,
+          "description": "Print counterexamples to induction."
+        },
+        "kind2.test.testgen": {
+          "scope": "machine-overridable",
+          "type": "boolean",
+          "default": false,
+          "order": 0,
+          "description": "Activates test generation for systems proved correct."
+        },
+        "kind2.contracts.compositional": {
+          "scope": "machine-overridable",
+          "type": "boolean",
+          "default": false,
+          "order": 0,
+          "description": "Abstract subnodes with a contract."
+        },
+        "kind2.certif.certif": {
+          "scope": "machine-overridable",
+          "type": "boolean",
+          "order": 0,
+          "default": false,
+          "description": "Produce SMT-LIB 2 certificates."
+        },
+        "kind2.output_dir": {
+          "title": "Output Directory",
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "",
+          "order": 0,
+          "description": "Output directory for the files generated (SMT traces, compilation, testgen, certification...)."
+        },
+        "kind2.dump_cex": {
+          "title": "Dump Counterexample",
+          "scope": "machine-overridable",
+          "type": "boolean",
+          "default": false,
+          "order": 0,
+          "description": "Dump counterexample to a file. Only in plain text output."
+        },
+        "kind2.timeout": {
+          "scope": "machine-overridable",
+          "type": "number",
+          "minimum": 0,
+          "default": 120,
+          "order": 0,
+          "description": "Wallclock timeout in seconds."
+        },
+        "kind2.modules": {
+          "scope": "machine-overridable",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "anyOf": [
+              {
+                "const": "IC3"
+              },
+              {
+                "const": "BMC"
+              },
+              {
+                "const": "IND"
+              },
+              {
+                "const": "IND2"
+              },
+              {
+                "const": "INVGEN"
+              },
+              {
+                "const": "INVGENOS"
+              },
+              {
+                "const": "INVGENINT"
+              },
+              {
+                "const": "INVGENINTOS"
+              },
+              {
+                "const": "INVGENMACH"
+              },
+              {
+                "const": "INVGENMACHOS"
+              },
+              {
+                "const": "INVGENREAL"
+              },
+              {
+                "const": "INVGENREALOS"
+              },
+              {
+                "const": "C2I"
+              },
+              {
+                "const": "interpreter"
+              },
+              {
+                "const": "MCS"
+              },
+              {
+                "const": "CONTRACTCK"
+              }
+            ]
+          },
+          "default": [],
+          "order": 0,
+          "description": "Enabled Kind modules."
+        },
+        "kind2.modular": {
+          "scope": "machine-overridable",
+          "type": "boolean",
+          "default": false,
+          "order": 0,
+          "description": "Bottom-up analysis of each node."
+        },
+        "kind2.slice_nodes": {
+          "title": "Slice Nodes",
+          "scope": "machine-overridable",
+          "type": "boolean",
+          "default": true,
+          "order": 0,
+          "description": "Only equations that are relevant for checking the contract and properties of a node are considered during the analysis."
+        },
+        "kind2.check_subproperties": {
+          "title": "Check Subproperties",
+          "scope": "machine-overridable",
+          "type": "boolean",
+          "default": true,
+          "order": 0,
+          "markdownDescription": "Check properties of subnodes in addition to properties of the main node. Ignored if `kind2.modular` is `true`."
+        },
+        "kind2.log_level": {
+          "title": "Log Level",
+          "scope": "machine-overridable",
+          "type": "string",
+          "enum": [
+            "off",
+            "fatal",
+            "error",
+            "warn",
+            "note",
+            "info",
+            "debug",
+            "trace"
+          ],
+          "enumDescriptions": [
+            "Disable output completely",
+            "Disable output, fatal errors only",
+            "Silence output, errors only",
+            "Output potentially harmful situations",
+            "Output important notes (soft warning)",
+            "Output informational messages",
+            "Output informational and debug messages",
+            "Output informational, debug and trace messages"
+          ],
+          "default": "note",
+          "order": 0,
+          "description": "Levels of log messages."
+        },
+        "kind2.other_options": {
+          "title": "Other Options",
+          "scope": "machine-overridable",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "order": 1,
+          "description": "Other options to pass to Kind."
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "kind2",
+          "title": "Kind 2",
+          "icon": "icons/kind.png"
+        }
+      ]
+    },
+    "views": {
+      "kind2": [
+        {
+          "id": "properties",
+          "name": "Properties"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "kind2/enableModular",
+          "group": "navigation@1",
+          "when": "view == properties && !config.kind2.modular"
+        },
+        {
+          "command": "kind2/disableModular",
+          "group": "navigation@1",
+          "when": "view == properties && config.kind2.modular"
+        },
+        {
+          "command": "kind2/enableCompositional",
+          "group": "navigation@2",
+          "when": "view == properties && !config.kind2.contracts.compositional"
+        },
+        {
+          "command": "kind2/disableCompositional",
+          "group": "navigation@2",
+          "when": "view == properties && config.kind2.contracts.compositional"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "kind2/counterExample",
+          "group": "inline@1",
+          "when": "view == properties && viewItem == failed"
+        },
+        {
+          "command": "kind2/check",
+          "group": "inline@1",
+          "when": "view == properties && viewItem == component"
+        },
+        {
+          "command": "kind2/cancel",
+          "group": "inline@1",
+          "when": "view == properties && viewItem == running"
+        },
+        {
+          "command": "kind2/showSource",
+          "group": "inline@2",
+          "when": "view == properties && viewItem != analysis"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "kind2/counterExample",
+        "title": "Show Counter Example",
+        "icon": "$(output)"
+      },
+      {
+        "command": "kind2/check",
+        "title": "Check component",
+        "icon": "$(run)"
+      },
+      {
+        "command": "kind2/cancel",
+        "title": "Cancel check",
+        "icon": "$(chrome-maximize)"
+      },
+      {
+        "command": "kind2/showSource",
+        "title": "Show source",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "kind2/enableModular",
+        "title": "Enable Modular Analysis",
+        "icon": {
+          "dark": "icons/enable-modular-dark.svg",
+          "light": "icons/enable-modular-light.svg"
+        }
+      },
+      {
+        "command": "kind2/disableModular",
+        "title": "Disable Modular Analysis",
+        "icon": {
+          "dark": "icons/disable-modular-dark.svg",
+          "light": "icons/disable-modular-light.svg"
+        }
+      },
+      {
+        "command": "kind2/enableCompositional",
+        "title": "Enable Compositional Analysis",
+        "icon": {
+          "dark": "icons/enable-compositional-dark.svg",
+          "light": "icons/enable-compositional-light.svg"
+        }
+      },
+      {
+        "command": "kind2/disableCompositional",
+        "title": "Disable Compositional Analysis",
+        "icon": {
+          "dark": "icons/disable-compositional-dark.svg",
+          "light": "icons/disable-compositional-light.svg"
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "test": "sh scripts/e2e.sh"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^6.1.4"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.2.0",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.68.1",
+    "@typescript-eslint/parser": "^5.30.0",
+    "@vscode/test-electron": "^2.1.5",
+    "esbuild": "^0.14.47",
+    "eslint": "^8.18.0",
+    "js-yaml": "^4.1.0",
+    "mocha": "^10.0.0",
+    "typescript": "^4.7.4",
+    "vsce": "^2.9.2"
+  }
+}
