@@ -1,0 +1,35 @@
+<div class="run">
+  <label>Number of columns:</label>
+  <input class="textbox" type="number" min="1" (change)="columnsChangedEvent($event)" [attr.value]="numCols()">
+  <button class="button" (click)="simulate()">Simulate</button>
+</div>
+
+<div class="simulation">
+  <div *ngFor="let component of components">
+    <label class="componentName">{{component.blockType}}: {{component.name}}</label>
+    <table class="table">
+      <thead>
+        <tr class="monaco-list">
+          <th class="streamName">Time</th>
+          <th *ngFor="let value of component.streams[0].instantValues">{{value[0]}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="monaco-list" *ngFor="let stream of component.streams">
+          <td class="streamName" [ngSwitch]="stream.class">
+            <i *ngSwitchCase="&quot;input&quot;" class="bi bi-box-arrow-in-right inputIcon"></i>
+            <i *ngSwitchCase="&quot;output&quot;" class="bi bi-box-arrow-right outputIcon"></i>
+            <i *ngSwitchCase="&quot;local&quot;" class="bi bi-geo-fill localIcon"></i>
+            {{stream.name}} ({{stream.type}})
+          </td>
+          <td *ngFor="let value of stream.instantValues" [ngSwitch]="stream.type">
+            <input class="checkbox" *ngSwitchCase="&quot;bool&quot;"
+              (change)="checkboxChanged(component, stream, value, $event)" type="checkbox" [checked]="value[1]">
+            <input class="textbox" *ngSwitchDefault [disabled]="isDisabled(component, stream)" type="text"
+              (change)="inputChanged(stream.type, value, $event)" [attr.value]="valueToString(value[1])">
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

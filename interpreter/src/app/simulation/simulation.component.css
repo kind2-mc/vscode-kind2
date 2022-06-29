@@ -1,0 +1,129 @@
+@import url("bootstrap-icons/font/bootstrap-icons.css");
+
+:root {
+  --container-paddding: 20px;
+  --input-padding-vertical: 6px;
+  --input-padding-horizontal: 4px;
+  --input-margin-vertical: 4px;
+  --input-margin-horizontal: 4px;
+}
+
+body {
+  padding: 0 var(--container-paddding);
+  color: var(--vscode-foreground);
+  font-size: var(--vscode-font-size);
+  font-weight: var(--vscode-font-weight);
+  font-family: var(--vscode-font-family);
+  background-color: var(--vscode-editor-background);
+}
+
+.run {
+  width: 100%;
+  text-align: center;
+}
+
+*:focus {
+  outline-color: var(--vscode-focusBorder);
+}
+
+.simulation {
+  text-align: center;
+}
+
+.componentName {
+  text-align: left;
+  font-size: 25px;
+}
+
+.streamName {
+  text-align: left;
+  width: 10rem;
+}
+
+.inputIcon {
+  color: royalblue;
+  font-size: 20px;
+}
+
+.outputIcon {
+  color: green;
+  font-size: 20px;
+}
+
+.localIcon {
+  font-size: 20px;
+}
+
+.table {
+  width: 100%;
+  border-style: solid none;
+  border-width: thin;
+  margin-bottom: 1rem;
+  border-collapse: collapse;
+}
+
+.table th {
+  border-style: solid none;
+  border-width: thin;
+  border-color: grey;
+}
+
+.table th, .table td {
+  padding: 0.75rem;
+}
+
+.table tr:active, .table tr:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.table tbody tr:nth-of-type(odd) {
+    background: var(--vscode-list-inactiveSelectionBackground);
+}
+
+.textbox {
+  height: 1.5rem;
+  width: 3rem;
+  border: none;
+  font-family: var(--vscode-font-family);
+  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+  color: var(--vscode-input-foreground);
+  outline-color: var(--vscode-input-border);
+  background-color: var(--vscode-input-background);
+}
+
+.checkbox {
+  background: var(--vscode-settings-checkboxBackground);
+  color: var(--vscode-settings-checkboxForeground);
+  border: var(--vscode-settings-checkboxBorder);
+  padding: 0rem 2rem;
+}
+
+.button {
+  border: none;
+  height: 1.5rem;
+  width: 4rem;
+  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+  text-align: center;
+  outline: 1px solid transparent;
+  outline-offset: 2px !important;
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+}
+
+.button:hover {
+  cursor: pointer;
+  background: var(--vscode-button-hoverBackground);
+}
+
+.button:focus {
+  outline-color: var(--vscode-focusBorder);
+}
+
+.button.secondary {
+  color: var(--vscode-button-secondaryForeground);
+  background: var(--vscode-button-secondaryBackground);
+}
+
+.button.secondary:hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
