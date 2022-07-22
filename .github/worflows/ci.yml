@@ -31,6 +31,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
     - name: Configure dependencies
       run: ./configure.sh
     - name: Package extension
