@@ -4,6 +4,13 @@ Z3_VERSION=4.8.17
 KIND2_VERSION=1.6.0
 SERVER_VERSION=0.1.0
 
+# Remove old configurations
+rm -r linux kind2-language-server
+rm z3-$Z3_VERSION-x64-glibc-2.31.zip*
+rm -r z3-$Z3_VERSION-x64-glibc-2.31
+rm kind2-v$KIND2_VERSION-linux-x86_64.tar.gz*
+rm kind2-language-server.zip*
+
 # Install Z3
 mkdir linux
 wget https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/z3-$Z3_VERSION-x64-glibc-2.31.zip
@@ -29,3 +36,6 @@ npm install
 npm run build
 cd ../extension
 cp -r ../interpreter/dist/interpreter interpreter
+
+# Install Node depedencies
+npm install
