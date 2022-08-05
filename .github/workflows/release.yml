@@ -26,10 +26,16 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         cache-dependency-path: '**/package-lock.json'
-    - name: Configure dependencies
-      run: ./configure.sh
-    - name: Package & Publish extension
-      run: npx vsce publish
+    - name: Linux - Configure dependencies
+      run: ./configure.sh linux
+    - name: Linux - Package & Publish extension
+      run: npx vsce publish --target linux-x64
+      env:
+        VSCE_PAT: ${{ secrets.VSCE_PAT }}
+    - name: MacOS - Configure dependencies
+      run: ./configure.sh macos
+    - name: MacOS - Package & Publish MacOS extension
+      run: npx vsce publish --target darwin-x64
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
     - name: Upload artifact
