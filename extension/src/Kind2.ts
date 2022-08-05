@@ -131,24 +131,12 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
   }
 
-  private getPlatform(): string {
-    let platform: string;
-    switch (os.platform()) {
-      case "linux":
-        return "linux";
-      case "darwin":
-        return "macos";
-      default:
-        throw `Kind 2 extension does not support ${platform} platform.`;
-    }
-  }
-
   public getDefaultKind2Path(): string {
-    return this._context.asAbsolutePath(path.join(this.getPlatform(), "kind2"));
+    return this._context.asAbsolutePath("kind2");
   }
 
   public getDefaultZ3Path(): string {
-    return this._context.asAbsolutePath(path.join(this.getPlatform(), "z3"));
+    return this._context.asAbsolutePath("z3");
   }
 
   private updateFileNames(): void {
