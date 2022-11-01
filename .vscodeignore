@@ -1,3 +1,4 @@
+.github
 .gitignore
 .vscode
 images
@@ -5,3 +6,5 @@ package-lock.json
 package.json
 src
 tsconfig.json
+interpreter
+vscode-kind2.code-workspace

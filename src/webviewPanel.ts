@@ -56,7 +56,7 @@ export class WebPanel {
   private constructor(extensionPath: string, column: vscode.ViewColumn) {
     this.ready = false;
     this.extensionPath = extensionPath;
-    this.builtAppFolder = path.join('interpreter');
+    this.builtAppFolder = path.join('out', 'interpreter');
 
     // Create and show a new webview panel
     this.panel = vscode.window.createWebviewPanel(WebPanel.viewType, 'Kind 2 Simulation View', column, {
@@ -109,7 +109,7 @@ export class WebPanel {
    */
   private _getHtmlForWebview(): string {
     // path to dist folder
-    const appDistPath = path.join(this.extensionPath, 'interpreter');
+    const appDistPath = path.join(this.extensionPath, 'out', 'interpreter');
     const appDistPathUri = vscode.Uri.file(appDistPath);
 
     // path as uri
