@@ -54,11 +54,11 @@ unzip kind2-language-server.zip
 rm kind2-language-server.zip
 
 # Install interpreter
-cd ../interpreter
+pushd interpreter
 npm install
 npm run build
-cd ../extension
-cp -r ../interpreter/dist/interpreter interpreter
+popd
+cp -r interpreter/dist/interpreter out/interpreter
 
 # Install Node depedencies
 npm install
