@@ -100,7 +100,7 @@ export class SimulationComponent implements OnInit {
         if (i === -1) {
           value[1] = Number.parseFloat((event.target as HTMLInputElement).value);
         } else {
-          value[1] = { num: Number.parseInt(str.substr(0, i)), den: Number.parseInt(str.substr(i + 1)) };
+          value[1] = { num: Number.parseInt(str.substring(0, i)), den: Number.parseInt(str.substring(i + 1)) };
         }
         break;
       case "enum":
@@ -173,4 +173,5 @@ export class SimulationComponent implements OnInit {
     vscode.postMessage({ command: "kind2/interpret", args: [{ uri: this._uri, name: this._main }, JSON.stringify(json)] });
   }
 }
+
 declare const vscode: VSCode;
