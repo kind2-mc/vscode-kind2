@@ -32,7 +32,9 @@ export class WebPanel {
     // If we already have a panel, show it.
     // Otherwise, create angular panel.
     if (WebPanel.currentPanel) {
-      WebPanel.currentPanel.panel.reveal(column);
+      if (!WebPanel.currentPanel.panel.visible) {
+        WebPanel.currentPanel.panel.reveal(column);
+      }
     } else {
       WebPanel.currentPanel = new WebPanel(extensionPath, column || vscode.ViewColumn.One);
     }
