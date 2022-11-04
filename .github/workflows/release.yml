@@ -31,11 +31,11 @@ jobs:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
     - name: MacOS - Configure dependencies
       run: ./configure.sh macos
-    - name: MacOS - Package & Publish MacOS extension
+    - name: MacOS - Package & Publish extension
       run: npx vsce publish --target darwin-x64
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        path: extension/vscode-kind2-*.vsix
+        path: vscode-kind2-*.vsix
