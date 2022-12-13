@@ -58,6 +58,7 @@ pushd interpreter
 npm install
 npm run build
 popd
+mkdir -p out
 cp -r interpreter/dist/interpreter out/interpreter
 
 # Install Node depedencies
