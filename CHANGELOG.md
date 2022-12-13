@@ -1,3 +1,7 @@
+### Version 0.5.2
+- Update Z3 to version 4.11.0 and Kind 2 to version 1.7.0.
+- Replace CVC4 SMT solver backend with cvc5.
+
 ### Version 0.5.1
 - Fix highlighting issues for line comments inside block comments.
 - Fix go-to-definition bugs.
