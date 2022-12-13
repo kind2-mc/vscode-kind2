@@ -1,8 +1,8 @@
 #!/bin/bash
 
-Z3_VERSION=4.10.2
-KIND2_VERSION=1.6.0
-SERVER_VERSION=0.1.0
+Z3_VERSION=4.11.0
+KIND2_VERSION=1.7.0
+SERVER_VERSION=0.1.1
 
 case "$1" in
   macos*)
@@ -18,7 +18,7 @@ esac
 case "$OSTYPE" in
   darwin*)
     Z3_OS_VERSION=osx-10.16
-    KIND2_OS_VERSION=macos-10.15
+    KIND2_OS_VERSION=macos-11
     ;;
   linux*)
     Z3_OS_VERSION=glibc-2.31

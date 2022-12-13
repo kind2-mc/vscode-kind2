@@ -5,7 +5,7 @@
   "description": "Language support for Kind 2",
   "author": "Abdalrhman M Mohamed",
   "license": "MIT",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "preview": true,
   "repository": {
     "type": "git",
@@ -78,7 +78,7 @@
           "enum": [
             "detect",
             "Boolector",
-            "CVC4",
+            "cvc5",
             "MathSAT",
             "Yices",
             "Yices2",
@@ -120,13 +120,13 @@
           "order": 0,
           "description": "Executable of Z3 solver. Defaults to the Z3 executable bundled with the extension."
         },
-        "kind2.smt.cvc4_bin": {
-          "title": "CVC4 Bin",
+        "kind2.smt.cvc5_bin": {
+          "title": "cvc5 Bin",
           "scope": "machine-overridable",
           "type": "string",
-          "default": "cvc4",
+          "default": "cvc5",
           "order": 0,
-          "description": "Executable of CVC4 solver."
+          "description": "Executable of cvc5 solver."
         },
         "kind2.smt.yices_bin": {
           "title": "Yices Bin",
