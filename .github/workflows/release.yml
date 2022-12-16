@@ -9,7 +9,7 @@ on:
     types: [created]
 
 jobs:
-  publish-linux:
+  publish-linux-x64:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -29,12 +29,8 @@ jobs:
       run: npx vsce publish --target linux-x64
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        path: vscode-kind2-*.vsix
 
-  publish-macos:
+  publish-macos-x64:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -54,7 +50,4 @@ jobs:
       run: npx vsce publish --target darwin-x64
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        path: vscode-kind2-*.vsix
+
