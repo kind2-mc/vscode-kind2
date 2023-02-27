@@ -339,7 +339,7 @@ repository:
     - include: '#comment'
     - comment: Keywords
       name: keyword.control.lustre
-      match: '\b(if|then|else|not|and|xor|or|pre|fby|div|mod|lsh|rsh)\b'
+      match: '\b(if|then|else|not|and|xor|or|pre|fby|div|mod|lsh|rsh|reachable|invariant|from|within|at)\b'
     - comment: Merge
       begin: '(merge)\s*\('
       beginCaptures:
@@ -431,6 +431,64 @@ repository:
                 match: '\w+'
           - include: '#expression'
 
+  # If blocks
+
+  ifBlock:
+    begin: "\\b(if)\\b"
+    end: "\\b(fi)\\b"
+    beginCaptures:
+      '1':
+        name: keyword.other.lustre
+    endCaptures:
+      '1':
+        name: keyword.other.lustre
+    patterns:
+    - begin: "(?<=if)"
+      end: "(?=then)"
+      patterns:
+      - include: "#expression"
+    - begin: "\\b(then)\\b"
+      end: "\\b(else)\\b"
+      beginCaptures:
+        '1':
+          name: keyword.other.lustre
+      endCaptures:
+        '1':
+          name: keyword.other.lustre
+      patterns:
+      - include: "#equation"
+    - begin: "(?<=else)"
+      end: "(?=fi)"
+      patterns:
+      - include: "#equation"
+    - include: "#comment"
+
+  # Frame blocks
+
+  frameBlock:
+    begin: "\\b(frame)\\b"
+    end: "\\b(tel)\\b"
+    beginCaptures:
+      '1':
+        name: keyword.other.lustre
+    endCaptures:
+      '1':
+        name: keyword.other.lustre
+    patterns:
+    - begin: "(?<=frame)"
+      end: "\\b(let)\\b"
+      endCaptures:
+        '1':
+          name: keyword.other.lustre
+      patterns:
+      - include: "#comment"
+    - begin: "(?<=let)"
+      end: "(?=tel)"
+      patterns:
+      - include: "#ifBlock"
+      - include: "#equation"
+      - include: "#comment"
+
 
   # Local variables
 
@@ -463,7 +521,8 @@ repository:
     - include: '#internAnnotation'
     - include: '#comment'
     - include: '#equation'
-
+    - include: '#ifBlock'
+    - include: '#frameBlock'
 
   # Type declaration
 

@@ -620,7 +620,7 @@
         {
           "comment": "Keywords",
           "name": "keyword.control.lustre",
-          "match": "\\b(if|then|else|not|and|xor|or|pre|fby|div|mod|lsh|rsh)\\b"
+          "match": "\\b(if|then|else|not|and|xor|or|pre|fby|div|mod|lsh|rsh|reachable|invariant|from|within|at)\\b"
         },
         {
           "comment": "Merge",
@@ -805,6 +805,112 @@
         }
       ]
     },
+
+
+
+    "ifBlock": {
+      "begin": "\\b(if)\\b",
+      "end": "\\b(fi)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.lustre"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "keyword.other.lustre"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(?<=if)",
+          "end": "(?=then)",
+          "patterns": [ 
+            {
+              "include": "#expression"
+            }
+          ]
+        },
+        {
+          "begin": "\\b(then)\\b",
+          "end": "\\b(else)\\b",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.other.lustre"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "keyword.other.lustre"
+            }
+          },
+          "patterns": [ 
+            {
+              "include": "#equation"
+            }
+          ]
+        },
+        {
+          "begin": "(?<=else)",
+          "end": "(?=fi)",
+          "patterns": [ 
+            {
+              "include": "#equation"
+            }
+          ]
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "frameBlock": {
+      "begin": "\\b(frame)\\b",
+      "end": "\\b(tel)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.lustre"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "keyword.other.lustre"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(?<=frame)",
+          "end": "\\b(let)\\b",
+          "endCaptures": {
+            "1": {
+              "name": "keyword.other.lustre"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comment"
+            }
+          ]
+        },
+        {
+          "begin": "(?<=let)",
+          "end": "(?=tel)",
+          "patterns": [
+            { 
+              "include": "#ifBlock" 
+            },
+            {
+              "include": "#equation"
+            },
+            {
+              "include": "#comment"
+            }
+          ]
+        }
+      ]
+    },
+
+
     "var": {
       "begin": "\\b(var)\\b",
       "beginCaptures": {
@@ -856,8 +962,14 @@
           "include": "#comment"
         },
         {
+          "include": "#frameBlock"
+        },
+        {
+          "include": "#ifBlock"
+        },
+        {
           "include": "#equation"
-        }
+        } 
       ]
     },
     "structField": {
