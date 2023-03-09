@@ -32,13 +32,17 @@ export class Component {
   }
   get properties(): Property[] {
     let passedProperties = new Map<string, Property>();
+    let reachableProperties = new Map<string, Property>();
     let failedProperties = new Map<string, Property>();
+    let unreachableProperties = new Map<string, Property>();
     let unknownProperties = new Map<string, Property>();
     let erroredProperties = new Map<string, Property>();
     for (const analysis of this._analyses) {
       for (const property of analysis.properties) {
         if (property.state === "passed") { passedProperties.set(property.name, property); }
+        if (property.state === "reachable") { reachableProperties.set(property.name, property); }
         if (property.state === "failed") { failedProperties.set(property.name, property); }
+        if (property.state === "unreachable") { unreachableProperties.set(property.name, property); }
         if (property.state === "unknown") { failedProperties.set(property.name, property); }
         if (property.state === "errored") { erroredProperties.set(property.name, property); }
       }
@@ -47,6 +51,8 @@ export class Component {
     for (const entry of passedProperties) {
       failedProperties.delete(entry[0]);
       unknownProperties.delete(entry[0]);
+      reachableProperties.delete(entry[0]);
+      unreachableProperties.delete(entry[0]);
       properties.push(entry[1]);
     }
     for (const entry of failedProperties) {
@@ -70,8 +76,8 @@ export class Component {
     let erroredProperties = new Set<string>();
     for (const analysis of this._analyses) {
       for (const property of analysis.properties) {
-        if (property.state === "passed") { passedProperties.add(property.name); }
-        if (property.state === "failed") { failedProperties.add(property.name); }
+        if (property.state === "passed" || property.state === "reachable") { passedProperties.add(property.name); }
+        if (property.state === "failed" || property.state === "unreachable") { failedProperties.add(property.name); }
         if (property.state === "unknown") { unknownProperties.add(property.name); }
         if (property.state === "errored") { erroredProperties.add(property.name); }
       }
@@ -116,7 +122,7 @@ export class Property {
   }
 }
 
-export type State = "pending" | "running" | "passed" | "failed" | "unknown" | "stopped" | "errored";
+export type State = "pending" | "running" | "passed" | "reachable" | "failed" | "unreachable" | "unknown" | "stopped" | "errored";
 
 export function statePath(state: State) {
   switch (state) {
@@ -125,8 +131,10 @@ export function statePath(state: State) {
     case "running":
       return "icons/running.svg";
     case "passed":
+    case "reachable":
       return "icons/passed.svg";
     case "failed":
+    case "unreachable":
       return "icons/failed.svg";
     case "unknown":
       return "icons/unknown.svg";
@@ -144,8 +152,10 @@ export function stateIcon(state: State) {
     case "running":
       return new ThemeIcon("$(history)", new ThemeColor("testing.iconQueued"));
     case "passed":
+    case "reachable":
       return new ThemeIcon("$(testing-passed-icon)", new ThemeColor("testing.iconPassed"));
     case "failed":
+    case "unreachable":
       return new ThemeIcon("$(testing-failed-icon)", new ThemeColor("testing.iconFailed"));
     case "unknown":
       return new ThemeIcon("$(question)", new ThemeColor("testing.iconQueued"));

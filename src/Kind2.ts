@@ -31,7 +31,9 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       ["pending", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("pending")) })],
       ["running", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("running")) })],
       ["passed", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("passed")) })],
+      ["reachable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("reachable")) })],
       ["failed", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("failed")) })],
+      ["unreachable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("unreachable")) })],
       ["stopped", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("stopped")) })],
       ["unknown", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("unknown")) })],
       ["errored", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("errored")) })]])
@@ -79,8 +81,8 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     else {
       item = new TreeItem(element.name, TreeItemCollapsibleState.None);
-      if (element.state == "failed") {
-        item.contextValue = "failed";
+      if (element.state == "failed" || element.state == "reachable") {
+        item.contextValue = "hasTrace";
       }
       item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath(element.state)));
       // item.iconPath = stateIcon(element.state);
@@ -110,7 +112,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   public updateDecorations(): void {
     let decorations = new Map<string, Map<State, DecorationOptions[]>>();
     for (const file of this._files) {
-      decorations.set(file.uri, new Map<State, DecorationOptions[]>([["pending", []], ["running", []], ["passed", []], ["failed", []], ["stopped", []], ["unknown", []], ["errored", []]]));
+      decorations.set(file.uri, new Map<State, DecorationOptions[]>([["pending", []], ["running", []], ["passed", []], ["reachable", []],  ["failed", []], ["unreachable", []], ["stopped", []], ["unknown", []], ["errored", []]]));
     }
     for (const file of this._files) {
       for (const component of file.components) {
@@ -125,7 +127,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     for (const uri of decorations.keys()) {
       let editor = window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri);
-      for (const state of <State[]>["pending", "running", "passed", "failed", "stopped", "unknown", "errored"]) {
+      for (const state of <State[]>["pending", "running", "passed", "reachable", "failed", "unreachable", "stopped", "unknown", "errored"]) {
         editor?.setDecorations(this._decorationTypeMap.get(state)!, decorations.get(uri)?.get(state)!);
       }
     }
@@ -267,11 +269,17 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
           for (const propertyResult of analysisResult.properties) {
             let property = new Property(propertyResult.name, propertyResult.line - 1, propertyResult.file, analysis);
             switch (propertyResult.answer.value) {
-              case "valid":
+              case "valid":   
                 property.state = "passed";
+                break;
+              case "reachable":
+                property.state = "reachable";
                 break;
               case "falsifiable":
                 property.state = "failed";
+                break;
+              case "unreachable":
+                property.state = "unreachable";
                 break;
               default:
                 property.state = "unknown";
@@ -297,7 +305,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       }
     });
     if (mainComponent.state === "running") {
-      mainComponent.state = "unknown";
+      mainComponent.state = "passed";
     }
     for (const component of modifiedComponents) {
       this._treeDataChanged.fire(component);

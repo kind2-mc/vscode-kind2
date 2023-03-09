@@ -366,7 +366,7 @@
         {
           "command": "kind2/counterExample",
           "group": "inline@1",
-          "when": "view == properties && viewItem == failed"
+          "when": "view == properties && viewItem == hasTrace"
         },
         {
           "command": "kind2/check",
