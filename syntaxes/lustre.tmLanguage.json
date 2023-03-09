@@ -888,6 +888,13 @@
           },
           "patterns": [
             {
+              "begin": "\\(",
+              "end": "\\)"
+            },
+            {
+              "include": "#equation"
+            },
+            {
               "include": "#comment"
             }
           ]

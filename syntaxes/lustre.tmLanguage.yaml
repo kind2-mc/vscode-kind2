@@ -481,6 +481,9 @@ repository:
         '1':
           name: keyword.other.lustre
       patterns:
+      - begin: "\\("
+        end: "\\)"
+      - include: "#equation"
       - include: "#comment"
     - begin: "(?<=let)"
       end: "(?=tel)"
