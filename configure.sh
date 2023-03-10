@@ -1,8 +1,8 @@
 #!/bin/bash
 
-Z3_VERSION=4.11.0
-KIND2_VERSION=1.7.0
-SERVER_VERSION=0.1.1
+Z3_VERSION=4.12.0
+KIND2_VERSION=1.8.0
+SERVER_VERSION=0.1.2
 
 case "$1" in
   macos*)
@@ -21,7 +21,7 @@ case "$OSTYPE" in
     KIND2_OS_VERSION=macos-11
     ;;
   linux*)
-    Z3_OS_VERSION=glibc-2.31
+    Z3_OS_VERSION=glibc-2.35
     KIND2_OS_VERSION=linux
     ;;
   *)
