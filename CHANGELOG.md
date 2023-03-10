@@ -1,3 +1,9 @@
+### Version 0.5.3
+- Update Z3 to version 4.12.0 and Kind 2 to version 1.8.0.
+- Replace Boolector SMT solver with Bitwuzla.
+- Add syntax highlighting for frame blocks, if-then-else blocks, and reachability properties
+- Add experimental support for reachability properties
+
 ### Version 0.5.2
 - Update Z3 to version 4.11.0 and Kind 2 to version 1.7.0.
 - Replace CVC4 SMT solver backend with cvc5.
