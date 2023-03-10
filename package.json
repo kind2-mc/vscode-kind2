@@ -5,7 +5,7 @@
   "description": "Language support for Kind 2",
   "author": "Abdalrhman M Mohamed",
   "license": "MIT",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "preview": true,
   "repository": {
     "type": "git",
@@ -77,7 +77,7 @@
           "type": "string",
           "enum": [
             "detect",
-            "Boolector",
+            "Bitwuzla",
             "cvc5",
             "MathSAT",
             "Yices",
@@ -104,13 +104,13 @@
           "order": 0,
           "description": "Executable of MathSAT solver."
         },
-        "kind2.smt.boolector_bin": {
-          "title": "Boolector Bin",
+        "kind2.smt.bitwuzla_bin": {
+          "title": "Bitwuzla Bin",
           "scope": "machine-overridable",
           "type": "string",
-          "default": "boolector",
+          "default": "bitwuzla",
           "order": 0,
-          "description": "Executable of Boolector solver."
+          "description": "Executable of Bitwuzla solver."
         },
         "kind2.smt.z3_bin": {
           "title": "Z3 Bin",
