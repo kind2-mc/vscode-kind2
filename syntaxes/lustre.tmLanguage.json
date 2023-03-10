@@ -805,9 +805,6 @@
         }
       ]
     },
-
-
-
     "ifBlock": {
       "begin": "\\b(if)\\b",
       "end": "\\b(fi)\\b",
@@ -824,25 +821,19 @@
       "patterns": [
         {
           "begin": "(?<=if)",
-          "end": "(?=fi)",
-          "patterns": [ 
-            {
-              "include": "#expression"
-            }
-          ]
-        },
-        {
-          "begin": "(?<=if)",
           "end": "(?=then)",
           "patterns": [ 
             {
               "include": "#expression"
+            },
+            {
+              "include": "#comment"
             }
           ]
         },
         {
           "begin": "\\b(then)\\b",
-          "end": "\\b(else)\\b",
+          "end": "\\b(else)\\b|(?=fi)",
           "beginCaptures": {
             "1": {
               "name": "keyword.other.lustre"
@@ -855,7 +846,13 @@
           },
           "patterns": [ 
             {
+              "include": "#ifBlock"
+            },
+            {
               "include": "#equation"
+            },
+            {
+              "include": "#comment"
             }
           ]
         },
@@ -864,7 +861,13 @@
           "end": "(?=fi)",
           "patterns": [ 
             {
+              "include": "#ifBlock"
+            },
+            {
               "include": "#equation"
+            },
+            {
+              "include": "#comment"
             }
           ]
         },
