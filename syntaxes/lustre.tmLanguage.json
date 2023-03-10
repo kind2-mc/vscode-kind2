@@ -824,6 +824,15 @@
       "patterns": [
         {
           "begin": "(?<=if)",
+          "end": "(?=fi)",
+          "patterns": [ 
+            {
+              "include": "#expression"
+            }
+          ]
+        },
+        {
+          "begin": "(?<=if)",
           "end": "(?=then)",
           "patterns": [ 
             {
