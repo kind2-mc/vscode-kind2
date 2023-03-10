@@ -444,15 +444,12 @@ repository:
         name: keyword.other.lustre
     patterns:
     - begin: "(?<=if)"
-      end: "(?=fi)"
-      patterns:
-      - include: "#expression"
-    - begin: "(?<=if)"
       end: "(?=then)"
       patterns:
       - include: "#expression"
+      - include: "#comment"
     - begin: "\\b(then)\\b"
-      end: "\\b(else)\\b"
+      end: "\\b(else)\\b|(?=fi)"
       beginCaptures:
         '1':
           name: keyword.other.lustre
@@ -460,11 +457,15 @@ repository:
         '1':
           name: keyword.other.lustre
       patterns:
+      - include: "#ifBlock"
       - include: "#equation"
+      - include: "#comment"
     - begin: "(?<=else)"
       end: "(?=fi)"
       patterns:
+      - include: "#ifBlock"
       - include: "#equation"
+      - include: "#comment"
     - include: "#comment"
 
   # Frame blocks
