@@ -1,3 +1,6 @@
+### Version 0.5.4
+- Fix syntax highlighting for if blocks without 'else' branch
+
 ### Version 0.5.3
 - Update Z3 to version 4.12.0 and Kind 2 to version 1.8.0.
 - Replace Boolector SMT solver with Bitwuzla.
