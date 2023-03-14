@@ -25,7 +25,7 @@ jobs:
         cache: 'npm'
         cache-dependency-path: '**/package-lock.json'
     - name: Configure dependencies
-      run: ./configure.sh ${{ matrix.platform }}
+      run: ./configure.sh ${{ matrix.platform }} z3-static
     - name: Package extension
       run: npx vsce package --target ${{ matrix.platform }}
     - name: Upload artifact
