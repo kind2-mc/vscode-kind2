@@ -1,7 +1,5 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Node.js Release CI
+name: Publish release
 
 on:
   workflow_dispatch:
@@ -9,45 +7,31 @@ on:
     types: [created]
 
 jobs:
-  publish-linux-x64:
+  publish:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        platform: [linux-x64, darwin-x64, darwin-arm64]
         node-version: [16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         cache-dependency-path: '**/package-lock.json'
-    - name: Linux - Configure dependencies
-      run: ./configure.sh linux
-    - name: Linux - Package & Publish extension
-      run: npx vsce publish --target linux-x64
+    - name: Configure dependencies
+      run: ./configure.sh ${{ matrix.platform }}
+    - name: Package & Publish extension (platform-specific)
+      if: ${{ matrix.platform != 'linux-x64' }}
+      run: npx vsce publish --target ${{ matrix.platform }}
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
-
-  publish-macos-x64:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [16.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-    steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: '**/package-lock.json'
-    - name: MacOS - Configure dependencies
-      run: ./configure.sh macos
-    - name: MacOS - Package & Publish extension
-      run: npx vsce publish --target darwin-x64
+    - name: Package & Publish extension (universal)
+      if: ${{ matrix.platform == 'linux-x64' }}
+      run: npx vsce publish
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
-
