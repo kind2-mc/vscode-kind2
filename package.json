@@ -3,9 +3,9 @@
   "displayName": "Kind 2",
   "icon": "icons/kind.png",
   "description": "Language support for Kind 2",
-  "author": "Abdalrhman M Mohamed",
+  "author": "The Kind 2 development team",
   "license": "MIT",
-  "version": "0.5.4",
+  "version": "0.6.0",
   "preview": true,
   "repository": {
     "type": "git",
