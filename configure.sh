@@ -1,12 +1,26 @@
 #!/bin/bash
 
-Z3_VERSION=4.12.0
+Z3_VERSION=4.12.1
 KIND2_VERSION=1.8.0
 SERVER_VERSION=0.1.2
 
+ARCH=$(uname -m)
+
 case "$1" in
-  macos*)
+  darwin-x64)
     OSTYPE=darwin
+    ARCH=x86_64
+    ;;
+  darwin-arm64)
+    OSTYPE=darwin
+    ARCH=arm64
+    ;;
+  darwin*)
+    OSTYPE=darwin
+    ;;
+  linux-x64)
+    OSTYPE=linux
+    ARCH=x86_64
     ;;
   linux*)
     OSTYPE=linux
@@ -17,36 +31,55 @@ esac
 
 case "$OSTYPE" in
   darwin*)
-    Z3_OS_VERSION=osx-10.16
-    KIND2_OS_VERSION=macos-11
-    ;;
+    case "$ARCH" in
+      x86_64)
+        Z3_OS_VERSION=x64-osx-10.16
+        KIND2_OS_VERSION=macos-11-x86_64
+        ;;
+      arm64)
+        Z3_OS_VERSION=arm64-osx-11.0
+        KIND2_OS_VERSION=macos-12-arm64
+        ;;
+      *)
+        echo "unsupported ARCH: $ARCH";
+        exit 2;;
+    esac ;;
   linux*)
-    Z3_OS_VERSION=glibc-2.35
-    KIND2_OS_VERSION=linux
-    ;;
+    case "$ARCH" in
+      x86_64)
+        Z3_OS_VERSION=x64-glibc-2.35
+        KIND2_OS_VERSION=linux-x86_64
+        ;;
+      *)
+        echo "unsupported ARCH: $ARCH";
+        exit 2;;
+    esac ;;
   *)
-    echo "unknown: $OSTYPE"
-    ;;
+    echo "unsupported OS: $OSTYPE";
+    exit 1;;
 esac
 
+Z3_ZIP_NAME=z3-$Z3_VERSION-$Z3_OS_VERSION
+KIND2_TAR_NAME=kind2-v$KIND2_VERSION-$KIND2_OS_VERSION
+
 # Remove old configurations
-rm -r z3 kind2 kind2-language-server
-rm z3-$Z3_VERSION-x64-$Z3_OS_VERSION.zip*
-rm -r z3-$Z3_VERSION-x64-$Z3_OS_VERSION
-rm kind2-v$KIND2_VERSION-$KIND2_OS_VERSION-x86_64.tar.gz*
-rm kind2-language-server.zip*
+rm -rf z3 kind2 kind2-language-server
+rm -f $Z3_ZIP_NAME.zip
+rm -rf $Z3_ZIP_NAME
+rm -f $KIND2_TAR_NAME.tar.gz
+rm -f kind2-language-server.zip
 
 # Install Z3
-wget https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/z3-$Z3_VERSION-x64-$Z3_OS_VERSION.zip
-unzip -o z3-$Z3_VERSION-x64-$Z3_OS_VERSION.zip
-rm z3-$Z3_VERSION-x64-$Z3_OS_VERSION.zip
-cp z3-$Z3_VERSION-x64-$Z3_OS_VERSION/bin/z3 .
-rm -r z3-$Z3_VERSION-x64-$Z3_OS_VERSION
+wget https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_ZIP_NAME.zip
+unzip -o $Z3_ZIP_NAME.zip
+rm $Z3_ZIP_NAME.zip
+cp $Z3_ZIP_NAME/bin/z3 .
+rm -r $Z3_ZIP_NAME
 
 # Install Kind 2
-wget https://github.com/kind2-mc/kind2/releases/download/v$KIND2_VERSION/kind2-v$KIND2_VERSION-$KIND2_OS_VERSION-x86_64.tar.gz
-tar -xf kind2-v$KIND2_VERSION-$KIND2_OS_VERSION-x86_64.tar.gz
-rm kind2-v$KIND2_VERSION-$KIND2_OS_VERSION-x86_64.tar.gz
+wget https://github.com/kind2-mc/kind2/releases/download/v$KIND2_VERSION/$KIND2_TAR_NAME.tar.gz
+tar -xf $KIND2_TAR_NAME.tar.gz
+rm $KIND2_TAR_NAME.tar.gz
 
 # Install language server for Kind 2
 wget https://github.com/kind2-mc/kind2-language-server/releases/download/$SERVER_VERSION/kind2-language-server.zip

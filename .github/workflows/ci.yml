@@ -1,10 +1,7 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Node.js CI
+name: Run CI
 
 on:
-  workflow_dispatch:
   push:
     branches: [ "main" ]
   pull_request:
@@ -15,24 +12,22 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        platform: [linux-x64, darwin-x64, darwin-arm64]
         node-version: [16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         cache-dependency-path: '**/package-lock.json'
-    - name: Linux - Configure dependencies
-      run: ./configure.sh linux
-    - name: Linux - Package extension
-      run: npx vsce package --target linux-x64
-    - name: MacOS - Configure dependencies
-      run: ./configure.sh macos
-    - name: MacOS - Package extension
-      run: npx vsce package --target darwin-x64
+    - name: Configure dependencies
+      run: ./configure.sh ${{ matrix.platform }}
+    - name: Package extension
+      run: npx vsce package --target ${{ matrix.platform }}
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
