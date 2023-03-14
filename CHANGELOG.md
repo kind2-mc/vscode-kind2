@@ -1,3 +1,13 @@
+### Version 0.6.0
+The last three releases (0.5.2 - 0.5.4) were published only for `linux-x64` and `darwin-x64`. This made hard (and sometimes impossible) to install the extension on Windows (through WSL2) and other platforms. This release fixes the issue by providing three versions:
+
+1. A platform-specific version for `darwin-x64`, which includes x64 macOS binaries for Kind 2 and Z3.
+2. A platform-specific version for `darwin-arm64`, which includes arm64 macOS binaries for Kind 2 and Z3.
+3. A fallback/universal version, which includes x64 Linux binaries for Kind 2 and Z3.
+   - This version can be used on Windows through WSL2.
+
+This release also fixes a syntax highlighting bug.
+
 ### Version 0.5.4
 - Fix syntax highlighting for if blocks without 'else' branch
 
