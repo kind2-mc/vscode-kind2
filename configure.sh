@@ -78,10 +78,11 @@ case "$2" in
     pushd z3-z3-$Z3_VERSION/
     python3 scripts/mk_make.py --staticbin
     pushd build/
-    make
+    make -j4
     popd
     popd
     cp z3-z3-$Z3_VERSION/build/z3 .
+    strip z3
     rm -r z3-z3-$Z3_VERSION/
     ;;
   *)
