@@ -15,7 +15,7 @@ jobs:
         node-version: [16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
         include:
-          - os: linux-x64
+          - platform: linux-x64
             z3_static: z3-static
     steps:
     - name: Checkout code
