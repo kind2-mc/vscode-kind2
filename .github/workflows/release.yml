@@ -14,6 +14,9 @@ jobs:
         platform: [linux-x64, darwin-x64, darwin-arm64]
         node-version: [16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        include:
+          - platform: linux-x64
+            z3_static: z3-static
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -24,7 +27,7 @@ jobs:
         cache: 'npm'
         cache-dependency-path: '**/package-lock.json'
     - name: Configure dependencies
-      run: ./configure.sh ${{ matrix.platform }}
+      run: ./configure.sh ${{ matrix.platform }} ${{ matrix.z3_static }}
     - name: Package & Publish extension (platform-specific)
       if: ${{ matrix.platform != 'linux-x64' }}
       run: npx vsce publish --target ${{ matrix.platform }}
