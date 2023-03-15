@@ -1,3 +1,6 @@
+### Version 0.6.1
+- Build static Z3 binary for universal version.
+
 ### Version 0.6.0
 The last three releases (0.5.2 - 0.5.4) were published only for `linux-x64` and `darwin-x64`. This made hard (and sometimes impossible) to install the extension on Windows (through WSL2) and other platforms. This release fixes the issue by providing three versions:
 
