@@ -1,3 +1,7 @@
+### Version 0.6.2
+- Force publication of universal version before platform-specific versions.
+  Otherwise, `vsce` fails publishing universal version.
+
 ### Version 0.6.1
 - Build static Z3 binary for universal version.
 
