@@ -13,17 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [universal, darwin-x64, darwin-arm64]
+        platform: [linux-x64, darwin-x64, darwin-arm64]
         node-version: [16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
         include:
-          - target: universal
-            platform: linux-x64
+          - platform: linux-x64
+            target:
             z3_static: z3-static
-          - target: darwin-x64
-            platform: darwin-x64
-          - target: darwin-arm64
-            platform: darwin-arm64
+          - platform: darwin-x64
+            target: darwin-x64
+          - platform: darwin-arm64
+            target: darwin-arm64
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -38,7 +38,7 @@ jobs:
     - name: Package extension
       run: npx vsce package --target ${{ matrix.target }}
     - name: Upload extension artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.target }}
         path: "*.vsix"
@@ -49,7 +49,7 @@ jobs:
     if: success()
     steps:
       - name: Download extension artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
       - name: Publish extension
         run: find . -iname *.vsix
         #run: npx vsce publish --packagePath $(find . -iname *.vsix)

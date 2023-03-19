@@ -31,4 +31,5 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        path: vscode-kind2-*.vsix
+        name: ${{ matrix.platform }}
+        path: *.vsix
