@@ -21,9 +21,9 @@ jobs:
             target:
             z3_static: z3-static
           - platform: darwin-x64
-            target: darwin-x64
+            target: --target darwin-x64
           - platform: darwin-arm64
-            target: darwin-arm64
+            target: --target darwin-arm64
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -36,11 +36,11 @@ jobs:
     - name: Configure dependencies
       run: ./configure.sh ${{ matrix.platform }} ${{ matrix.z3_static }}
     - name: Package extension
-      run: npx vsce package --target ${{ matrix.target }}
+      run: npx vsce package ${{ matrix.target }}
     - name: Upload extension artifact
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ matrix.target }}
+        name: ${{ matrix.platform }}
         path: "*.vsix"
 
   publish:
