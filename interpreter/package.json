@@ -6,8 +6,7 @@
     "start": "npx ng serve",
     "build": "npx ng build",
     "test": "npx ng test",
-    "lint": "npx ng lint",
-    "e2e": "npx ng e2e"
+    "lint": "npx ng lint"
   },
   "private": true,
   "dependencies": {
@@ -40,7 +39,6 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "^2.0.0",
-    "protractor": "~7.0.0",
     "ts-node": "~10.8.1",
     "eslint": "~8.18.0",
     "typescript": "~4.7.4"
