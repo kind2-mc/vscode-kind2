@@ -443,13 +443,13 @@ repository:
       '1':
         name: keyword.other.lustre
     patterns:
-    - begin: "(?<=if)"
+    - begin: "(?<=(if|elsif))"
       end: "(?=then)"
       patterns:
       - include: "#expression"
       - include: "#comment"
     - begin: "\\b(then)\\b"
-      end: "\\b(else)\\b|(?=fi)"
+      end: "\\b(elsif|else)\\b|(?=fi)"
       beginCaptures:
         '1':
           name: keyword.other.lustre
