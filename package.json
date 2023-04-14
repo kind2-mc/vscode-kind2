@@ -388,7 +388,7 @@
     "commands": [
       {
         "command": "kind2/counterExample",
-        "title": "Show Counter Example",
+        "title": "Show trace",
         "icon": "$(output)"
       },
       {
