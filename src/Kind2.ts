@@ -254,8 +254,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     this.updateDecorations();
     let tokenSource = new CancellationTokenSource();
     this._runningChecks.set(mainComponent, tokenSource);
-    // The "true" signifies we should call Kind 2 with filename information
-    await this._client.sendRequest("kind2/check", [mainComponent.uri, mainComponent.name, true], tokenSource.token).then((values: string[]) => {
+    await this._client.sendRequest("kind2/check", [mainComponent.uri, mainComponent.name], tokenSource.token).then((values: string[]) => {
       let results: any[] = values.map(s => JSON.parse(s));
       for (const nodeResult of results) {
         let component = undefined;
