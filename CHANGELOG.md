@@ -1,3 +1,11 @@
+### Version 0.7.0
+- Update Z3 to version 4.12.1 and Kind 2 to version 1.9.0.
+- Update syntax highlighting: elsif, provided, choose.
+- Update button for counterexamples.
+- Remove protractor dependency from interpreter
+- Update all node packages of interpreter to latest compatible version
+- Replace TSLint with ESLint in interpreter.
+
 ### Version 0.6.2
 - Force publication of universal version before platform-specific versions.
   Otherwise, `vsce` fails publishing universal version.
