@@ -419,6 +419,10 @@
               "include": "#intCst"
             },
             {
+              "name": "constant.numeric.lustre",
+              "match": "\\*"
+            },
+            {
               "name": "variable.other.lustre",
               "match": "\\w+"
             }
