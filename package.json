@@ -198,6 +198,14 @@
           "order": 0,
           "description": "Print counterexamples to induction."
         },
+        "kind2.ic3ia.max": {
+          "title": "Maximum number of IC3IA parallel processes",
+          "scope": "machine-overridable",
+          "type": "integer",
+          "default": 2,
+          "order": 0,
+          "description": "Maximum number of IC3IA parallel processes."
+        },
         "kind2.test.testgen": {
           "scope": "machine-overridable",
           "type": "boolean",
