@@ -89,6 +89,19 @@
           "order": 0,
           "description": "Set the main SMT solver"
         },
+        "kind2.smt.smt_qe_solver": {
+          "title": "QE SMT Solver",
+          "scope": "machine-overridable",
+          "type": "string",
+          "enum": [
+            "detect",
+            "cvc5",
+            "Z3"
+          ],
+          "default": "detect",
+          "order": 0,
+          "description": "Set the SMT solver to use for quantifier elimination"
+        },
         "kind2.smt.check_sat_assume": {
           "title": "Check Sat Assuming",
           "scope": "machine-overridable",
