@@ -235,14 +235,6 @@
           "order": 0,
           "description": "Output directory for the files generated (SMT traces, compilation, testgen, certification...)."
         },
-        "kind2.dump_cex": {
-          "title": "Dump Counterexample",
-          "scope": "machine-overridable",
-          "type": "boolean",
-          "default": false,
-          "order": 0,
-          "description": "Dump counterexample to a file. Only in plain text output."
-        },
         "kind2.timeout": {
           "scope": "machine-overridable",
           "type": "number",
