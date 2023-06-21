@@ -102,6 +102,22 @@
           "order": 0,
           "description": "Set the SMT solver to use for quantifier elimination"
         },
+        "kind2.smt.smt_itp_solver": {
+          "title": "ITP SMT Solver",
+          "scope": "machine-overridable",
+          "type": "string",
+          "enum": [
+            "detect",
+            "cvc5qe",
+            "MathSAT",
+            "OpenSMT",
+            "SMTInterpol",
+            "Z3qe"
+          ],
+          "default": "detect",
+          "order": 0,
+          "description": "Set the SMT solver to use for interpolation"
+        },
         "kind2.smt.check_sat_assume": {
           "title": "Check Sat Assuming",
           "scope": "machine-overridable",
@@ -117,6 +133,14 @@
           "default": "mathsat",
           "order": 0,
           "description": "Executable of MathSAT solver."
+        },
+        "kind2.smt.opensmt_bin": {
+          "title": "OpenSMT Bin",
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "opensmt",
+          "order": 0,
+          "description": "Executable of OpenSMT solver."
         },
         "kind2.smt.smtinterpol_jar": {
           "title": "SMTInterpol Jar",
