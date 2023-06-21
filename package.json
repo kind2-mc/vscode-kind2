@@ -72,7 +72,7 @@
           "description": "Path to the kind2 executable used by the extension."
         },
         "kind2.smt.smt_solver": {
-          "title": "SMT Solver",
+          "title": "Main SMT Solver",
           "scope": "machine-overridable",
           "type": "string",
           "enum": [
@@ -80,6 +80,7 @@
             "Bitwuzla",
             "cvc5",
             "MathSAT",
+            "SMTInterpol",
             "Yices",
             "Yices2",
             "Z3"
@@ -103,6 +104,14 @@
           "default": "mathsat",
           "order": 0,
           "description": "Executable of MathSAT solver."
+        },
+        "kind2.smt.smtinterpol_jar": {
+          "title": "SMTInterpol Jar",
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "smtinterpol.jar",
+          "order": 0,
+          "description": "JAR of SMTInterpol solver."
         },
         "kind2.smt.bitwuzla_bin": {
           "title": "Bitwuzla Bin",
