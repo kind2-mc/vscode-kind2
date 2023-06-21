@@ -217,6 +217,12 @@
                 "const": "IC3"
               },
               {
+                "const": "IC3QE"
+              },
+              {
+                "const": "IC3IA"
+              },
+              {
                 "const": "BMC"
               },
               {
