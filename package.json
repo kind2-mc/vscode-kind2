@@ -288,6 +288,22 @@
           "order": 0,
           "description": "Only equations that are relevant for checking the contract and properties of a node are considered during the analysis."
         },
+        "kind2.check_reach": {
+          "title": "Check reachability properties",
+          "scope": "machine-overridable",
+          "type": "boolean",
+          "default": true,
+          "order": 0,
+          "markdownDescription": "Check reachability properties (including non-vacuity checks)"
+        },
+        "kind2.check_nonvacuity": {
+          "title": "Check non-vacuity of contract modes and conditional properties",
+          "scope": "machine-overridable",
+          "type": "boolean",
+          "default": true,
+          "order": 0,
+          "markdownDescription": "Check non-vacuity of contract modes and conditional properties. Ignored if `kind2.check_reach` is `false`."
+        },
         "kind2.check_subproperties": {
           "title": "Check Subproperties",
           "scope": "machine-overridable",
