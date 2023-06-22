@@ -1,3 +1,6 @@
+### Version 0.8.1
+- Include kind2-language-server (missing in v0.8.0)
+
 ### Version 0.8.0
 - Update Kind 2 to version 2.0.0.
 - Update syntax highlighting for subrange types with an open end
