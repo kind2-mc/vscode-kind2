@@ -1,3 +1,6 @@
+### Version 0.8.2
+- Update kind2-language-server to v0.1.6 (includes fix)
+
 ### Version 0.8.1
 - Include kind2-language-server (missing in v0.8.0)
 
