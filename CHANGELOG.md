@@ -1,3 +1,10 @@
+### Version 0.9.0
+- Update Kind 2 to version 2.1.0 and Z3 to version 4.12.4
+- Update syntax highlighting:
+  - Add `param` and `assuming` keywords
+  - Replace `choose` keyword with `any`
+- Update node packages
+
 ### Version 0.8.2
 - Update kind2-language-server to v0.1.6 (includes fix)
 
