@@ -1,3 +1,6 @@
+### Version 0.10.0
+- Update Kind 2 to version 2.1.1
+
 ### Version 0.9.0
 - Update Kind 2 to version 2.1.0 and Z3 to version 4.12.4
 - Update syntax highlighting:
