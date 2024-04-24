@@ -20,12 +20,15 @@ export class File implements File {
   }
 }
 
+export type RealizabilityResult = "realizable" | "unrealizable" | "unknown" | "none"
+export type RealizabilitySource = "inputs" | "contract" | "imported node"
+
 export class Component {
-  private _state: State;
+  private _state: State[];
   private _analyses: Analysis[];
   set analyses(analyses: Analysis[]) { this._analyses = analyses; }
   get analyses(): Analysis[] { return this._analyses; }
-  set state(state: State) {
+  set state(state: State[]) {
     if (this._analyses.length == 0) {
       this._state = state;
     }
@@ -66,7 +69,7 @@ export class Component {
     }
     return properties;
   }
-  get state(): State {
+  get state(): State[] {
     if (this._analyses.length == 0) {
       return this._state;
     }
@@ -74,6 +77,7 @@ export class Component {
     let failedProperties = new Set<string>();
     let unknownProperties = new Set<string>();
     let erroredProperties = new Set<string>();
+    var ret = [];
     for (const analysis of this._analyses) {
       for (const property of analysis.properties) {
         if (property.state === "passed" || property.state === "reachable") { passedProperties.add(property.name); }
@@ -81,33 +85,55 @@ export class Component {
         if (property.state === "unknown") { unknownProperties.add(property.name); }
         if (property.state === "errored") { erroredProperties.add(property.name); }
       }
+      if (analysis.realizability === "realizable" && analysis.realizabilitySource === "contract") { 
+        ret.push("contract realizable"); 
+      }
+      if (analysis.realizability === "realizable" && analysis.realizabilitySource === "inputs") { 
+        ret.push("inputs realizable"); 
+      }
+      if (analysis.realizability === "unrealizable" && analysis.realizabilitySource === "contract") { 
+        ret.push("contract unrealizable"); 
+      }
+      if (analysis.realizability === "unrealizable" && analysis.realizabilitySource === "inputs") { 
+        ret.push("inputs unrealizable"); 
+      }
+    }
+    if (ret.length !== 0) {
+      return ret
     }
     for (const name of passedProperties) {
       failedProperties.delete(name);
       unknownProperties.delete(name);
     }
     if (erroredProperties.size !== 0) {
-      return "errored";
+      return ["errored"];
     }
     if (failedProperties.size !== 0) {
-      return "failed";
+      return ["failed"];
     }
     if (unknownProperties.size !== 0) {
-      return "unknown";
+      return ["unknown"];
     }
-    return "passed";
+    return ["passed"];
   }
   get uri(): string { return this.parent.uri; }
-  constructor(readonly name: string, readonly line: number, readonly parent: File) {
-    this._state = "pending";
+  constructor(readonly name: string, readonly line: number, readonly contractLine: number, readonly parent: File) {
+    this._state = ["pending"];
     this._analyses = [];
   }
 }
 
 export class Analysis {
   private _properties: Property[];
+  private _realizability: RealizabilityResult;
+  private _realizabilitySource: RealizabilitySource;
   set properties(properties: Property[]) { this._properties = properties; }
   get properties(): Property[] { return this._properties; }
+  set realizability(realizability: RealizabilityResult) { this._realizability = realizability }
+  get realizability(): RealizabilityResult { return this._realizability; }
+  set realizabilitySource(realizabilitySource: RealizabilitySource) { this._realizabilitySource = realizabilitySource }
+  get realizabilitySource(): RealizabilitySource { return this._realizabilitySource; }
+  
   constructor(readonly abstract: String[], readonly concrete: String[], readonly parent: Component) {
     this._properties = [];
   }
@@ -122,7 +148,10 @@ export class Property {
   }
 }
 
-export type State = "pending" | "running" | "passed" | "reachable" | "failed" | "unreachable" | "unknown" | "stopped" | "errored";
+export type State = 
+  "pending" | "running" | "passed" | "reachable" | "failed" | "unreachable" 
+| "unknown" | "stopped" | "errored" | "realizable" | "unrealizable" | "inputs realizable"
+| "inputs unrealizable" | "contract realizable" | "contract unrealizable";
 
 export function statePath(state: State) {
   switch (state) {
@@ -132,9 +161,15 @@ export function statePath(state: State) {
       return "icons/running.svg";
     case "passed":
     case "reachable":
+    case "contract realizable":
+    case "inputs realizable": 
+    case "realizable":
       return "icons/passed.svg";
     case "failed":
     case "unreachable":
+    case "unrealizable":
+    case "inputs unrealizable":
+    case "contract unrealizable":
       return "icons/failed.svg";
     case "unknown":
       return "icons/unknown.svg";
@@ -153,9 +188,15 @@ export function stateIcon(state: State) {
       return new ThemeIcon("$(history)", new ThemeColor("testing.iconQueued"));
     case "passed":
     case "reachable":
+    case "contract realizable":
+    case "inputs realizable": 
+    case "realizable":
       return new ThemeIcon("$(testing-passed-icon)", new ThemeColor("testing.iconPassed"));
     case "failed":
     case "unreachable":
+    case "unrealizable":
+    case "inputs unrealizable":
+    case "contract unrealizable":
       return new ThemeIcon("$(testing-failed-icon)", new ThemeColor("testing.iconFailed"));
     case "unknown":
       return new ThemeIcon("$(question)", new ThemeColor("testing.iconQueued"));

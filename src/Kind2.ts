@@ -36,7 +36,14 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       ["unreachable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("unreachable")) })],
       ["stopped", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("stopped")) })],
       ["unknown", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("unknown")) })],
-      ["errored", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("errored")) })]])
+      ["errored", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("errored")) })],
+      ["realizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("realizable")) })],
+      ["unrealizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("unrealizable")) })],
+      ["contract realizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("contract realizable")) })],
+      ["contract unrealizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("contract unrealizable")) })],
+      ["inputs realizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs realizable")) })],
+      ["inputs unrealizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs unrealizable")) })],
+    ])
   }
 
   onDidChangeCodeLenses?: Event<void> | undefined;
@@ -47,10 +54,12 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     if (file) {
       for (const component of file.components) {
         let range = new Range(component.line, 0, component.line, 0);
-        if (component.state === "running") {
+
+        if (component.state.length > 0 && component.state[0] === "running") {
           codeLenses.push(new CodeLens(range, { title: "Cancel", command: "kind2/cancel", arguments: [component] }));
         } else {
-          codeLenses.push(new CodeLens(range, { title: "Check", command: "kind2/check", arguments: [component] }));
+          codeLenses.push(new CodeLens(range, { title: "Check Properties", command: "kind2/check", arguments: [component] }));
+          codeLenses.push(new CodeLens(range, { title: "Check Realizability", command: "kind2/realizability", arguments: [component] }))
         }
         codeLenses.push(new CodeLens(range, { title: "Simulate", command: "kind2/interpret", arguments: [component, "[]"] }));
         codeLenses.push(new CodeLens(range, { title: "Raw Output", command: "kind2/raw", arguments: [component] }));
@@ -69,15 +78,26 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     else if (element instanceof Component) {
       item = new TreeItem(element.name, element.analyses.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
-      item.contextValue = element.state === "running" ? "running" : "component";
-      item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath(element.state)));
+      item.contextValue = element.state.length > 0 && element.state[0] === "running" ? "running" : "component";
+      item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath(element.state[0])));
       // item.iconPath = stateIcon(element.state);
     }
     else if (element instanceof Analysis) {
-      let label = "Abstract: " + (element.abstract.length == 0 ? "none" : "[" + element.abstract.toString() + "]");
-      label += " - Concrete: " + (element.concrete.length == 0 ? "none" : "[" + element.concrete.toString() + "]");
-      item = new TreeItem(label, element.properties.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
-      item.contextValue = "analysis";
+      if (element.realizability === "none") {
+        let label = "Abstract: " + (element.abstract.length == 0 ? "none" : "[" + element.abstract.toString() + "]");
+        label += " - Concrete: " + (element.concrete.length == 0 ? "none" : "[" + element.concrete.toString() + "]");
+        item = new TreeItem(label, element.properties.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
+        item.contextValue = "analysis";
+      } 
+      else if (element.realizability === "realizable") {
+        item = new TreeItem(element.realizabilitySource, TreeItemCollapsibleState.None);
+        item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath("passed")));
+      }
+      else {
+        item = new TreeItem(element.realizabilitySource, TreeItemCollapsibleState.None);
+        item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath("failed")));
+        item.contextValue = "hasDeadlock";
+      }
     }
     else {
       item = new TreeItem(element.name, TreeItemCollapsibleState.None);
@@ -112,11 +132,18 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   public updateDecorations(): void {
     let decorations = new Map<string, Map<State, DecorationOptions[]>>();
     for (const file of this._files) {
-      decorations.set(file.uri, new Map<State, DecorationOptions[]>([["pending", []], ["running", []], ["passed", []], ["reachable", []],  ["failed", []], ["unreachable", []], ["stopped", []], ["unknown", []], ["errored", []]]));
+      decorations.set(file.uri, new Map<State, DecorationOptions[]>([["pending", []], ["running", []], ["passed", []], ["reachable", []],  ["failed", []], ["unreachable", []], ["stopped", []], ["unknown", []], ["errored", []], ["realizable", []], ["inputs realizable", []], ["contract realizable", []], ["unrealizable", []], ["inputs unrealizable", []], ["contract unrealizable", []],]));
     }
     for (const file of this._files) {
       for (const component of file.components) {
-        decorations.get(component.uri)?.get(component.state)?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 0))) });
+        for (const state of component.state) {
+          if (state.startsWith("contract")) {
+            decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.contractLine, 0), (new Position(component.contractLine, 0))) });
+          }
+          else {
+            decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 0))) });
+          }
+        }
         for (const property of component.properties) {
           if (decorations.has(property.uri)) {
             let decorationOptions: DecorationOptions = { range: new Range(new Position(property.line, 0), (new Position(property.line, 100))) };
@@ -127,7 +154,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     for (const uri of decorations.keys()) {
       let editor = window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri);
-      for (const state of <State[]>["pending", "running", "passed", "reachable", "failed", "unreachable", "stopped", "unknown", "errored"]) {
+      for (const state of <State[]>["pending", "running", "passed", "reachable", "failed", "unreachable", "stopped", "unknown", "errored", "realizable", "unrealizable", "inputs realizable", "contract realizable", "inputs unrealizable", "contract unrealizable"]) {
         editor?.setDecorations(this._decorationTypeMap.get(state)!, decorations.get(uri)?.get(state)!);
       }
     }
@@ -204,7 +231,12 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
           file = new File(component.file, name);
           newFiles.push(file);
         }
-        file.components.push(new Component(component.name, component.startLine - 1, file));
+        // TODO: Update case where no contract
+        var contractStart = component.contractStartLine;
+        if (component.contractStartLine === undefined) {
+          contractStart = component.startLine - 1;
+        }
+        file.components.push(new Component(component.name, component.startLine - 1, contractStart, file));
       }
     }
     this._files = this._files.concat(newFiles);
@@ -239,7 +271,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
 
   public async check(mainComponent: Component): Promise<void> {
     mainComponent.analyses = [];
-    mainComponent.state = "running";
+    mainComponent.state = ["running"];
     let files: File[] = [];
     for (const uri of this._fileMap.get(mainComponent.uri)) {
       let file = this._files.find(f => f.uri === uri);
@@ -284,6 +316,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
               default:
                 property.state = "unknown";
             }
+            analysis.realizability = "none";
             analysis.properties.push(property);
           }
           component.analyses.push(analysis);
@@ -294,18 +327,89 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         modifiedComponents.push(component);
       }
       if (results.length == 0) {
-        mainComponent.state = "passed";
+        mainComponent.state = ["passed"];
       }
     }).catch(reason => {
       if (reason.message.includes("cancelled")) {
-        mainComponent.state = "stopped";
+        mainComponent.state = ["stopped"];
       } else {
         window.showErrorMessage(reason.message);
-        mainComponent.state = "errored";
+        mainComponent.state = ["errored"];
       }
     });
-    if (mainComponent.state === "running") {
-      mainComponent.state = "passed";
+    if (mainComponent.state.length > 0 && mainComponent.state[0] === "running") {
+      mainComponent.state = ["passed"];
+    }
+    for (const component of modifiedComponents) {
+      this._treeDataChanged.fire(component);
+    }
+    this._codeLensesChanged.fire();
+    this.updateDecorations();
+    this._runningChecks.delete(mainComponent);
+  }
+
+  public async realizability(mainComponent: Component): Promise<void> {
+    mainComponent.analyses = [];
+    mainComponent.state = ["running"];
+    let files: File[] = [];
+    for (const uri of this._fileMap.get(mainComponent.uri)) {
+      let file = this._files.find(f => f.uri === uri);
+      files.push(file);
+    }
+    let modifiedComponents: Component[] = [];
+    modifiedComponents.push(mainComponent);
+    for (const component of modifiedComponents) {
+      this._treeDataChanged.fire(component);
+    }
+    this._codeLensesChanged.fire();
+    this.updateDecorations();
+    let tokenSource = new CancellationTokenSource();
+    this._runningChecks.set(mainComponent, tokenSource);
+    await this._client.sendRequest("kind2/realizability", [mainComponent.uri, mainComponent.name], tokenSource.token).then((values: string[]) => {
+      let results: any[] = values.map(s => JSON.parse(s));
+      for (const nodeResult of results) {
+        let component = undefined;
+        let i = 0;
+        while (component === undefined) {
+          component = files[i].components.find(c => c.name === nodeResult.name);
+          ++i;
+        }
+        for (const analysisResult of nodeResult.analyses) {
+          let analysis: Analysis = new Analysis([], [], component);
+            if (analysisResult.realizabilityCheck) {
+              analysis.realizability = "realizable";
+            } else {
+              analysis.realizability = "unrealizable";
+            }
+            if (analysisResult.context === "contract") {
+              analysis.realizabilitySource = "contract"
+            }
+            else if (analysisResult.context === "environment") {
+              analysis.realizabilitySource = "inputs"
+            }
+            else {
+              analysis.realizabilitySource = "imported node"
+            }
+            component.analyses.push(analysis);
+        }
+        if (component.analyses.length == 0) { 
+          component.state = "passed";
+        }
+        modifiedComponents.push(component);
+      }
+      if (results.length == 0) {
+        mainComponent.state = ["passed"];
+      }
+    }).catch(reason => {
+      if (reason.message.includes("cancelled")) {
+        mainComponent.state = ["stopped"];
+      } else {
+        window.showErrorMessage(reason.message);
+        mainComponent.state = ["errored"];
+      }
+    });
+    if (mainComponent.state.length > 0 && mainComponent.state[0] === "running") {
+      mainComponent.state = ["passed"];
     }
     for (const component of modifiedComponents) {
       this._treeDataChanged.fire(component);
@@ -346,6 +450,24 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     property.parent.abstract, property.parent.concrete, property.name]).then((ce: string) => {
       WebPanel.createOrShow(this._context.extensionPath);
       WebPanel.currentPanel?.sendMessage({ uri: property.parent.parent.uri, main: property.parent.parent.name, json: ce });
+    }).catch(reason => {
+      window.showErrorMessage(reason.message);
+    });
+  }
+
+  
+  public async deadlock(analysis: Analysis): Promise<void> {
+    var name = analysis.parent.name
+    var context = "";
+    if (analysis.realizabilitySource && analysis.realizabilitySource === "inputs") {
+      context = "environment"
+    }
+    else if (analysis.realizabilitySource && analysis.realizabilitySource === "contract") {
+      context = "contract"
+    }
+    await this._client.sendRequest("kind2/deadlock", [analysis.parent.uri, name, context]).then((dl: string) => {
+      WebPanel.createOrShow(this._context.extensionPath);
+      WebPanel.currentPanel?.sendMessage({ uri: analysis.parent.uri, main: analysis.parent.name, json: dl });
     }).catch(reason => {
       window.showErrorMessage(reason.message);
     });
