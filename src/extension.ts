@@ -14,7 +14,7 @@ import {
   StreamInfo
 } from 'vscode-languageclient';
 import { Kind2 } from './Kind2';
-import { Component, Property, TreeNode } from './treeNode';
+import { Component, Property, TreeNode, Analysis } from './treeNode';
 import { WebPanel } from './webviewPanel';
 
 let client: LanguageClient;
@@ -77,9 +77,14 @@ export async function activate(context: vscode.ExtensionContext) {
     workspace.getConfiguration("kind2.contracts").update("compositional", false);
   });
 
-  registerCommand('kind2/check', async (node: Component) => {
+  registerCommand('kind2/check', async (node: Component, options) => {
     kind2.reveal(node, treeView);
     await kind2.check(node);
+  });
+
+  registerCommand('kind2/realizability', async (node: Component, options) => {
+    kind2.reveal(node, treeView);
+    await kind2.realizability(node);
   });
 
   registerCommand('kind2/cancel', async (node: Component) => {
@@ -90,6 +95,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerCommand('kind2/counterExample', async (property: Property) => {
     await kind2.counterExample(property);
+  });
+
+  registerCommand('kind2/deadlock', async (analysis: Analysis) => {
+    await kind2.deadlock(analysis);
   });
 
   registerCommand('kind2/interpret', async (component: { uri: string, name: string }, json: string) => {
