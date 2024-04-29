@@ -79,8 +79,13 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     else if (element instanceof Component) {
       item = new TreeItem(element.name, element.analyses.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
       item.contextValue = element.state.length > 0 && element.state[0] === "running" ? "running" : "component";
-      item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath(element.state[0])));
-      // item.iconPath = stateIcon(element.state);
+      const containsUnrealizable = element.state.some(str => str.includes("unrealizable"));
+      if (containsUnrealizable) { // At least one unrealizable result causes component's icon to be an X
+        item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath("unrealizable")));
+      }
+      else {
+        item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath(element.state[0])));
+      }
     }
     else if (element instanceof Analysis) {
       if (element.realizability === "none") {
@@ -136,12 +141,17 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     for (const file of this._files) {
       for (const component of file.components) {
+        const containsUnrealizable = component.state.some(str => str.includes("unrealizable"));
         for (const state of component.state) {
           if (state.startsWith("contract")) {
             decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.contractLine, 0), (new Position(component.contractLine, 0))) });
           }
-          else {
-            decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 0))) });
+          else if (state.startsWith("inputs")) {
+            if (containsUnrealizable && component.line === component.contractLine) { // At least one unrealizable result causes component's icon to be an X
+              decorations.get(component.uri)?.get("unrealizable")?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 0))) });
+            } else {
+              decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 0))) });
+            }
           }
         }
         for (const property of component.properties) {
