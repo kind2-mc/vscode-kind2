@@ -231,8 +231,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
           file = new File(component.file, name);
           newFiles.push(file);
         }
-        // TODO: Update case where no contract
-        var contractStart = component.contractStartLine;
+        var contractStart = component.contractStartLine - 1;
         if (component.contractStartLine === undefined) {
           contractStart = component.startLine - 1;
         }
@@ -376,11 +375,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         }
         for (const analysisResult of nodeResult.analyses) {
           let analysis: Analysis = new Analysis([], [], component);
-            if (analysisResult.realizabilityCheck) {
-              analysis.realizability = "realizable";
-            } else {
-              analysis.realizability = "unrealizable";
-            }
+            analysis.realizability = analysisResult.realizabilityResult.toLowerCase();
             if (analysisResult.context === "contract") {
               analysis.realizabilitySource = "contract"
             }
@@ -459,10 +454,10 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   public async deadlock(analysis: Analysis): Promise<void> {
     var name = analysis.parent.name
     var context = "";
-    if (analysis.realizabilitySource && analysis.realizabilitySource === "inputs") {
+    if (analysis.realizabilitySource === "inputs") {
       context = "environment"
     }
-    else if (analysis.realizabilitySource && analysis.realizabilitySource === "contract") {
+    else if (analysis.realizabilitySource === "contract") {
       context = "contract"
     }
     await this._client.sendRequest("kind2/deadlock", [analysis.parent.uri, name, context]).then((dl: string) => {
