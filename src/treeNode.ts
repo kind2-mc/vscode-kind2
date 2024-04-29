@@ -99,7 +99,19 @@ export class Component {
       }
     }
     if (ret.length !== 0) {
-      return ret
+      // If there is a contract realizability check but no user-defined contract
+      // (besides refinement types), we combine the realizability results,
+      // where if at least one is unrealizable, the icon is displayed as unrealizable
+      if (this.line === this.contractLine) {
+        for (const state of ret) {
+          if (state.includes("unrealizable")) {
+            return ["unrealizable"]
+          }
+        }
+      }
+      else {
+        return ret
+      }
     }
     for (const name of passedProperties) {
       failedProperties.delete(name);
