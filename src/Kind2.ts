@@ -79,8 +79,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     else if (element instanceof Component) {
       item = new TreeItem(element.name, element.analyses.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
       item.contextValue = element.state.length > 0 && element.state[0] === "running" ? "running" : "component";
-      const containsUnrealizable = element.state.some(str => str.includes("unrealizable"));
-      if (containsUnrealizable) { // At least one unrealizable result causes component's icon to be an X
+      if (element.containsUnrealizable()) { // At least one unrealizable result causes component's icon to be an X
         item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath("unrealizable")));
       }
       else {
@@ -88,7 +87,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       }
     }
     else if (element instanceof Analysis) {
-      if (element.realizability === "none") {
+      if (element.realizability === undefined) {
         let label = "Abstract: " + (element.abstract.length == 0 ? "none" : "[" + element.abstract.toString() + "]");
         label += " - Concrete: " + (element.concrete.length == 0 ? "none" : "[" + element.concrete.toString() + "]");
         item = new TreeItem(label, element.properties.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
@@ -141,13 +140,12 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     for (const file of this._files) {
       for (const component of file.components) {
-        const containsUnrealizable = component.state.some(str => str.includes("unrealizable"));
         for (const state of component.state) {
           if (state.startsWith("contract")) {
             decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.contractLine, 0), (new Position(component.contractLine, 0))) });
           }
           else if (state.startsWith("inputs")) {
-            if (containsUnrealizable && component.line === component.contractLine) { // At least one unrealizable result causes component's icon to be an X
+            if (component.containsUnrealizable() && component.line === component.contractLine) { // At least one unrealizable result causes component's icon to be an X
               decorations.get(component.uri)?.get("unrealizable")?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 0))) });
             } else {
               decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 0))) });
@@ -325,7 +323,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
               default:
                 property.state = "unknown";
             }
-            analysis.realizability = "none";
+            analysis.realizability = undefined;
             analysis.properties.push(property);
           }
           component.analyses.push(analysis);
