@@ -20,7 +20,7 @@ export class File implements File {
   }
 }
 
-export type RealizabilityResult = "realizable" | "unrealizable" | "unknown" | "none"
+export type RealizabilityResult = "realizable" | "unrealizable"
 export type RealizabilitySource = "inputs" | "contract" | "imported node"
 
 export class Component {
@@ -115,6 +115,9 @@ export class Component {
       return ["unknown"];
     }
     return ["passed"];
+  }
+  containsUnrealizable() {
+    return this.state.some(str => str.includes("unrealizable"))
   }
   get uri(): string { return this.parent.uri; }
   constructor(readonly name: string, readonly line: number, readonly contractLine: number, readonly parent: File) {
