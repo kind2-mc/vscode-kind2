@@ -151,7 +151,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
               decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 0))) });
             }
           }
+          else {
+            decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 0))) });
+          }
         }
+        
         for (const property of component.properties) {
           if (decorations.has(property.uri)) {
             let decorationOptions: DecorationOptions = { range: new Range(new Position(property.line, 0), (new Position(property.line, 100))) };
