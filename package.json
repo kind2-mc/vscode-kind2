@@ -437,6 +437,11 @@
           "when": "view == properties && viewItem == hasTrace"
         },
         {
+          "command": "kind2/deadlock",
+          "group": "inline@1",
+          "when": "view == properties && viewItem == hasDeadlock"
+        },
+        {
           "command": "kind2/check",
           "group": "inline@1",
           "when": "view == properties && viewItem == component"
@@ -456,6 +461,11 @@
     "commands": [
       {
         "command": "kind2/counterExample",
+        "title": "Show trace",
+        "icon": "$(output)"
+      },
+      { 
+        "command": "kind2/deadlock",
         "title": "Show trace",
         "icon": "$(output)"
       },

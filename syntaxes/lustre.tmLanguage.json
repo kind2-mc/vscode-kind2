@@ -367,8 +367,33 @@
         }
       ]
     },
+    "nestedExpression": {
+      "begin": "\\(",
+      "end": "\\)",
+      "patterns": [
+        {
+          "include": "#expression"
+        },
+        {
+          "include": "#nestedExpression"
+        }
+      ]
+    },
     "type": {
       "patterns": [
+        { 
+          "comment": "Refinement type concise syntax",
+          "begin": "(?<=\\|)",
+          "end": "(?=;|}|\\))",
+          "patterns": [
+            {
+              "include": "#nestedExpression"
+            },
+            {
+              "include": "#expression"
+            }
+          ]
+        },
         {
           "comment": "Arrays with literal sizes.",
           "match": "(\\w+)\\s*(\\^)\\s*([1-9]\\d*)",
@@ -432,6 +457,21 @@
           "comment": "Tuples.",
           "begin": "\\[",
           "end": "\\]",
+          "patterns": [
+            {
+              "include": "#type"
+            }
+          ]
+        },
+        {
+          "comment": "Refinement type full syntax",
+          "begin": "\\b(subtype)\\s*{\\s*\\w+:",
+          "beginCaptures": {
+            "1": {
+              "name": "support.type.lustre"
+            }
+          },
+          "end": "}",
           "patterns": [
             {
               "include": "#type"
