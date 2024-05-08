@@ -444,6 +444,10 @@
               "include": "#intCst"
             },
             {
+              "name": "constant.numeric.lustre",
+              "match": "\\*"
+            },
+            {
               "name": "variable.other.lustre",
               "match": "\\w+"
             }
@@ -660,7 +664,7 @@
         {
           "comment": "Keywords",
           "name": "keyword.control.lustre",
-          "match": "\\b(if|then|else|not|and|xor|or|pre|fby|div|mod|lsh|rsh|reachable|provided|invariant|from|within|at|choose)\\b"
+          "match": "\\b(if|then|else|not|and|xor|or|pre|fby|div|mod|lsh|rsh|reachable|provided|assuming|invariant|from|within|at|any|param)\\b"
         },
         {
           "comment": "Merge",

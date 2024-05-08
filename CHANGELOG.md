@@ -1,3 +1,38 @@
+### Version 0.10.0
+- Update Kind 2 to version 2.1.1
+
+### Version 0.9.0
+- Update Kind 2 to version 2.1.0 and Z3 to version 4.12.4
+- Update syntax highlighting:
+  - Add `param` and `assuming` keywords
+  - Replace `choose` keyword with `any`
+- Update node packages
+
+### Version 0.8.2
+- Update kind2-language-server to v0.1.6 (includes fix)
+
+### Version 0.8.1
+- Include kind2-language-server (missing in v0.8.0)
+
+### Version 0.8.0
+- Update Kind 2 to version 2.0.0.
+- Update syntax highlighting for subrange types with an open end
+- Add SMTInterpol as backend SMT solver
+- Add new IC3IA engine module
+- Add `check_reach` and `check_nonvacuity` options
+- Add option to set SMT QE Solver
+- Add option to set SMT ITP Solver
+- Add `ic3ia_max` option
+- Remove `dump_cex` option
+
+### Version 0.7.0
+- Update Z3 to version 4.12.1 and Kind 2 to version 1.9.0.
+- Update syntax highlighting: elsif, provided, choose.
+- Update button for counterexamples.
+- Remove protractor dependency from interpreter
+- Update all node packages of interpreter to latest compatible version
+- Replace TSLint with ESLint in interpreter.
+
 ### Version 0.6.2
 - Force publication of universal version before platform-specific versions.
   Otherwise, `vsce` fails publishing universal version.
