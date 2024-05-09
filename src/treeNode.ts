@@ -26,8 +26,11 @@ export type RealizabilitySource = "inputs" | "contract" | "imported node"
 export class Component {
   private _state: State[];
   private _analyses: Analysis[];
+  private _imported: boolean;
   set analyses(analyses: Analysis[]) { this._analyses = analyses; }
   get analyses(): Analysis[] { return this._analyses; }
+  set imported(imported: boolean) { this._imported = imported; }
+  get imported(): boolean { return this._imported; }
   set state(state: State[]) {
     if (this._analyses.length == 0) {
       this._state = state;
@@ -120,9 +123,10 @@ export class Component {
     return this.state.some(str => str.includes("unrealizable"))
   }
   get uri(): string { return this.parent.uri; }
-  constructor(readonly name: string, readonly line: number, readonly contractLine: number, readonly parent: File) {
+  constructor(readonly name: string, readonly line: number, readonly contractLine: number, readonly parent: File, readonly imported_comp: string) {
     this._state = ["pending"];
     this._analyses = [];
+    this._imported = imported_comp === "true";
   }
 }
 

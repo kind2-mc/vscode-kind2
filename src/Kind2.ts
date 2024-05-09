@@ -57,12 +57,16 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
 
         if (component.state.length > 0 && component.state[0] === "running") {
           codeLenses.push(new CodeLens(range, { title: "Cancel", command: "kind2/cancel", arguments: [component] }));
+        } else if (component.imported) {
+          codeLenses.push(new CodeLens(range, { title: "Check Realizability", command: "kind2/realizability", arguments: [component] }))
         } else {
           codeLenses.push(new CodeLens(range, { title: "Check Properties", command: "kind2/check", arguments: [component] }));
           codeLenses.push(new CodeLens(range, { title: "Check Realizability", command: "kind2/realizability", arguments: [component] }))
         }
         codeLenses.push(new CodeLens(range, { title: "Simulate", command: "kind2/interpret", arguments: [component, "[]"] }));
-        codeLenses.push(new CodeLens(range, { title: "Raw Output", command: "kind2/raw", arguments: [component] }));
+        if (!component.imported) {
+          codeLenses.push(new CodeLens(range, { title: "Raw Output", command: "kind2/raw", arguments: [component] }));
+        }
         codeLenses.push(new CodeLens(range, { title: "Show in Explorer", command: "kind2/reveal", arguments: [component] }));
       }
     }
@@ -247,7 +251,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         if (component.contractStartLine === undefined) {
           contractStart = component.startLine - 1;
         }
-        file.components.push(new Component(component.name, component.startLine - 1, contractStart, file));
+        file.components.push(new Component(component.name, component.startLine - 1, contractStart, file, component.imported));
       }
     }
     this._files = this._files.concat(newFiles);
