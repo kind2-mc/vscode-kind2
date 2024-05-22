@@ -114,10 +114,10 @@ export class Component {
     if (failedProperties.size !== 0) {
       return ["failed"];
     }
-    if (unknownProperties.size !== 0) {
-      return ["unknown"];
+    if (passedProperties.size !== 0) {
+      return ["passed"]
     }
-    return ["passed"];
+    return ["unknown"];
   }
   containsUnrealizable() {
     return this.state.some(str => str.includes("unrealizable"))
