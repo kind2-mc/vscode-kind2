@@ -161,7 +161,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         }
         
         for (const property of component.properties) {
-          if (decorations.has(property.uri)) {
+          if (decorations.has(property.uri) && (property.line != component.line) && (property.line != component.contractLine)) {
             let decorationOptions: DecorationOptions = { range: new Range(new Position(property.line, 0), (new Position(property.line, 100))) };
             decorations.get(property.uri)?.get(property.state)?.push(decorationOptions);
           }
@@ -346,7 +346,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         modifiedComponents.push(component);
       }
       if (results.length == 0) {
-        mainComponent.state = ["passed"];
+        mainComponent.state = ["unknown"];
       }
     }).catch(reason => {
       if (reason.message.includes("cancelled")) {
