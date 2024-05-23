@@ -1,4 +1,4 @@
-### Unreleased
+### Version 0.11.1
 - Update the Simulator interface:
   - Change the default number of columns
   - Decrease the font size of node names
