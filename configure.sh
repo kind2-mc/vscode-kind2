@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Z3_VERSION=4.13.0
-KIND2_VERSION=2.1.1
+KIND2_VERSION=2.2.0
 SERVER_VERSION=0.1.9
 
 ARCH=$(uname -m)
