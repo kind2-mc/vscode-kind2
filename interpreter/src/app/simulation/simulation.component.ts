@@ -56,7 +56,7 @@ export class SimulationComponent implements OnInit {
   public numCols(): number {
     let nCols = this._components[0].streams[0].instantValues.length;
     if (nCols == 0) {
-      nCols = 3;
+      nCols = 10;
       this.changeColumns(nCols);
     }
     return nCols;
