@@ -1,3 +1,8 @@
+### Unreleased
+- Update the Simulator interface:
+  - Change the default number of columns
+  - Decrease the font size of node names
+
 ### Version 0.11.0
 - Update Kind 2 to version 2.2.0 and Z3 to version 4.13.0
 - Add support for the linux-arm64 platform
