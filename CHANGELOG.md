@@ -1,3 +1,11 @@
+### Version 0.11.0
+- Update Kind 2 to version 2.2.0 and Z3 to version 4.13.0
+- Add support for the linux-arm64 platform
+- Add syntax highlighting for refinement types
+- Add support for realizability checks
+- Filter out candidate properties from the final result
+- Fix the display of some icons
+
 ### Version 0.10.0
 - Update Kind 2 to version 2.1.1
 
