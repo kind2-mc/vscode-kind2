@@ -18,6 +18,8 @@ jobs:
           - platform: linux-x64
             target:
             z3_static: z3-static
+          - platform: linux-arm64
+            target: --target linux-arm64
           - platform: darwin-x64
             target: --target darwin-x64
           - platform: darwin-arm64
