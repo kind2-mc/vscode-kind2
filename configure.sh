@@ -22,6 +22,10 @@ case "$1" in
     OSTYPE=linux
     ARCH=x86_64
     ;;
+  linux-arm64)
+    OSTYPE=linux
+    ARCH=arm64
+    ;;
   linux*)
     OSTYPE=linux
     ;;
@@ -49,6 +53,10 @@ case "$OSTYPE" in
       x86_64)
         Z3_OS_VERSION=x64-glibc-2.31
         KIND2_OS_VERSION=linux-x86_64
+        ;;
+      arm64)
+        Z3_OS_VERSION=arm64-glibc-2.35
+        KIND2_OS_VERSION=linux-arm64
         ;;
       *)
         echo "unsupported ARCH: $ARCH";
