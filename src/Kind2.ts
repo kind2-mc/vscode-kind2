@@ -4,7 +4,6 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
-import * as os from "os";
 import * as path from "path";
 import { CancellationToken, CancellationTokenSource, CodeLens, CodeLensProvider, DecorationOptions, Event, EventEmitter, ExtensionContext, Position, ProviderResult, Range, ShellExecution, Task, tasks, TaskScope, TextDocument, TextEditorDecorationType, TreeDataProvider, TreeItem, TreeItemCollapsibleState, TreeView, Uri, window } from "vscode";
 import { LanguageClient } from "vscode-languageclient";
@@ -41,6 +40,8 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       ["unrealizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("unrealizable")) })],
       ["contract realizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("contract realizable")) })],
       ["contract unrealizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("contract unrealizable")) })],
+      ["type realizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("type realizable")) })],
+      ["type unrealizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("type unrealizable")) })],
       ["inputs realizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs realizable")) })],
       ["inputs unrealizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs unrealizable")) })],
     ])
@@ -54,20 +55,25 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     if (file) {
       for (const component of file.components) {
         let range = new Range(component.line, 0, component.line, 0);
-
         if (component.state.length > 0 && component.state[0] === "running") {
           codeLenses.push(new CodeLens(range, { title: "Cancel", command: "kind2/cancel", arguments: [component] }));
+          codeLenses.push(new CodeLens(range, { title: "Simulate", command: "kind2/interpret", arguments: [component, "[]"] }));
+          codeLenses.push(new CodeLens(range, { title: "Raw Output", command: "kind2/raw", arguments: [component] }));
+          codeLenses.push(new CodeLens(range, { title: "Show in Explorer", command: "kind2/reveal", arguments: [component] }));
         } else if (component.imported) {
-          codeLenses.push(new CodeLens(range, { title: "Check Realizability", command: "kind2/realizability", arguments: [component] }))
+          codeLenses.push(new CodeLens(range, { title: "Check Realizability", command: "kind2/realizability", arguments: [component] }));
+          codeLenses.push(new CodeLens(range, { title: "Simulate", command: "kind2/interpret", arguments: [component, "[]"] }));
+          codeLenses.push(new CodeLens(range, { title: "Show in Explorer", command: "kind2/reveal", arguments: [component] }));
+        } else if (component.typeDecl) {
+          codeLenses. push(new CodeLens(range, { title: "Check Realizability", command: "kind2/realizability", arguments: [component] }));
+          codeLenses.push(new CodeLens(range, { title: "Show in Explorer", command: "kind2/reveal", arguments: [component] }));
         } else {
           codeLenses.push(new CodeLens(range, { title: "Check Properties", command: "kind2/check", arguments: [component] }));
-          codeLenses.push(new CodeLens(range, { title: "Check Realizability", command: "kind2/realizability", arguments: [component] }))
-        }
-        codeLenses.push(new CodeLens(range, { title: "Simulate", command: "kind2/interpret", arguments: [component, "[]"] }));
-        if (!component.imported) {
+          codeLenses.push(new CodeLens(range, { title: "Check Realizability", command: "kind2/realizability", arguments: [component] }));
+          codeLenses.push(new CodeLens(range, { title: "Simulate", command: "kind2/interpret", arguments: [component, "[]"] }));
           codeLenses.push(new CodeLens(range, { title: "Raw Output", command: "kind2/raw", arguments: [component] }));
+          codeLenses.push(new CodeLens(range, { title: "Show in Explorer", command: "kind2/reveal", arguments: [component] }));
         }
-        codeLenses.push(new CodeLens(range, { title: "Show in Explorer", command: "kind2/reveal", arguments: [component] }));
       }
     }
     return codeLenses;
@@ -140,7 +146,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   public updateDecorations(): void {
     let decorations = new Map<string, Map<State, DecorationOptions[]>>();
     for (const file of this._files) {
-      decorations.set(file.uri, new Map<State, DecorationOptions[]>([["pending", []], ["running", []], ["passed", []], ["reachable", []],  ["failed", []], ["unreachable", []], ["stopped", []], ["unknown", []], ["errored", []], ["realizable", []], ["inputs realizable", []], ["contract realizable", []], ["unrealizable", []], ["inputs unrealizable", []], ["contract unrealizable", []],]));
+      decorations.set(file.uri, new Map<State, DecorationOptions[]>([["pending", []], ["running", []], ["passed", []], ["reachable", []],  ["failed", []], ["unreachable", []], ["stopped", []], ["unknown", []], ["errored", []], ["realizable", []], ["inputs realizable", []], ["contract realizable", []], ["type realizable", []], ["unrealizable", []], ["inputs unrealizable", []], ["contract unrealizable", []], ["type unrealizable", []]]));
     }
     for (const file of this._files) {
       for (const component of file.components) {
@@ -170,7 +176,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     for (const uri of decorations.keys()) {
       let editor = window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri);
-      for (const state of <State[]>["pending", "running", "passed", "reachable", "failed", "unreachable", "stopped", "unknown", "errored", "realizable", "unrealizable", "inputs realizable", "contract realizable", "inputs unrealizable", "contract unrealizable"]) {
+      for (const state of <State[]>["pending", "running", "passed", "reachable", "failed", "unreachable", "stopped", "unknown", "errored", "realizable", "unrealizable", "inputs realizable", "contract realizable", "inputs unrealizable", "contract unrealizable", "type realizable", "type unrealizable"]) {
         editor?.setDecorations(this._decorationTypeMap.get(state)!, decorations.get(uri)?.get(state)!);
       }
     }
@@ -251,7 +257,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         if (component.contractStartLine === undefined) {
           contractStart = component.startLine - 1;
         }
-        file.components.push(new Component(component.name, component.startLine - 1, contractStart, file, component.imported));
+        var hasRefType = false;
+        if (component.containsRefinementType !== undefined) {
+          hasRefType = component.containsRefinementType === "true";
+        }
+        file.components.push(new Component(component.name, component.startLine - 1, contractStart, file, component.imported, component.kind, hasRefType));
       }
     }
     this._files = this._files.concat(newFiles);
@@ -384,7 +394,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     this.updateDecorations();
     let tokenSource = new CancellationTokenSource();
     this._runningChecks.set(mainComponent, tokenSource);
-    await this._client.sendRequest("kind2/realizability", [mainComponent.uri, mainComponent.name], tokenSource.token).then((values: string[]) => {
+    await this._client.sendRequest("kind2/realizability", [mainComponent.uri, mainComponent.name, mainComponent.typeDecl], tokenSource.token).then((values: string[]) => {
       let results: any[] = values.map(s => JSON.parse(s));
       for (const nodeResult of results) {
         let component = undefined;
@@ -401,6 +411,9 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
             }
             else if (analysisResult.context === "environment") {
               analysis.realizabilitySource = "inputs"
+            }
+            else if (analysisResult.context === "type") {
+              analysis.realizabilitySource = "type"
             }
             else {
               analysis.realizabilitySource = "imported node"
@@ -479,6 +492,9 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     else if (analysis.realizabilitySource === "contract") {
       context = "contract"
+    }
+    else if (analysis.realizabilitySource === "type") {
+      context = "type"
     }
     await this._client.sendRequest("kind2/deadlock", [analysis.parent.uri, name, context]).then((dl: string) => {
       WebPanel.createOrShow(this._context.extensionPath);
