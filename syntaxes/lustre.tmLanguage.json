@@ -480,8 +480,19 @@
         },
         {
           "comment": "User-defined type.",
-          "name": "support.type.lustre",
-          "match": "\\w+"
+          "match": "(\\w+)\\s*(<<[^>]+>>)?",
+          "captures": { 
+            "1" : {
+              "name": "support.type.lustre"
+            },
+            "2" : {
+              "patterns": [
+                {
+                  "include": "#type"
+                }
+              ]
+            }
+          }
         }
       ]
     },
@@ -547,16 +558,7 @@
           "match": "\\w+"
         },
         {
-          "begin": "<<",
-          "end": ">>",
-          "patterns": [
-            {
-              "include": "#type"
-            },
-            {
-              "include": "#comment"
-            }
-          ]
+          "include": "#typeArgs"
         },
         {
           "begin": "\\(",
@@ -1068,6 +1070,18 @@
         }
       ]
     },
+    "typeArgs": {
+      "begin": "<<",
+      "end": ">>",
+      "patterns": [
+        {
+          "include": "#type"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
     "typeDeclRhs": {
       "patterns": [
         {
@@ -1146,6 +1160,9 @@
         {
           "name": "support.type.lustre",
           "match": "\\w+"
+        },
+        {
+          "include": "#typeArgs"
         },
         {
           "begin": "=",
