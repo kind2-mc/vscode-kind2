@@ -497,7 +497,16 @@
       ]
     },
     "importedComponent": {
-      "begin": "(?=(node|function)\\s*\\bimported\\b)",
+      "begin": "(?=(opaque|transparent)?\\s*(node|function)\\s*\\bimported\\b)",
+      "beginCaptures":
+        {
+	  "1": {
+	    "name": "keyword.modifier.lustre"
+	  },
+	  "2": {
+	    "name": "keyword.other.lustre"
+	  }
+	},
       "end": "(?<=;|\\))",
       "patterns": [
         {
@@ -512,7 +521,16 @@
       ]
     },
     "component": {
-      "begin": "(?=node|function)",
+      "begin": "(?=(opaque|transparent)?\\s*(node|function)\\b)",
+      "beginCaptures":
+        {
+	  "1": {
+	    "name": "keyword.modifier.lustre"
+	  },
+	  "2": {
+	    "name": "keyword.other.lustre"
+	  }
+	},
       "end": "(?<=tel)",
       "patterns": [
         {
@@ -678,7 +696,7 @@
         {
           "comment": "Keywords",
           "name": "keyword.control.lustre",
-          "match": "\\b(if|then|else|not|and|xor|or|pre|fby|div|mod|lsh|rsh|reachable|provided|assuming|invariant|from|within|at|any|param|opaque|transparent)\\b"
+          "match": "\\b(if|then|else|not|and|xor|or|pre|fby|div|mod|lsh|rsh|reachable|provided|assuming|invariant|from|within|at|any|param)\\b"
         },
         {
           "comment": "Merge",
@@ -1191,7 +1209,7 @@
     },
     "const": {
       "begin": "\\b(const)\\b",
-      "end": "(?=const|contract|function|node|let|type|var)",
+      "end": "(?=const|contract|function|node|opaque|transparent|let|type|var)",
       "beginCaptures": {
         "1": {
           "name": "keyword.other.lustre"
