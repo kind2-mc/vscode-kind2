@@ -52,7 +52,7 @@
       ]
     },
     "blockVar": {
-      "begin": "(var|const)\\s+(\\w+)",
+      "begin": "(var|const|param)\\s+(\\w+)",
       "beginCaptures": {
         "1": {
           "name": "storage.modifier.lustre"
@@ -556,7 +556,7 @@
     "componentDecl": {
       "comment": "More precisely, a node, a contract, or a function prefix.",
       "begin": "\\b(contract|node|function)\\b",
-      "end": ";|(?=\\(\\*@contract|const|var|let)",
+      "end": ";|(?=\\(\\*@contract|const|param|var|let)",
       "beginCaptures": {
         "1": {
           "name": "keyword.other.lustre"
@@ -696,7 +696,7 @@
         {
           "comment": "Keywords",
           "name": "keyword.control.lustre",
-          "match": "\\b(if|then|else|not|and|xor|or|pre|fby|div|mod|lsh|rsh|reachable|provided|assuming|invariant|from|within|at|any|param)\\b"
+          "match": "\\b(if|then|else|not|and|xor|or|pre|fby|div|mod|lsh|rsh|reachable|provided|assuming|invariant|from|within|at|any)\\b"
         },
         {
           "comment": "Merge",
@@ -1020,7 +1020,7 @@
           "name": "keyword.other.lustre"
         }
       },
-      "end": "(?=const|let|var)",
+      "end": "(?=const|param|let|var)",
       "patterns": [
         {
           "name": "variable.other.lustre",
@@ -1208,8 +1208,8 @@
       ]
     },
     "const": {
-      "begin": "\\b(const)\\b",
-      "end": "(?=const|contract|function|node|opaque|transparent|let|type|var)",
+      "begin": "\\b(const|param)\\b",
+      "end": "(?=const|param|contract|function|node|opaque|transparent|let|type|var)",
       "beginCaptures": {
         "1": {
           "name": "keyword.other.lustre"
