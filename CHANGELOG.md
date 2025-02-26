@@ -1,3 +1,10 @@
+### Unreleased
+- Update Kind 2 to version 2.3.0
+- Update buttons for type decls
+- Add syntax highlighting for polymorphism
+- Add 'opaque' and 'transparent' keywords
+- Fix patterns for 'param'
+
 ### Version 0.11.1
 - Update the Simulator interface:
   - Change the default number of columns
