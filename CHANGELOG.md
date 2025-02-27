@@ -1,3 +1,6 @@
+### Version 0.12.1
+- Update version in package files
+
 ### Version 0.12.0
 - Update Kind 2 to version 2.3.0
 - Update buttons for type decls
