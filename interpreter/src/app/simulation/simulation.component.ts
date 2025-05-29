@@ -3,9 +3,10 @@ import { Interpretation, Stream } from 'src/assets/Interpretation';
 import { VSCode } from 'src/assets/VSCode';
 
 @Component({
-  selector: 'app-simulation',
-  templateUrl: './simulation.component.html',
-  styleUrls: ['./simulation.component.css']
+    selector: 'app-simulation',
+    templateUrl: './simulation.component.html',
+    styleUrls: ['./simulation.component.css'],
+    standalone: false
 })
 export class SimulationComponent implements OnInit {
 
