@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         platform: [linux-x64, linux-arm64, darwin-x64, darwin-arm64]
-        node-version: [18.x]
+        node-version: [22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
         include:
           - platform: linux-x64
