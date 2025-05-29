@@ -117,7 +117,7 @@ npm install
 npm run build
 popd
 mkdir -p out
-cp -r interpreter/dist/interpreter out/interpreter
+cp -r interpreter/dist/interpreter/browser out/interpreter
 
 # Install Node depedencies
 npm install
