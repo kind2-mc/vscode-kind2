@@ -5,9 +5,9 @@
  */
 
 import * as path from "path";
-import { CancellationToken, CancellationTokenSource, CodeLens, CodeLensProvider, DecorationOptions, Event, EventEmitter, ExtensionContext, Position, ProviderResult, Range, ShellExecution, Task, tasks, TaskScope, TextDocument, TextEditorDecorationType, TreeDataProvider, TreeItem, TreeItemCollapsibleState, TreeView, Uri, window } from "vscode";
+import { CancellationToken, CancellationTokenSource, CodeLens, CodeLensProvider, DecorationOptions, Event, EventEmitter, ExtensionContext, MarkdownString, Position, ProviderResult, Range, ShellExecution, Task, tasks, TaskScope, TextDocument, TextEditorDecorationType, TreeDataProvider, TreeItem, TreeItemCollapsibleState, TreeView, Uri, window } from "vscode";
 import { LanguageClient } from "vscode-languageclient";
-import { Analysis, Component, File, Property, State, statePath, TreeNode } from "./treeNode";
+import { Analysis, Component, File, Property, State, statePath, TreeNode, stateColor} from "./treeNode";
 import { WebPanel } from "./webviewPanel";
 
 export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
@@ -27,24 +27,25 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     this.onDidChangeTreeData = this._treeDataChanged.event;
     this.onDidChangeCodeLenses = this._codeLensesChanged.event;
     this._decorationTypeMap = new Map<State, TextEditorDecorationType>([
-      ["pending", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("pending")) })],
-      ["running", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("running")) })],
-      ["passed", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("passed")) })],
-      ["reachable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("reachable")) })],
-      ["failed", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("failed")) })],
-      ["unreachable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("unreachable")) })],
-      ["stopped", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("stopped")) })],
-      ["unknown", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("unknown")) })],
-      ["errored", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("errored")) })],
-      ["realizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("realizable")) })],
-      ["unrealizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("unrealizable")) })],
-      ["contract realizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("contract realizable")) })],
-      ["contract unrealizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("contract unrealizable")) })],
-      ["type realizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("type realizable")) })],
-      ["type unrealizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("type unrealizable")) })],
-      ["inputs realizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs realizable")) })],
-      ["inputs unrealizable", window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs unrealizable")) })],
-    ])
+      [ "pending",                window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("pending")),                backgroundColor: stateColor("pending") }) ],
+      [ "running",                window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("running")),                backgroundColor: stateColor("running") }) ],
+      [ "passed",                 window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("passed")),                 backgroundColor: stateColor("passed") }) ],
+      [ "reachable",              window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("reachable")),              backgroundColor: stateColor("reachable") }) ],
+      [ "conflicting",            window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("conflicting")),            backgroundColor: stateColor("conflicting") }) ],
+      [ "failed",                 window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("failed")),                 backgroundColor: stateColor("failed") }) ],
+      [ "unreachable",            window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("unreachable")),            backgroundColor: stateColor("unreachable") }) ],
+      [ "stopped",                window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("stopped")),                backgroundColor: stateColor("stopped") }) ],
+      [ "unknown",                window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("unknown")),                backgroundColor: stateColor("unknown") }) ],
+      [ "errored",                window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("errored")),                backgroundColor: stateColor("errored") }) ],
+      [ "realizable",             window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("realizable")),             backgroundColor: stateColor("realizable") }) ],
+      [ "unrealizable",           window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("unrealizable")),           backgroundColor: stateColor("unrealizable") }) ],
+      [ "contract realizable",    window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("contract realizable")),    backgroundColor: stateColor("contract realizable") }) ],
+      [ "contract unrealizable",  window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("contract unrealizable")),  backgroundColor: stateColor("contract unrealizable") }) ],
+      [ "type realizable",        window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("type realizable")),        backgroundColor: stateColor("type realizable") }) ],
+      [ "type unrealizable",      window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("type unrealizable")),      backgroundColor: stateColor("type unrealizable") }) ],
+      [ "inputs realizable",      window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs realizable")),      backgroundColor: stateColor("inputs realizable") }) ],
+      [ "inputs unrealizable",    window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs unrealizable")),    backgroundColor: stateColor("inputs unrealizable") }) ],
+    ]);
   }
 
   onDidChangeCodeLenses?: Event<void> | undefined;
@@ -103,6 +104,16 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         item = new TreeItem(label, element.properties.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
         item.contextValue = "analysis";
       } 
+      else if( element.realizabilitySource === "contract") {
+          if (element.realizability === "realizable") {
+            item = new TreeItem(element.realizabilitySource, TreeItemCollapsibleState.None);
+            item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath("passed")));
+          }
+          else if (element.realizability === "unrealizable") {
+            item = new TreeItem(element.realizabilitySource + ": conflicting set", TreeItemCollapsibleState.Collapsed);
+            item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath("failed")));
+          }
+      }
       else if (element.realizability === "realizable") {
         item = new TreeItem(element.realizabilitySource, TreeItemCollapsibleState.None);
         item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath("passed")));
@@ -113,7 +124,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         item.contextValue = "hasDeadlock";
       }
     }
-    else {
+    else if(element instanceof Property) {
       item = new TreeItem(element.name, TreeItemCollapsibleState.None);
       if (element.state == "failed" || element.state == "reachable") {
         item.contextValue = "hasTrace";
@@ -146,37 +157,51 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   public updateDecorations(): void {
     let decorations = new Map<string, Map<State, DecorationOptions[]>>();
     for (const file of this._files) {
-      decorations.set(file.uri, new Map<State, DecorationOptions[]>([["pending", []], ["running", []], ["passed", []], ["reachable", []],  ["failed", []], ["unreachable", []], ["stopped", []], ["unknown", []], ["errored", []], ["realizable", []], ["inputs realizable", []], ["contract realizable", []], ["type realizable", []], ["unrealizable", []], ["inputs unrealizable", []], ["contract unrealizable", []], ["type unrealizable", []]]));
+      decorations.set(file.uri, new Map<State, DecorationOptions[]>([["pending", []], ["running", []], ["passed", []], ["reachable", []],  ["failed", []], 
+                                                                     ["unreachable", []], ["stopped", []], ["unknown", []], ["errored", []], ["realizable", []], 
+                                                                     ["inputs realizable", []], ["contract realizable", []], ["type realizable", []], 
+                                                                     ["unrealizable", []], ["inputs unrealizable", []], ["contract unrealizable", []], 
+                                                                     ["type unrealizable", []], ["conflicting", []]]));
     }
     for (const file of this._files) {
       for (const component of file.components) {
         for (const state of component.state) {
           if (state.startsWith("contract")) {
-            decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.contractLine, 0), (new Position(component.contractLine, 0))) });
+            decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.contractLine, 0), (new Position(component.contractLine, 999))), hoverMessage: `${state}`  });
           }
           else if (state.startsWith("inputs")) {
             if (component.containsUnrealizable() && component.line === component.contractLine) { // At least one unrealizable result causes component's icon to be an X
-              decorations.get(component.uri)?.get("unrealizable")?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 0))) });
+              decorations.get(component.uri)?.get("unrealizable")?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 999))), hoverMessage: `${state}` });
             } else {
-              decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 0))) });
+              decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 999))), hoverMessage: `${state}` });
             }
           }
           else {
-            decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 0))) });
+            decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 999))), hoverMessage: `${state}` });
           }
         }
+        let conflictingSet: Map<String, DecorationOptions> = new Map<string, DecorationOptions>();
         
         for (const property of component.properties) {
           if (decorations.has(property.uri) && (property.line != component.line) && (property.line != component.contractLine)) {
-            let decorationOptions: DecorationOptions = { range: new Range(new Position(property.line, 0), (new Position(property.line, 100))) };
+            let decorationOptions: DecorationOptions = { range: new Range(new Position(property.line, 0), (new Position(property.line, 100))), hoverMessage: `${property.state}` };
+            if( property.state === "conflicting") {
+              conflictingSet.set(property.name, decorationOptions);
+            }
             decorations.get(property.uri)?.get(property.state)?.push(decorationOptions);
           }
+        }
+        const keys = Array.from(conflictingSet.keys()).map(k => `*${k}*`);
+        for(const [propertyName,propertyDecorationOptions] of conflictingSet.entries()) {
+          let hover = `Conflicting set:\n[${keys.join(",&nbsp;&nbsp;")}]`;
+          propertyDecorationOptions.hoverMessage = new MarkdownString(hover);
         }
       }
     }
     for (const uri of decorations.keys()) {
       let editor = window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri);
-      for (const state of <State[]>["pending", "running", "passed", "reachable", "failed", "unreachable", "stopped", "unknown", "errored", "realizable", "unrealizable", "inputs realizable", "contract realizable", "inputs unrealizable", "contract unrealizable", "type realizable", "type unrealizable"]) {
+      for (const state of <State[]>["pending", "running", "passed", "reachable", "failed", "unreachable", "stopped", "unknown", "errored", "realizable", "unrealizable", "inputs realizable", "contract realizable", 
+                                    "inputs unrealizable", "contract unrealizable", "type realizable", "type unrealizable", "conflicting"]) {
         editor?.setDecorations(this._decorationTypeMap.get(state)!, decorations.get(uri)?.get(state)!);
       }
     }
@@ -405,20 +430,34 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         }
         for (const analysisResult of nodeResult.analyses) {
           let analysis: Analysis = new Analysis([], [], component);
-            analysis.realizability = analysisResult.realizabilityResult.toLowerCase();
-            if (analysisResult.context === "contract") {
-              analysis.realizabilitySource = "contract"
+          analysis.realizability = analysisResult.realizabilityResult.toLowerCase();
+          if (analysisResult.context === "contract") {
+            analysis.realizabilitySource = "contract"
+            //begin finding conflicting set
+            let conflictingSet: Property[] = [];
+            analysisResult.conflictingSet[0]?.elements?.forEach(element => {
+              let property = new Property(element.name, element.line - 1, component.uri, analysis)
+              conflictingSet.push(property);
+            });
+        
+            conflictingSet.forEach(property => property.state = "conflicting");
+            analysis.properties.push(...conflictingSet);
+            if (conflictingSet.length == 0) {
+              analysis.realizability = "realizable";
+            } else {
+              analysis.realizability = "unrealizable";
             }
-            else if (analysisResult.context === "environment") {
-              analysis.realizabilitySource = "inputs"
-            }
-            else if (analysisResult.context === "type") {
-              analysis.realizabilitySource = "type"
-            }
-            else {
-              analysis.realizabilitySource = "imported node"
-            }
-            component.analyses.push(analysis);
+          }
+          else if (analysisResult.context === "environment") {
+            analysis.realizabilitySource = "inputs"
+          }
+          else if (analysisResult.context === "type") {
+            analysis.realizabilitySource = "type"
+          }
+          else {
+            analysis.realizabilitySource = "imported node"
+          }
+          component.analyses.push(analysis);
         }
         if (component.analyses.length == 0) { 
           component.state = "passed";

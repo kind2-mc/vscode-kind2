@@ -56,6 +56,7 @@ export class Component {
         if (property.state === "failed") { failedProperties.set(property.name, property); }
         if (property.state === "unreachable") { unreachableProperties.set(property.name, property); }
         if (property.state === "unknown") { failedProperties.set(property.name, property); }
+        if (property.state === "conflicting") { failedProperties.set(property.name, property); }
         if (property.state === "errored") { erroredProperties.set(property.name, property); }
       }
     }
@@ -95,7 +96,7 @@ export class Component {
         if (property.state === "errored") { erroredProperties.add(property.name); }
       }
       // "Trivial" type declaration realizability checks give a question mark
-      if (analysis.realizability === "realizable" && !this.hasRefType) {
+      if (analysis.realizability === "realizable" && !this.hasRefType && analysis.realizabilitySource === "type") {
         return ["unknown"]
       }
       if (analysis.realizability === "realizable" && analysis.realizabilitySource === "contract") { 
@@ -168,7 +169,13 @@ export class Property {
   private _state: State;
   set state(state: State) { this._state = state; }
   get state(): State { return this._state; }
-  constructor(readonly name: string, readonly line: number, readonly uri: string, readonly parent: Analysis) {
+  constructor(
+    readonly name: string,
+    readonly line: number,
+    readonly uri: string,
+    readonly parent: Analysis,
+    readonly startCol?: number
+  ) {
     this._state = "pending";
   }
 }
@@ -177,7 +184,7 @@ export type State =
   "pending" | "running" | "passed" | "reachable" | "failed" | "unreachable" 
 | "unknown" | "stopped" | "errored" | "realizable" | "unrealizable" | "inputs realizable"
 | "inputs unrealizable" | "contract realizable" | "contract unrealizable"
-| "type realizable" | "type unrealizable";
+| "type realizable" | "type unrealizable" | "conflicting";
 
 export function statePath(state: State) {
   switch (state) {
@@ -198,6 +205,7 @@ export function statePath(state: State) {
     case "inputs unrealizable":
     case "contract unrealizable":
     case "type unrealizable":
+    case "conflicting":  
       return "icons/failed.svg";
     case "unknown":
       return "icons/unknown.svg";
@@ -227,10 +235,40 @@ export function stateIcon(state: State) {
     case "inputs unrealizable":
     case "contract unrealizable":
     case "type unrealizable":
+    case "conflicting":
       return new ThemeIcon("$(testing-failed-icon)", new ThemeColor("testing.iconFailed"));
     case "unknown":
       return new ThemeIcon("$(question)", new ThemeColor("testing.iconQueued"));
     case "errored":
       return new ThemeIcon("$(testing-error-icon)", new ThemeColor("testing.iconErrored"));
   }
+}
+
+//for editor highlighting in future ivc/mcs features
+export function stateColor(state: State): ThemeColor {
+  switch (state) {
+    case "pending":
+    case "running":
+      return new ThemeColor("editor.background");
+    case "failed":
+    case "unreachable":
+    case "stopped":
+    case "unrealizable":
+    case "contract unrealizable":
+    case "type unrealizable":
+    case "conflicting":
+      return new ThemeColor("editor.background");
+    case "passed":
+    case "reachable":
+    case "realizable":
+    case "contract realizable":
+    case "type realizable":
+    case "inputs realizable":
+      return new ThemeColor("editor.background");
+    case "unknown":
+    case "errored":
+    case "inputs unrealizable":
+      return new ThemeColor("editor.background");
+  }
+  throw new Error(`Unknown state: ${state}`);
 }
