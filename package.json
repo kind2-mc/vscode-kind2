@@ -404,6 +404,10 @@
         {
           "id": "properties",
           "name": "Properties"
+        },
+        {
+          "id": "kind2settings",
+          "name": "Kind 2 Settings"
         }
       ]
     },
