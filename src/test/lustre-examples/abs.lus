@@ -1,24 +1,3 @@
-(*
-TODO:
-Consider Blame and cut sets: Need to 
-Create pull request: realizability -> settings menu -> IVC/MCS. Seperately.
-  - Clean up prints, comments, etc
-  - Think about design and ensure the design choices make sense
-Webview panel for records and arrays:
-  - Need default values from kind2 to fill in default inputs (use interpret functionality of kind2)
-  - Provide ways to input arrays (probably popout view, potentially a treeview in that, start simple for low dimensions)
-  - Records seemingly not working at all?
-*)
-
-(* Ideas to explore:
-  Move the "Raw output" functionality to the settings menu instead of a button (with a toggle for raw JSON)
-  Think about the best design for the Analysis class (The solution I proposed earlier this week was pasable but I feel less than extendable, not implemented)
-    - The container for the selection options should be the central data structure when we display these properties, not Analysis itself (not convinced)
-    - Or, could do the original solution and have different "types" of analyses
-    - Will explore solutions next week ( Will be included in IVC/MCS PR)
-*)
-
-
 function AbsSpecAndBodyIVC(n:int) returns (r:int);
 (*@contract
   guarantee "forall (n: int) abs(n) >= 0" r >= 0;
