@@ -1,0 +1,50 @@
+
+
+type Color = enum {Red, Blue, Green, Yellow, Orange, Purple};
+
+
+function complement_color(c: Color) returns (comp: Color);
+(*@contract
+  guarantee "forall c, c != comp" c = comp => false;
+*)
+
+let
+    comp = 
+        if c = Red then Green
+        else if c = Green then Red
+        else if c = Blue then Orange
+        else if c = Orange then Blue
+        else if c = Yellow then Purple
+        else Yellow; 
+tel
+
+
+type Vector = struct {x: int; y: int; z: int};
+
+function reflect_xy_plane(p: Vector) returns (r: Vector);
+(*@contract
+  guarantee "forall p: p.x = r.x" p.x = r.x;
+  guarantee "forall p: p.y = r.y" p.y = r.y;
+  guarantee "forall p: p.z = -r.z" p.z = -r.z;
+*)
+
+let
+
+  r = Vector {x = p.x; y = p.y; z = -p.z};
+
+tel
+
+
+type Particle = struct {pos : Vector; vel: Vector};
+
+function turn_around(init: Particle) returns (post: Particle);
+(*@contract
+    guarantee "position invariant" init.pos = post.pos;
+    guarantee "velocity x flipped" init.vel.x = -post.vel.x;
+    guarantee "velocity y flipped" init.vel.y = -post.vel.y;
+    guarantee "velocity z flipped" init.vel.z = -post.vel.z;
+*)
+let 
+  post = Particle { pos = init.pos; vel = Vector {x = -init.vel.x;y = -init.vel.y ;z = -init.vel.z;}};
+
+tel

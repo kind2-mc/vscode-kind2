@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Interpretation, Stream } from 'src/assets/Interpretation';
 import { VSCode } from 'src/assets/VSCode';
-
+//ng build --output-path=../out/interpreter
 @Component({
     selector: 'app-simulation',
     templateUrl: './simulation.component.html',
@@ -137,7 +137,9 @@ export class SimulationComponent implements OnInit {
                 stream.instantValues.push([i, 0.0]);
                 break;
               case "enum":
-                stream.instantValues.push([i, stream.typeInfo[0]]);
+               
+                console.log("Enum type not supported in simulation yet, default:", stream.typeInfo.values[0]);
+                stream.instantValues.push([i, stream.typeInfo.values[0]]);
                 break;
             }
           } else {
@@ -163,7 +165,18 @@ export class SimulationComponent implements OnInit {
     for (let i = 0; i < time; ++i) {
       let object: any = {};
       for (let stream of inputStreams!) {
-        if (typeof stream.instantValues[i][1] === "boolean") {
+        if (stream.name.includes(".")) {
+          const path = stream.name.split(".");
+          let subObj = object;
+          for (let j = 0; j < path.length - 1; j++) {
+            const name = path[j];
+            if (subObj[name] === undefined) {
+              subObj[name] = {};
+            }
+            subObj = subObj[name];
+          }
+          subObj[path[path.length - 1]] = stream.instantValues[i][1];
+        } else if (typeof stream.instantValues[i][1] === "boolean") {
           object[stream.name] = stream.instantValues[i][1];
         } else {
           object[stream.name] = this.valueToString(stream.instantValues[i][1]);
