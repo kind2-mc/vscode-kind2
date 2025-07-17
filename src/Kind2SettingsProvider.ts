@@ -10,6 +10,61 @@ type SettingTreeNode = { category: SettingLiteralCategory, children: SettingTree
 let settingTree: SettingTreeNode = {
   category: { name: "Settings" }, children: [
     {
+      category: { name: "Blame Assignment" }, children: [
+        //              {setting: {name: "Minimal Cut Set (MCS) Generation", varPath: "kind2", varName: "mcs", commandType: "toggle"}},
+        {
+          category: { name: "MCS Properties" }, children: [
+            { setting: { name: "MCS all", varPath: "kind2", varName: "mcs_all", commandType: "toggle" } },
+            {
+              setting: {
+                name: "MCS categories", varPath: "kind2", varName: "mcs_categories", commandType: "selectorMultiple", selectorOptions: [
+                  { name: "Node calls", var: "node_calls" },
+                  { name: "Contracts", var: "contracts" },
+                  { name: "Equations", var: "equations" },
+                  { name: "Assertions", var: "assertions" },
+                  { name: "Annotations", var: "annotations" }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+
+      category: { name: "Merit Assignment" }, children: [
+        { setting: { name: "Inductive Validity Core (IVC) Generation", varPath: "kind2", varName: "ivc", commandType: "toggle" } },
+        {
+          category: { name: "IVC Properties" }, children: [
+            {
+              setting: {
+                name: "IVC Categories", varPath: "kind2", varName: "ivc_categories", commandType: "selectorMultiple", selectorOptions: [
+                  { name: "Node calls", var: "node_calls" },
+                  { name: "Contracts", var: "contracts" },
+                  { name: "Equations", var: "equations" },
+                  { name: "Assertions", var: "assertions" },
+                  { name: "Annotations", var: "annotations" }
+                ]
+              }
+            },
+            { setting: { name: "IVC All", varPath: "kind2", varName: "ivc_all", commandType: "toggle" } },
+            { setting: { name: "Unsat core timeout", varPath: "kind2", varName: "ivc_uc_to", commandType: "number" } },
+            {
+              setting: {
+                name: "Minimize Program", varPath: "kind2", varName: "minimize_program", commandType: "selectorSingle", selectorOptions: [
+                  { name: "No", var: "no" },
+                  { name: "Valid Lustre", var: "valid_lustre" },
+                  { name: "Concise", var: "concise" },
+
+                ]
+              }
+            },
+            { setting: { name: "IVC Must Set", varPath: "kind2", varName: "ivc_must", commandType: "toggle" } }
+          ]
+        }
+      ]
+    },
+    {
       category: { name: "Contracts" }, children: [
         { setting: { name: "Compositional", varPath: "kind2.contracts", varName: "compositional", commandType: "toggle"} },
         { setting: { name: "Modular",       varPath: "kind2",           varName: "modular",       commandType: "toggle"} }

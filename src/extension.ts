@@ -14,7 +14,7 @@ import {
   StreamInfo
 } from 'vscode-languageclient';
 import { Kind2 } from './Kind2';
-import { Component, Property, TreeNode, Analysis } from './treeNode';
+import { Component, Property, TreeNode, Analysis, Container } from './treeNode';
 import { WebPanel } from './webviewPanel';
 import { Kind2SettingsProvider, SelectorNode, SettingNode} from './Kind2SettingsProvider';
 
@@ -77,13 +77,45 @@ export async function activate(context: vscode.ExtensionContext) {
   registerCommand('kind2/disableCompositional', () => {
     workspace.getConfiguration("kind2.contracts").update("compositional", false);
   });
+  registerCommand('kind2/toggleCompositional', () => {
+      vscode.window.showInformationMessage('toggling compositional');
+    workspace.getConfiguration("kind2.contracts").update("compositional", !workspace.getConfiguration("kind2.contracts").get("compositional") );
+    kind2._treeDataChanged.fire(undefined);
+    
+  });
 
   registerCommand('kind2/modifySetting', (treeNode: SettingNode | SelectorNode) => {
      Kind2SettingsProvider.updateSetting(treeNode);
   });
+
+   registerCommand('kind2/activateIVC', (element : Container) => {
+     element.activateIVC();
+    //  for(let ele of (element.parent as Container).children){
+    //     kind2._treeDataChanged.fire(ele);
+    //  }
+    kind2._treeDataChanged.fire(element.parent);
+    
+     kind2.updateDecorations();
+  });
+  registerCommand('kind2/activateMCS', (element : Container) => {
+     element.activateMCS();
+    //  for(let ele of (element.parent as Container).children){
+    //     kind2._treeDataChanged.fire(ele);
+    //  }
+    kind2._treeDataChanged.fire(element.parent);
+    
+     kind2.updateDecorations();
+  });
+
+  
   registerCommand('kind2/check', async (node: Component, options) => {
     kind2.reveal(node, treeView);
     await kind2.check(node);
+  });
+
+  registerCommand('kind2/minimalCutSet', async (node: Component, options) => {
+    kind2.reveal(node, treeView);
+    await kind2.minimalCutSet(node);
   });
 
   registerCommand('kind2/realizability', async (node: Component, options) => {

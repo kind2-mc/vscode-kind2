@@ -84,7 +84,7 @@ export class WebPanel {
           this.ready = true;
           this.onReady();
         } else {
-          await vscode.commands.executeCommand(message.command, message.args[0], message.args[1], message.args[2]);
+          await vscode.commands.executeCommand(message.command, ...message.args);
         }
       },
       null,
