@@ -1,34 +1,3 @@
---NOTE TO ROB: When checking the realizability of "SystemModel", the extension throws an error: 
-(*
-An error occurred while checking the component:
-Error opening input file '':
-File 'src/lustre/lustreAbstractInterpretation.ml', line 45, characters 15-21: Assertion failed
-)
-
-(*
-
-- Computation of a small IVC (an approximate MIVC) over assumptions and guarantees:
-
-time kind2 --ivc true --ivc_category contracts <file.lus>
-
-- Computation of a single MIVC over assumptions and guarantees (and MUST set):
-
-time kind2 --ivc true --ivc_category contracts --ivc_approximate false --ivc_must_set true <file.lus>
-
-- Computation of all MIVCs over assumptions and guarantees (and MUST set):
-
-time ./kind2 --ivc true --ivc_category contracts --ivc_all true --ivc_must_set true tests/SystemModelV2.lus
-
--- 
-
-time ./kind2 --ivc true --ivc_category contracts --ivc_all true tests/SystemModelV2.lus
-
-- Computattion of all MCSs over assumptions and guarantees:
-
-time ./kind2 --enable MCS --mcs_category contracts --mcs_all true tests/SystemModelV2.lus
-
-
-*)
 node abs(n: real) returns (r: real);
 let
   r = if 0.0<=n then n else -n;
