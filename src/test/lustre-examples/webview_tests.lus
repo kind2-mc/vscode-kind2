@@ -1,5 +1,7 @@
-
-
+function add(a: int; b: int) returns (c: int);
+let  
+  c = a + b;
+tel
 type Color = enum {Red, Blue, Green, Yellow, Orange, Purple};
 
 
@@ -18,6 +20,14 @@ let
         else Yellow; 
 tel
 
+function complement_colors(arr: Color^5) returns (result: Color^5);
+let 
+  result = [complement_color(arr[0]),
+            complement_color(arr[1]),
+            complement_color(arr[2]),
+            complement_color(arr[3]),
+            complement_color(arr[4])];
+tel
 
 type Vector = struct {x: int; y: int; z: int};
 
@@ -46,5 +56,17 @@ function turn_around(init: Particle) returns (post: Particle);
 *)
 let 
   post = Particle { pos = init.pos; vel = Vector {x = -init.vel.x;y = -init.vel.y ;z = -init.vel.z;}};
-
 tel
+
+
+
+function increment_pos_1(arr: int^10) returns (result: int^10);
+let 
+  -- result = [arr[0] , arr[1] + 1, arr[2]];
+tel
+
+function id(arr: int^5) returns (result: int^5);
+let 
+  result = arr;
+tel
+

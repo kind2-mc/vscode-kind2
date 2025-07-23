@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { Interpretation, Stream } from 'src/assets/Interpretation';
+import { Component, input, OnInit } from '@angular/core';
+import { Interpretation, Stream, StreamValue } from 'src/assets/Interpretation';
 import { VSCode } from 'src/assets/VSCode';
 //ng build --output-path=../out/interpreter
 @Component({
@@ -24,6 +24,7 @@ export class SimulationComponent implements OnInit {
       if (event.data.uri !== undefined && event.data.main !== undefined && event.data.json !== undefined) {
         this._uri = event.data.uri;
         this._main = event.data.main;
+        console.log("Received data:", this._uri, this._main, event.data.json);
         this._components = this.flatten(JSON.parse(event.data.json)[0]);
       }
     });
@@ -74,10 +75,15 @@ export class SimulationComponent implements OnInit {
     if (value.num !== undefined && value.den !== undefined) {
       return value.num.toString() + "/" + value.den.toString();
     }
+   
     return value.toString();
   }
 
-  public checkboxChanged(component: Interpretation, stream: Stream, value: (boolean | number | string | { num: number, den: number })[], event: Event): void {
+  public inputArray(component: Interpretation, stream: Stream, value: (StreamValue)[]): void {
+    console.log("Input array for " + stream.name);
+  }
+
+  public checkboxChanged(component: Interpretation, stream: Stream, value: (StreamValue)[], event: Event): void {
     if (this.isDisabled(component, stream)) {
       if (typeof value[1] === "boolean") {
         (event.target as HTMLInputElement).checked = value[1];
@@ -86,27 +92,44 @@ export class SimulationComponent implements OnInit {
       value[1] = (event.target as HTMLInputElement).checked;
     }
   }
-
-  public inputChanged(type: string, value: (boolean | number | string | { num: number, den: number })[], event: Event): void {
+  public getValueFromString(val: string, type: string): StreamValue {
     switch (type) {
+      case "int":
+        return Number.parseInt(val);
+        break;
+      case "real":
+        let i = val.indexOf("/");
+        if (i === -1) {
+          return Number.parseFloat(val);
+        } else {
+          return { num: Number.parseInt(val.substring(0, i)), den: Number.parseInt(val.substring(i + 1)) };
+        }
+        break;
+      case "enum":
+        return val;
+        break;
+      case "array":
+        console.error("Array input not implemented yet");
+        return Number.parseInt(val);
+      default:
+        console.error("Unknown type: " + type);
+        return -1;
+    }
+  }
+  public inputChanged(type: string, value: (StreamValue)[], event: Event): void {
+    
+     switch (type) {
       case "bool":
         value[1] = (event.target as HTMLInputElement).checked;
         break;
       case "int":
-        value[1] = Number.parseInt((event.target as HTMLInputElement).value);
-        break;
       case "real":
-        let str = (event.target as HTMLInputElement).value;
-        let i = str.indexOf("/");
-        if (i === -1) {
-          value[1] = Number.parseFloat((event.target as HTMLInputElement).value);
-        } else {
-          value[1] = { num: Number.parseInt(str.substring(0, i)), den: Number.parseInt(str.substring(i + 1)) };
-        }
-        break;
       case "enum":
-        value[1] = (event.target as HTMLInputElement).value;
+      case "array":
+        value[1] = this.getValueFromString((event.target as HTMLInputElement).value, type);
         break;
+      default:
+        console.error("Unknown type: " + type);
     }
   }
 
@@ -137,10 +160,10 @@ export class SimulationComponent implements OnInit {
                 stream.instantValues.push([i, 0.0]);
                 break;
               case "enum":
-               
-                console.log("Enum type not supported in simulation yet, default:", stream.typeInfo.values[0]);
                 stream.instantValues.push([i, stream.typeInfo.values[0]]);
                 break;
+              case "array":
+                stream.instantValues.push([i, new Array(stream.typeInfo.sizes[0]).fill(0)]);
             }
           } else {
             stream.instantValues.push([i]);
@@ -178,13 +201,67 @@ export class SimulationComponent implements OnInit {
           subObj[path[path.length - 1]] = stream.instantValues[i][1];
         } else if (typeof stream.instantValues[i][1] === "boolean") {
           object[stream.name] = stream.instantValues[i][1];
+        } else if (Array.isArray(stream.instantValues[i][1])) {
+          object[stream.name] = stream.instantValues[i][1];
         } else {
           object[stream.name] = this.valueToString(stream.instantValues[i][1]);
         }
       }
       json.push(object);
     }
+    console.log("Simulating with JSON:", JSON.stringify(json));
     vscode.postMessage({ command: "kind2/interpret", args: [{ uri: this._uri, name: this._main }, JSON.stringify(json)] });
+  }
+
+
+
+
+  public showArrayEditor: boolean = false;
+  public currentStream: Stream | null = null;
+  public unsavedValues: string[] = [];
+  public arrayValues: StreamValue[] = [];
+
+  public arrayValueChanged(index: number, event: Event): void {
+    if(this.currentStream?.type == undefined){
+      console.error("Current stream type is undefined");
+      return;
+    }
+    this.unsavedValues[index] = (event.target as HTMLInputElement).value;
+    console.log("Array is now:", this.unsavedValues, "(index changed at " + index + ")");
+  }
+  public openArrayEditor(stream: Stream, values: StreamValue[]): void {
+    this.currentStream = stream;
+    
+
+    if(values[1] !== undefined){
+      this.arrayValues = values[1] as StreamValue[];
+     
+    } else {
+      this.arrayValues = new Array(this.currentStream.typeInfo.sizes[0]);
+      this.arrayValues.fill("");
+    }
+     for (let i = 0; i < this.arrayValues.length; i++) {
+        this.unsavedValues[i] = this.arrayValues[i].toString(); 
+      }
+
+    console.log("Opening array editor for:", stream.name, "with values:", this.unsavedValues);
+    this.showArrayEditor = true;
+  }
+
+  public closeArrayEditor(): void {
+    this.showArrayEditor = false;
+    this.currentStream = null;
+    this.arrayValues = [];
+    this.unsavedValues = [];
+    // this.arrayValues = [];
+  }
+
+  public saveArray(): void {
+    this.unsavedValues.forEach((value, index) => {
+      this.arrayValues[index] = this.getValueFromString(value, this.currentStream?.typeInfo.baseType);
+    });
+
+    this.closeArrayEditor();
   }
 }
 

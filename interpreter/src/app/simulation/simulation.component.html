@@ -22,14 +22,53 @@
             <i *ngSwitchCase="&quot;local&quot;" class="bi bi-geo-fill localIcon"></i>
             {{stream.name}} ({{stream.type}})
           </td>
-          <td *ngFor="let value of stream.instantValues" [ngSwitch]="stream.type">
+            <td *ngFor="let value of stream.instantValues" [ngSwitch]="stream.type">
             <input class="checkbox" *ngSwitchCase="&quot;bool&quot;"
               (change)="checkboxChanged(component, stream, value, $event)" type="checkbox" [checked]="value[1]">
+            <button class="button" *ngSwitchCase="&quot;array&quot;" [disabled]="false" (click)="openArrayEditor(stream, value)">
+              View Array
+            </button>
             <input class="textbox" *ngSwitchDefault [disabled]="isDisabled(component, stream)" type="text"
               (change)="inputChanged(stream.type, value, $event)" [attr.value]="valueToString(value[1])">
-          </td>
+            </td>
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+
+
+<div class="array-overlay" *ngIf="showArrayEditor">
+  <div class="array-editor-modal">
+    <div class="array-editor-header">
+      <h3>Edit Array: {{currentStream?.name}}</h3>
+      <button class="close-button" (click)="closeArrayEditor()">×</button>
+    </div>
+    <div class="array-editor-content">
+      <!-- Your array editing content goes here -->
+      <p>Array Type: {{currentStream?.type}}</p>
+      <p>Base Type: {{currentStream?.typeInfo?.baseType}}</p>
+      <p>Size: {{currentStream?.typeInfo?.sizes?.[0]}}</p>
+      
+      <!-- Example array editing interface -->
+      <div class="array-values">
+        <div *ngFor="let value of arrayValues; let i = index" class="array-item">
+          <span class="array-index">{{i}}:</span>
+            <input
+            type="text"
+            [attr.value]="value"
+            (change)="arrayValueChanged(i, $event)"
+            class="array-input"
+            [disabled]="currentStream?.class === 'output'"
+            />
+        </div>
+      </div>
+            
+      <div class="array-editor-actions">
+        <button class="button" (click)="saveArray()">Save</button>
+        <button class="button" (click)="closeArrayEditor()">Cancel</button>
+      </div>
+    </div>
   </div>
 </div>
