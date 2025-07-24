@@ -75,7 +75,13 @@ export class SimulationComponent implements OnInit {
     if (value.num !== undefined && value.den !== undefined) {
       return value.num.toString() + "/" + value.den.toString();
     }
-   
+    if(Array.isArray(value)) {
+      return "[" + value.map(v => this.valueToString(v)).join(",") + "]";
+    }
+    if(typeof value === "boolean") {
+      return value ? "true" : "false";
+
+    }
     return value.toString();
   }
 
@@ -151,19 +157,14 @@ export class SimulationComponent implements OnInit {
           if (stream.class === "input") {
             switch (stream.type) {
               case "bool":
-                stream.instantValues.push([i, false]);
-                break;
               case "int":
-                stream.instantValues.push([i, 0]);
-                break;
               case "real":
-                stream.instantValues.push([i, 0.0]);
-                break;
               case "enum":
-                stream.instantValues.push([i, stream.typeInfo.values[0]]);
-                break;
               case "array":
-                stream.instantValues.push([i, new Array(stream.typeInfo.sizes[0]).fill(0)]);
+                stream.instantValues.push([i, this.defaultValueFor(stream.type, stream.typeInfo)]);
+                break;
+              // case "array":
+              //   stream.instantValues.push([i, this.createNDimensionalArray(stream.typeInfo.sizes, this.defaultValueFor(stream.typeInfo.baseType, stream.typeInfo.baseTypeInfo))]);
             }
           } else {
             stream.instantValues.push([i]);
@@ -179,6 +180,38 @@ export class SimulationComponent implements OnInit {
       }
     }
   }
+
+  public defaultValueFor(type: string, typeInfo: any): StreamValue {
+    switch (type) {
+      case "bool":
+        return false;
+      case "int":
+        return 0;
+      case "real":
+        return 0.0;
+      case "enum":
+        return  typeInfo.values[0];
+      case "array":
+        return this.createNDimensionalArray(typeInfo.sizes, this.defaultValueFor(typeInfo.baseType, typeInfo.baseTypeInfo));
+      default:
+        console.error("Unknown type: " + type);
+        return -1;
+    }
+  }
+
+  private createNDimensionalArray(sizes: number[], defaultValue: any = 0): any {
+ 
+  
+  if (sizes.length === 1) {
+    return Array.from({length: sizes[0]}, () => defaultValue);
+  }
+  
+  const [currentSize, ...remainingSizes] = sizes;
+  return Array.from({length: currentSize}, () => 
+    this.createNDimensionalArray(remainingSizes, defaultValue)
+  );
+}
+  
 
   public simulate(): void {
     let json: any[] = new Array();
@@ -199,12 +232,8 @@ export class SimulationComponent implements OnInit {
             subObj = subObj[name];
           }
           subObj[path[path.length - 1]] = stream.instantValues[i][1];
-        } else if (typeof stream.instantValues[i][1] === "boolean") {
-          object[stream.name] = stream.instantValues[i][1];
-        } else if (Array.isArray(stream.instantValues[i][1])) {
-          object[stream.name] = stream.instantValues[i][1];
-        } else {
-          object[stream.name] = this.valueToString(stream.instantValues[i][1]);
+        }  else {
+          object[stream.name] = this.valueToJSON(stream.instantValues[i][1]);
         }
       }
       json.push(object);
@@ -212,37 +241,89 @@ export class SimulationComponent implements OnInit {
     console.log("Simulating with JSON:", JSON.stringify(json));
     vscode.postMessage({ command: "kind2/interpret", args: [{ uri: this._uri, name: this._main }, JSON.stringify(json)] });
   }
+  public valueToJSON(value: any): string | String | any[] | boolean | undefined {
+    if (value === undefined) {
+      return undefined;
+    }
+    if (value.num !== undefined && value.den !== undefined) {
+      return value.num.toString() + "/" + value.den.toString();
+    }
+    if(Array.isArray(value)) {
+      return value;
+      // return "[" + value.map(v => this.valueToString(v)).join(",") + "]";
+    }
+    if(typeof value === "boolean") {
+      return value;
+
+    }
+    return value.toString();
+  }
 
 
 
 
   public showArrayEditor: boolean = false;
   public currentStream: Stream | null = null;
-  public unsavedValues: string[] = [];
+  public unsavedValues: string[] | string[][] = [];
   public arrayValues: StreamValue[] = [];
 
-  public arrayValueChanged(index: number, event: Event): void {
+  public getColIndices(): number[] {
+    if (this.currentStream?.typeInfo.sizes.length === 2) {
+      return Array.from({ length: this.currentStream?.typeInfo.sizes[1] }, (_, i) => i);
+    } else if (this.currentStream?.typeInfo.sizes.length === 1) {
+      return [-1];
+    } else {
+      console.error("Unsupported number of dimensions for array editor: " + this.currentStream?.typeInfo.sizes.length);
+      return [];
+    }
+  }
+
+  public getRowIndices(): number[] {
+      return Array.from({ length: this.currentStream?.typeInfo.sizes[0] }, (_, i) => i);
+   
+  }
+
+  public getArrayValue(row: number, col?: number): string {
+    if(col !== undefined && col !== -1) {
+      return (this.unsavedValues as string[][])[row][col];
+    } else {
+      return (this.unsavedValues as string[])[row];
+    }
+  }
+  public arrayValueChanged( event: Event, row: number, col?: number): void {
     if(this.currentStream?.type == undefined){
       console.error("Current stream type is undefined");
       return;
     }
-    this.unsavedValues[index] = (event.target as HTMLInputElement).value;
-    console.log("Array is now:", this.unsavedValues, "(index changed at " + index + ")");
+    if(col !== -1 && col !== undefined) {
+      (this.unsavedValues as string[][])[row][col] = (event.target as HTMLInputElement).value;
+    } else{
+      this.unsavedValues[row] = (event.target as HTMLInputElement).value;
+
+    }
+    console.log("UnsavedValues is now:", this.unsavedValues, "(index changed at " + row + (col !== undefined ? ", " + col : "") + ")");
   }
   public openArrayEditor(stream: Stream, values: StreamValue[]): void {
     this.currentStream = stream;
     
 
     if(values[1] !== undefined){
+      console.log("Opening array editor with existing values:", values);
       this.arrayValues = values[1] as StreamValue[];
-     
     } else {
-      this.arrayValues = new Array(this.currentStream.typeInfo.sizes[0]);
-      this.arrayValues.fill("");
+      this.arrayValues = this.createNDimensionalArray(this.currentStream.typeInfo.sizes, "");
     }
-     for (let i = 0; i < this.arrayValues.length; i++) {
-        this.unsavedValues[i] = this.arrayValues[i].toString(); 
+    let numDims = this.currentStream.typeInfo.sizes.length;
+    if(numDims === 1) {
+      for (let i = 0; i < this.arrayValues.length; i++) {
+          this.unsavedValues[i] = this.arrayValues[i].toString(); 
       }
+    } else if(numDims === 2) {
+      this.unsavedValues = this.arrayValues.map(row => (row as StreamValue[]).map(value => value.toString()));
+    } else {
+      console.error("Unsupported number of dimensions for array editor: " + numDims);
+      return;
+    }
 
     console.log("Opening array editor for:", stream.name, "with values:", this.unsavedValues);
     this.showArrayEditor = true;
@@ -257,9 +338,22 @@ export class SimulationComponent implements OnInit {
   }
 
   public saveArray(): void {
-    this.unsavedValues.forEach((value, index) => {
-      this.arrayValues[index] = this.getValueFromString(value, this.currentStream?.typeInfo.baseType);
-    });
+    const is2D = Array.isArray(this.unsavedValues[0]);
+    if(is2D){
+      console.log("Handling save as 2D array");
+      for (let i = 0; i < (this.unsavedValues as string[][]).length; i++) {
+        const row = (this.unsavedValues as string[][])[i];
+        for (let j = 0; j < row.length; j++) {
+          (this.arrayValues[i] as StreamValue[])[j] = this.getValueFromString(row[j], this.currentStream?.typeInfo.baseType);
+        }
+      }
+      console.log("Array values after save:", this.arrayValues);
+      console.log("Instant values after save:", this.currentStream?.instantValues[1]);
+    }else {
+      this.unsavedValues.forEach((value, index) => {
+        this.arrayValues[index] = this.getValueFromString(value as string, this.currentStream?.typeInfo.baseType);
+      });
+    }
 
     this.closeArrayEditor();
   }

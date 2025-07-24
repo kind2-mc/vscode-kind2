@@ -2,8 +2,32 @@ function add(a: int; b: int) returns (c: int);
 let  
   c = a + b;
 tel
-type Color = enum {Red, Blue, Green, Yellow, Orange, Purple};
 
+type Color = enum {Red, Blue, Green, Yellow, Orange, Purple};
+type Vector = struct {x: int; y: int; z: int};
+
+function all_types(a: bool; b: real; c: Vector; d: Color^3) returns (x: int);
+let  
+  x = 0;
+tel
+
+
+(* Pretty sure these two functions showcase a bug where unused arrays cause issues, I cannot find a use-case where you would want to do  *)
+function bug_not_present(x: int^3) returns (i: int);
+let  
+  i = x[0] + x[1] + x[2];
+tel
+
+function bug_present(x: int^3) returns (i: int);
+let 
+  i = x[0];
+tel
+
+
+function bug2(x: int^3^3) returns (i: int^3);
+let  
+  i = [0,0,0];
+tel
 
 function complement_color(c: Color) returns (comp: Color);
 (*@contract
@@ -29,7 +53,6 @@ let
             complement_color(arr[4])];
 tel
 
-type Vector = struct {x: int; y: int; z: int};
 
 function reflect_xy_plane(p: Vector) returns (r: Vector);
 (*@contract
@@ -66,6 +89,11 @@ let
 tel
 
 function id(arr: int^5) returns (result: int^5);
+let 
+  result = arr;
+tel
+
+function id_2d(arr: int^5^5) returns (result: int^5^5);
 let 
   result = arr;
 tel

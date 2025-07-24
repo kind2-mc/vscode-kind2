@@ -225,3 +225,59 @@ body {
   gap: 10px;
   justify-content: flex-end;
 }
+
+/* Add to simulation.component.css */
+.array-table {
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-family: monospace;
+}
+
+.array-table th,
+.array-table td {
+  border: 1px solid #646464;
+  padding: 2px;
+  text-align: center;
+}
+
+.array-table th {
+  background-color: #9b9b9b;
+  font-weight: bold;
+}
+
+.corner-cell {
+  background-color: #9b9b9b !important;
+}
+
+.row-header, .col-header {
+  background-color: #9b9b9b;
+  font-size: 12px;
+  min-width: 30px;
+}
+
+/* Special styling for 1D arrays (single row) */
+.array-table tbody tr:only-child .row-header {
+  /* Hide row header for 1D arrays or make it less prominent */
+  background-color: #646464;
+  font-size: 10px;
+  color: #999;
+}
+
+.array-input {
+  width: 50px;
+  padding: 2px 4px;
+  border: none;
+  text-align: center;
+  font-size: 12px;
+  background-color: #a8a8a8;
+}
+
+.array-input:focus {
+  outline: 2px solid #007acc;
+  background-color: #fff;
+}
+
+.array-input:disabled {
+  background-color: #b9b9b9;
+  color: #999;
+}
