@@ -271,6 +271,7 @@ export class SimulationComponent implements OnInit {
     if (this.currentStream?.typeInfo.sizes.length === 2) {
       return Array.from({ length: this.currentStream?.typeInfo.sizes[1] }, (_, i) => i);
     } else if (this.currentStream?.typeInfo.sizes.length === 1) {
+      console.log("1D array detected, returning -1 for column indices");
       return [-1];
     } else {
       console.error("Unsupported number of dimensions for array editor: " + this.currentStream?.typeInfo.sizes.length);
@@ -296,9 +297,13 @@ export class SimulationComponent implements OnInit {
       return;
     }
     if(col !== -1 && col !== undefined) {
+      console.log("Updating unsaved value as 2D array", col);
       (this.unsavedValues as string[][])[row][col] = (event.target as HTMLInputElement).value;
     } else{
+      console.log("Updating unsaved value as 1D array");
+      console.log("UnsavedValues before change:", this.unsavedValues);
       this.unsavedValues[row] = (event.target as HTMLInputElement).value;
+      console.log("UnsavedValues after change:", this.unsavedValues);
 
     }
     console.log("UnsavedValues is now:", this.unsavedValues, "(index changed at " + row + (col !== undefined ? ", " + col : "") + ")");
@@ -350,9 +355,14 @@ export class SimulationComponent implements OnInit {
       console.log("Array values after save:", this.arrayValues);
       console.log("Instant values after save:", this.currentStream?.instantValues[1]);
     }else {
+      console.log("Saving value as 1D array");
+      console.log("Unsaved values before save:", this.unsavedValues);
       this.unsavedValues.forEach((value, index) => {
         this.arrayValues[index] = this.getValueFromString(value as string, this.currentStream?.typeInfo.baseType);
+        
       });
+      console.log("Array values after save:", this.arrayValues);
+      console.log("Instant values after save:", this.currentStream?.instantValues[1]);
     }
 
     this.closeArrayEditor();

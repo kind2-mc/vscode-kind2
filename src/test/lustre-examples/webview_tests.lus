@@ -1,5 +1,16 @@
+(* 
+- Features implemented are "prototype": they need a lot more debugging and testing because there are definitely going to be bugs everywhere
+- Not sure if arrays of records is optimal (see id_vector_set) this is the default behavior
+- bug with unused arrays? not sure why you would want to do the thing that causes the bug
+
+
+*)
+
+
+
+
 function add(a: int; b: int) returns (c: int);
-let  
+let
   c = a + b;
 tel
 
@@ -65,6 +76,11 @@ let
 
   r = Vector {x = p.x; y = p.y; z = -p.z};
 
+tel
+
+function id_vector_set(in: Vector^3) returns (out: Vector^3);
+let 
+  out = in;
 tel
 
 

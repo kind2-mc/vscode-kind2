@@ -78,8 +78,8 @@
           <td *ngFor="let col of getColIndices(); let colIdx = index">
             <input
               type="text"
-              [attr.value]="getArrayValue(rowIdx, colIdx)"
-              (change)="arrayValueChanged($event, rowIdx, colIdx)"
+              [attr.value]="getArrayValue(row, col)"
+              (change)="arrayValueChanged($event, row, col)"
               class="array-input"
               [disabled]="currentStream?.class === 'output'"
             />
