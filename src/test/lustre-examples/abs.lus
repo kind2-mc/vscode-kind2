@@ -1,0 +1,75 @@
+function AbsSpecAndBodyIVC(n:int) returns (r:int);
+(*@contract
+  guarantee "forall (n: int) abs(n) >= 0" r >= 0;
+  guarantee "forall (n: int) n>=0 => abs(n)=n" n>=0 => r = n;
+  guarantee "forall (n: int) n<0 => abs(n)=-n" n<0 => r = -n;
+*)
+let
+  if n >= 0 then
+    r = n;
+  else
+    r = negate(n);
+  fi
+tel
+
+function negate(n:int) returns (r:int);
+(*@contract
+  guarantee    "forall (n: int) negate(n) = -n" r = -n;
+*)
+let
+  r=-n;
+tel
+
+function AbsSpecAndBody(n:int) returns (r:int);
+(*@contract
+  guarantee "forall (n: int) abs(n) >= 0" r >= 0;
+  guarantee "forall (n: int) n>=0 => abs(n)=n" n>=0 => r = n;
+  guarantee "forall (n: int) n<0 => abs(n)=-n" n<0 => r = -n;
+*)
+let
+  if n >= 0 then
+    r = n;
+  else
+    r = -n;
+  fi
+tel
+
+
+function AbsSpecAndBodyFailed(n:int) returns (r:int);
+(*@contract
+  guarantee "forall (n: int) abs(n) >= 0" r >= 1;
+  guarantee "forall (n: int) n>=0 => abs(n)=n" 
+  n>=0 => r = n;
+  guarantee "forall (n: int) n<0 => abs(n)=-n" n<0 => r = -n;
+*)
+let
+  if n >= 0 then
+    r = n;
+  else
+    r = -n;
+  fi
+tel
+
+function imported AbsSpec(n:int) returns (r:int);
+(*@contract
+  guarantee "forall (n: int) abs(n) >= 0" r >= 0;
+  guarantee "forall (n: int) n>=0 => abs(n)=n" n>=0 => r = n;
+  guarantee "forall (n: int) n<0 => abs(n)=-n" n<0 => r = -n;
+*)
+
+function imported AbsSpecUnrealizable(n:int) returns (r:int);
+(*@contract
+  guarantee "forall (n: int) abs(n) >= 0" r >= 1;
+  guarantee "forall (n: int) n>=0 => abs(n)=n" n>=0 => r = n;
+  guarantee "forall (n: int) n<0 => abs(n)=-n" n<0 => r = -n;
+*)
+
+
+type T = int;
+type Nat = subtype { x: int | x > 0 };
+
+node N (x: T) returns (y: T)
+let
+    y = x;
+    check x = y;
+tel

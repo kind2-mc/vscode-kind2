@@ -1,0 +1,58 @@
+node abs (n: real) returns (r: real);
+let
+  r = (if (0.0 <= n) then n else (- n));
+tel;
+node SystemModel
+  (const TH: real;
+   const UB: real;
+   const ERR: real;
+   alt1: real;
+   alt2: real;
+   alt3: real)
+returns
+  (act_alt: real);
+(*@contract
+  assume "C1" (TH > 0.0);
+  assume "S2" (abs((0.0 -> ((pre act_alt) - alt2))) <= ERR);
+  assume "S3" (abs((0.0 -> ((pre act_alt) - alt3))) <= ERR);
+  guarantee "R1" (act_alt <= TH); *)
+var pitch: real; alt: real;
+let
+  alt = TriplexVoter(alt1, alt2, alt3);
+  pitch = Controller(TH, UB, ERR, alt);
+  act_alt = Environment(UB, pitch);
+tel;
+node imported Controller
+  (const TH: real; const UB: real; const ERR: real; alt: real)
+returns
+  (pitch: real);
+(*@contract
+  const LIMIT: real = (TH - (UB + (2.0 * ERR)));
+  guarantee "L1" ((alt > LIMIT) => (pitch < 0.0)); *)
+
+node imported Environment (const UB: real; pitch: real) returns (alt: real);
+(*@contract
+  guarantee "E1" ((alt = 0.0) -> true);
+  guarantee "E3" (true -> ((pitch < 0.0) => (alt <= (pre alt))));
+  guarantee "E6" (true -> ((pitch > 0.0) => (alt <= ((pre alt) + UB))));
+  guarantee "E7" (true -> ((pitch = 0.0) => (alt = (pre alt)))); *)
+
+node min (a: real; b: real) returns (c: real);
+let
+  c = (if (a <= b) then a else b);
+tel;
+node TriplexVoter (alt1: real; alt2: real; alt3: real) returns (r: real);
+var
+  ad12: real;
+  ad13: real;
+  ad23: real;
+  m: real;
+  avg1: real;
+  avg2: real;
+  avg3: real;
+let
+  (ad12,ad13,ad23) = (abs(_), abs(_), abs(_));
+  m = min(ad12, min(ad13, ad23));
+  (avg1,avg2,avg3) = _;
+  r = (if (m = ad12) then avg1 else (if (m = ad13) then avg2 else avg3));
+tel;

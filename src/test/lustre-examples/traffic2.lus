@@ -1,0 +1,146 @@
+----------------------------------------------------------------------
+-- This is an implementation of a simple traffic light system with one
+-- (bi-directional) car lane and one pedestrian crossing.
+--
+--                            ooo
+--       ------------------==-------------------
+--                         ==
+--                         ==
+--       ------------------==-------------------
+--                    ooo
+--
+----------------------------------------------------------------------
+
+node TrafficLight( Button: bool )
+returns ( Red, Yellow, Green, Walk, DontWalk: bool );
+
+var Phase, prePhase: int;
+let
+  prePhase = 0 -> pre Phase;
+  -- we improve on the previous implementation by ignoring the button
+  -- unless the DontWalk light was on a cycle ago
+  Phase    = if Button and (false -> pre(DontWalk)) then
+               1
+             else if 0 < prePhase and prePhase < 10 then
+               prePhase + 1
+             else
+               0;
+
+  Green    = Phase = 0;
+  Yellow   = Phase = 1;
+  Red      = Phase > 1;
+
+  Walk     = Phase > 2 and Phase < 10;
+  DontWalk = not Walk;
+tel
+
+----------------------------------------------------------------------
+-- A synchronous observer that checks a number of safety properties
+-- for the TrafficLight.
+--
+-- Try to prove them using Kind 2
+-- If a property is falsifiable, inspect the counter example
+-- and try to fix the bug.
+--
+-- Try to specify additional properties and verify these. Avoid
+-- redundancies in your properties if you can.
+----------------------------------------------------------------------
+
+node ReqTrafficLight( Button : bool )
+returns (R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15: bool);
+  var  Red, Yellow, Green, Walk, DontWalk : bool;
+  var  CarsAllowed : bool; -- auxiliary var
+let
+  (Red, Yellow, Green, Walk, DontWalk) = TrafficLight(Button);
+
+  -- Car are allowed iff the traffic light is green or yellow
+  CarsAllowed = Green or Yellow;
+
+  -- R1: Walk is never on when cars are allowed
+  R1 = CarsAllowed => not Walk;
+  check R1;
+
+  -- R2: Red and Green are never on at the same time
+  R2 =  not (Red and Green);
+  check R2;
+
+  (* R2 could be strengthened by saying that the three lights 
+     are mutually exclusive.
+     
+  R2 =  (Yellow => not Red and not Green) and
+        (Red => not Yellow and not Green) and
+        (Green => not Red and not Yellow) ;
+  *)
+
+  -- R3: at all times one of the tree colored lights is on
+  R3 = Red or Yellow or Green;
+  check R3;
+
+  -- R4: Walk is on only if Red is
+  R4 = Walk => Red;
+  check R4;
+
+  -- R5: Walk is on iff DontWalk is off
+  R5 = Walk xor DontWalk;
+  check R5;
+
+  -- R6: Red cannot immediately follow Green
+  R6 = true -> not (Red and pre Green);
+  check R6;
+
+  -- R7: Walk is off if cars were allowed in the previous step 
+  R7 = true -> pre CarsAllowed => not Walk;
+  check R7;
+
+  -- R8: Cars are not allowed if Walk was on in the previous step 
+  R8 = true -> pre Walk => not CarsAllowed;
+  check R8;
+
+  -- R9: Yellow is never on for two or more consecutive steps
+  R9 = true -> not (Yellow and pre Yellow);
+  check R9;
+
+  -- R10: Red changes directly to green
+  R10 = true -> (pre Red and not Red) => Green;
+  -- the formulation of R10 relies on R2
+  check R10;
+
+  -- R11: If the button was never pressed the light is Green
+  R11 = Sofar(not Button) => Green;
+  check R11;
+  
+  -- R12: Red is on whenever Walk is 
+  R12 = Walk => Red;
+  check R12;
+
+  -- R13: Yellow can only follow Green 
+  R13 = true -> Yellow => pre Green;
+  check R13;
+
+  -- R14: Red is on for at most 9 consecutive steps
+  R14 = Count(Red) <= 9 ;
+  check R14;
+
+  -- R15: When Red turns on, Walk is still off
+  R15 = true -> Red and not pre Red => not Walk and not pre Walk;
+  check R15;
+
+--%MAIN;
+tel
+
+-------------------
+-- Auxiliary nodes
+-------------------
+
+node Sofar( X : bool ) returns ( Y : bool );
+let
+  Y = X -> (X and pre Y);
+tel
+
+-- Counts how many consecutive steps X has been true
+node Count (X: bool) returns (O: int) ;
+  var preO: int ;
+let 
+  preO = 0 -> pre O ;
+  O = if X then preO + 1 else 0 ;
+tel
