@@ -6,7 +6,8 @@ type SettingLiteral = { name: string, varPath: string, varName: string, commandT
 type SettingLiteralCategory = { name: string };
 type SettingTreeNode = { category: SettingLiteralCategory, children: SettingTreeNode[] } | { setting: SettingLiteral };
 
-
+//This tree defines what the setting menu's structure at runtime will look like.
+//To add a new setting, only add to this tree and make the subsequent changes needed: adding a var to the package.json with the appropriate type. (No new command needed)
 let settingTree: SettingTreeNode = {
   category: { name: "Settings" }, children: [
     {
