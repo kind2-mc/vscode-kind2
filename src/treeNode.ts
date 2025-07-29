@@ -173,8 +173,7 @@ export class Property {
     readonly name: string,
     readonly line: number,
     readonly uri: string,
-    readonly parent: Analysis,
-    readonly startCol?: number
+    readonly parent: Analysis
   ) {
     this._state = "pending";
   }
@@ -249,7 +248,6 @@ export function stateColor(state: State): ThemeColor {
   switch (state) {
     case "pending":
     case "running":
-      return new ThemeColor("editor.background");
     case "failed":
     case "unreachable":
     case "stopped":
@@ -257,18 +255,16 @@ export function stateColor(state: State): ThemeColor {
     case "contract unrealizable":
     case "type unrealizable":
     case "conflicting":
-      return new ThemeColor("editor.background");
     case "passed":
     case "reachable":
     case "realizable":
     case "contract realizable":
     case "type realizable":
     case "inputs realizable":
-      return new ThemeColor("editor.background");
     case "unknown":
     case "errored":
     case "inputs unrealizable":
-      return new ThemeColor("editor.background");
+      return undefined; // Invisible highlight, can hover to see text
   }
   throw new Error(`Unknown state: ${state}`);
 }
