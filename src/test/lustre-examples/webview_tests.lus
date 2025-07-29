@@ -4,6 +4,10 @@
 - bug with unused arrays? not sure why you would want to do the thing that causes the bug
 
 
+-visibility disabled, error messages, fix header info in array editor, arrays of bools
+  - see what sort of info can be provided on error
+  - Can have view array output buttons either blank or decolored before there is output in them
+
 *)
 
 
