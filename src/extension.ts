@@ -16,6 +16,7 @@ import {
 import { Kind2 } from './Kind2';
 import { Component, Property, TreeNode, Analysis } from './treeNode';
 import { WebPanel } from './webviewPanel';
+import { Kind2SettingsProvider, SelectorNode, SettingNode} from './Kind2SettingsProvider';
 
 let client: LanguageClient;
 let kind2: Kind2;
@@ -77,6 +78,9 @@ export async function activate(context: vscode.ExtensionContext) {
     workspace.getConfiguration("kind2.contracts").update("compositional", false);
   });
 
+  registerCommand('kind2/modifySetting', (treeNode: SettingNode | SelectorNode) => {
+     Kind2SettingsProvider.updateSetting(treeNode);
+  });
   registerCommand('kind2/check', async (node: Component, options) => {
     kind2.reveal(node, treeView);
     await kind2.check(node);
@@ -108,10 +112,14 @@ export async function activate(context: vscode.ExtensionContext) {
   registerCommand('kind2/showSource', async (node: TreeNode) => await kind2.showSource(node));
 
   const treeView = vscode.window.createTreeView("properties", { treeDataProvider: kind2, canSelectMany: false, showCollapseAll: true });
-
+  
+  let settingsViewProvider: Kind2SettingsProvider = new Kind2SettingsProvider(context);
+  const settingsView = vscode.window.createTreeView("kind2settings", { treeDataProvider: settingsViewProvider, canSelectMany: false, showCollapseAll: true });
+  
   registerCommand('kind2/reveal', async (node: TreeNode) => await kind2.reveal(node, treeView));
 
   context.subscriptions.push(treeView);
+  context.subscriptions.push(settingsView);
   const documentSelector: vscode.DocumentFilter = { language: "lustre" };
   context.subscriptions.push(vscode.languages.registerCodeLensProvider(documentSelector, kind2));
 
