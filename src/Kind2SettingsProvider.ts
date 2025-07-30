@@ -6,7 +6,8 @@ type SettingLiteral = { name: string, varPath: string, varName: string, commandT
 type SettingLiteralCategory = { name: string };
 type SettingTreeNode = { category: SettingLiteralCategory, children: SettingTreeNode[] } | { setting: SettingLiteral };
 
-
+//This tree defines what the setting menu's structure at runtime will look like.
+//To add a new setting, only add to this tree and make the subsequent changes needed: adding a var to the package.json with the appropriate type. (No new command needed)
 let settingTree: SettingTreeNode = {
   category: { name: "Settings" }, children: [
     {
@@ -100,7 +101,7 @@ export class Kind2SettingsProvider implements TreeDataProvider<SettingTreeElemen
     this._root = SettingCategory.root;
   }
 
-  //could be moved directly to SettingNode, will keep it here in case we want to add an overarching funtionality to changing a setting
+  // Could be moved directly to SettingNode, will keep it here in case we want to add an overarching funtionality to changing a setting
   static updateSetting(settingNode: SettingNode | SelectorNode) {
     settingNode.execute(undefined);
   }
@@ -142,7 +143,6 @@ export class Kind2SettingsProvider implements TreeDataProvider<SettingTreeElemen
     if (element == undefined) {
       return this._root.children;
     }
-    //console.log("Kind2SettingsProvider: Getting children for " + element.name + ": " + element.children.length + " children");
     return element.children;
 
   }
@@ -176,17 +176,14 @@ export class SelectorNode implements SettingTreeElement {
     this.name = name;
     this.varName = varName;
     this.parent = parent;
-    //console.log("SelectorNode: Creating selector " + this.name + " with varName " + this.varName + " and parent " + this.parent.name);
   }
 
 
   public get icon(): string | ThemeIcon {
     if (this.parent.commandType === "selectorMultiple" && this.parent.getWorkspaceSettingValue<string[]>().includes(this.varName) ||
       this.parent.commandType === "selectorSingle" && this.parent.getWorkspaceSettingValue<string>() === this.varName) {
-      //console.log("SelectorNode: Getting icon for selector " + this.name + " with varName " + this.varName);
       return new ThemeIcon("pass-filled", new ThemeColor("settings.toggle"));
     } else {
-      //console.log("SelectorNode: Getting icon for selector " + this.name + " with varName " + this.varName);
       return new ThemeIcon("circle-large-outline", new ThemeColor("settings.toggle"));
     }
   }
@@ -206,13 +203,9 @@ export class SettingNode implements SettingTreeElement {
   constructor(name: string, commandRoot: string, commandType: CommandType, parent: SettingCategory, varPath: string) {
     this.name = name;
     this.varName = commandRoot;
-    //console.log("SettingNode: Creating setting " + this.name + " with commandRoot " + this.commandRoot + 
-    //            " and commandType " + this.commandType + "and parent " + this.parent.name + "and varPath " + varPath);
     this.varPath = varPath
     this.commandType = commandType;
     this.parent = parent;
-    //if(this.name === "test"){
-    //}
   }
   public getName(): string {
     if (this.commandType === "number") {
@@ -226,29 +219,23 @@ export class SettingNode implements SettingTreeElement {
       throw new Error("Cannot register selector options for a non-selector setting");
     }
     for (const option of selectorOptions) {
-      //console.log("SettingNode: Adding selector option " + option.name + " with var " + option.var);
       this.children.push(new SelectorNode(option.name, option.var, this));
     }
-    //console.log("SettingNode: Registered " + this.children.length + " selector options for " + this.name);
   }
   public getWorkspaceSettingValue<T extends string | number | boolean | string[]>(): T | undefined {
     let val = workspace.getConfiguration(this.varPath).get(this.varName);
-    //console.log("SettingNode: Getting workspace setting value for " + this.varPath + "." + this.varName + ": " + val);
-    //console.log(val);
     return workspace.getConfiguration(this.varPath).get<T>(this.varName);
   }
   public getVarPath(): string {
     return this.varPath + "." + this.varName;
   }
 
-  //this should probably be mapped instead of programatically determined, but for now it works
+  // This should probably be mapped instead of programatically determined
   public get icon(): string | ThemeIcon {
     if (this.commandType === "toggle") {
-      //console.log("SettingNode: Getting icon for toggle setting at" + this.varPath + " with commandRoot " + this.commandRoot);
       let value: boolean = this.getWorkspaceSettingValue<boolean>();
       if (value === true) {
         switch (this.name) {
-
           case "Compositional":
             return "icons/disable-compositional-dark.svg";
           case "Modular":
@@ -266,10 +253,9 @@ export class SettingNode implements SettingTreeElement {
             return "icons/enable-modular-dark.svg";
           default:
             return new ThemeIcon("circle-large-outline", new ThemeColor("settings.toggle"));
-
         }
       } else {
-        // If the setting is undefined, return a default icon
+        // If the setting is undefined, return a question icon (for a missing setting)
         return new ThemeIcon("question", new ThemeColor("settings.toggle"));
       }
     } else {
@@ -286,7 +272,7 @@ export class SettingNode implements SettingTreeElement {
           prompt: `Enter a value for ${this.name}`,
           placeHolder: "Enter a number",
           validateInput: (value: string) =>
-            isNaN(Number(value)) ? "Please enter a valid number" : undefined,
+            isNaN(Number(value)) || Number(value) < 0 ? "Please enter a valid number" : undefined,
         });
         return input !== undefined ? Number(input) : undefined;
       default:
@@ -297,13 +283,10 @@ export class SettingNode implements SettingTreeElement {
 
 
   execute(arg: string | number | boolean) {
-    //console.log("SettingNode: Executing command for " + this.name + " with arg " + arg + " and commandType " + this.commandType);
     switch (this.commandType) {
       case "toggle":
-        // Toggle the setting
         const currentValue = this.getWorkspaceSettingValue<boolean>();
         workspace.getConfiguration(this.varPath).update(this.varName, !currentValue);
-        //console.log("New value is: " + this.getWorkspaceSettingValue<boolean>());
         return;
       case "selectorMultiple":
 
@@ -322,11 +305,9 @@ export class SettingNode implements SettingTreeElement {
         return;
       case "number":
         this.inputArg().then((input) => {
-          if (input) {
+          if (input !== undefined) {
             workspace.getConfiguration(this.varPath).update(this.varName, input);
           }
-
-          //console.log("Value of " + this.getVarPath() + " is now " + this.getWorkspaceSettingValue<number>())
         });
         return;
       default:
@@ -361,24 +342,15 @@ export class SettingCategory implements SettingTreeElement {
       // Initialize the root with the setting tree
       const initializeTree = (node: SettingTreeNode, parent: SettingCategory) => {
         if ("category" in node) {
-          //console.log("Initializing tree category: " + (node.category.name));
           const category = new SettingCategory(node.category.name, parent);
-          //console.log("done creating");
           category.parent = parent;
-          //console.log(node.children.length + " children for " + node.category.name);
           for (const child of node.children) {
             initializeTree(child, category);
           }
-          //console.log("Children of " + parent.name + ": " + parent.children.map(child => child.name).join(", "));
           return category;
         } else if ("setting" in node) {
-          //console.log("Initializing tree setting: " + (node.setting.name));
-
-          //console.log("Creating SettingNode for " + node.setting.name + " with commandRoot " + node.setting.commandRoot + " and commandType " + node.setting.commandType);
-
           let setting: SettingNode = new SettingNode(node.setting.name, node.setting.varName, node.setting.commandType, parent, node.setting.varPath);
           if (node.setting.selectorOptions) {
-            //console.log("SettingNode: Registering selector options for " + setting.name);
             setting.registerSelectorOptions(node.setting.selectorOptions);
           }
           Kind2SettingsProvider.settingElementMap.set(setting.getVarPath(), setting);
@@ -390,7 +362,6 @@ export class SettingCategory implements SettingTreeElement {
       return SettingCategory._root;
     }
     else {
-      //console.log("SettingCategory: Returning existing root");
       return SettingCategory._root;
     }
   }

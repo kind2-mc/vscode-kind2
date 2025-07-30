@@ -379,7 +379,6 @@ export function stateColor(state: State): ThemeColor {
   switch (state) {
     case "pending":
     case "running":
-      return new ThemeColor("editor.background");
     case "failed":
     case "unreachable":
     case "stopped":
@@ -387,31 +386,23 @@ export function stateColor(state: State): ThemeColor {
     case "contract unrealizable":
     case "type unrealizable":
     case "conflicting":
-      return new ThemeColor("editor.background");
     case "passed":
     case "reachable":
     case "realizable":
     case "contract realizable":
     case "type realizable":
     case "inputs realizable":
-      return new ThemeColor("editor.background");
     case "unknown":
     case "errored":
     case "inputs unrealizable":
-      return new ThemeColor("editor.background");
+      return undefined; // Invisible highlight, can hover to see text
     case "ivc must":
     case "ivc may":
       return new ThemeColor("editorOverviewRuler.addedForeground"); //best one i could find options for mcs are listed below
-     
     case "mcs property":
       return new ThemeColor("editorOverviewRuler.deletedForeground")
     case "mcs cut":
       return new ThemeColor("editorOverviewRuler.warningForeground")
-      //other useful colors:
-      //return new ThemeColor("minimapGutter.addedBackground");
-      // return new ThemeColor("editorOverviewRuler.infoForeground")
-      // return new ThemeColor("editorOverviewRuler.deletedForeground")
-      // return new ThemeColor("editorOverviewRuler.warningForeground")
   }
   throw new Error(`Unknown state: ${state}`);
 }
