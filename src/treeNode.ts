@@ -24,6 +24,15 @@ export type RealizabilityResult = "realizable" | "unrealizable"
 
 
 export class Container{
+  // Potentially an oversight with how the TreeNode type works:
+  // It is assumed every TreeNode has a line in the file it's associated with,
+  // but this type breaks that assumption. The purpose of the line field is so
+  // you can use the "show source" button in the TreeView. Same for uri.
+  // It is impossible for the extension in its current state to ever access
+  // these variables, but it supresses the type checker errors
+  line: number;
+  uri: string;
+
   children: TreeNode[];
   constructor(readonly parent: TreeNode, children: TreeNode[], readonly name: string, readonly tag: string, readonly value?: number){
     this.children = children;
@@ -39,7 +48,6 @@ export class Container{
     else return undefined
   }
   public activateIVC() {
-    console.log("Activating IVC with value: " + this.value);
    if(this.tag != "ivc_button"){
       throw new Error("Function parentAnalysis was called in error: this Container does not have tag 'ivc_button'.");
     }
@@ -210,7 +218,8 @@ export class Component {
 
 export type RealizabilitySource = "inputs" | "contract" | "imported node" | "type"
 
-
+// TODO Probably should make a hierarchy of Analysis with subclasses:
+//  MCSAnalysis and IVCAnalysis. Potentially merge MCS and IVC functionality since they are mostly the same
 export class Analysis {
   
   
@@ -249,7 +258,6 @@ export class Analysis {
     return this._activeIvc;
   }
   public hasIVC(){
-    //console.log("checking if has IVCs with length " + this._ivcs.length + "(" + this._ivcs + ")");
     return this._ivcs.length != 0
   }
   get ivcs() {return this._ivcs}
@@ -258,14 +266,12 @@ export class Analysis {
   get mcss() {return this._mcss}
   public addMCS(mcs: Property[]){
     mcs.forEach((property, index) => {
-      console.log(`MCS[${index}]:`, property.line, property.state);
     });
     if(this._mcss.length == 0) this._activeMCS = 0;
     this._mcss.push(mcs);
   }
 
   public hasMCS(){
-    //console.log("checking if has MCSs with length " + this._mcss.length + "(" + this._mcss + ")");
     return this._mcss.length != 0
   }
   get activeMCS(){
@@ -283,9 +289,9 @@ export class Analysis {
     this._activeMCS = selection;
   }
   
-  set realizability(realizability: RealizabilityResult) { this._realizability = realizability }
+  set realizability(realizability: RealizabilityResult) { this._realizability = realizability; }
   get realizability(): RealizabilityResult { return this._realizability; }
-  set realizabilitySource(realizabilitySource: RealizabilitySource) { this._realizabilitySource = realizabilitySource }
+  set realizabilitySource(realizabilitySource: RealizabilitySource) { this._realizabilitySource = realizabilitySource; }
   get realizabilitySource(): RealizabilitySource { return this._realizabilitySource; }
   
   constructor(readonly abstract: String[], readonly concrete: String[], readonly parent: Component) {
@@ -398,11 +404,11 @@ export function stateColor(state: State): ThemeColor {
       return undefined; // Invisible highlight, can hover to see text
     case "ivc must":
     case "ivc may":
-      return new ThemeColor("editorOverviewRuler.addedForeground"); //best one i could find options for mcs are listed below
+      return new ThemeColor("editorOverviewRuler.addedForeground");
     case "mcs property":
-      return new ThemeColor("editorOverviewRuler.deletedForeground")
+      return new ThemeColor("editorOverviewRuler.deletedForeground");
     case "mcs cut":
-      return new ThemeColor("editorOverviewRuler.warningForeground")
+      return new ThemeColor("editorOverviewRuler.warningForeground");
   }
-  throw new Error(`Unknown state: ${state}`);
+  throw new Error(`Unknown state: ${state}`); 
 }

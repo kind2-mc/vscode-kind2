@@ -12,7 +12,6 @@ let settingTree: SettingTreeNode = {
   category: { name: "Settings" }, children: [
     {
       category: { name: "Blame Assignment" }, children: [
-        //              {setting: {name: "Minimal Cut Set (MCS) Generation", varPath: "kind2", varName: "mcs", commandType: "toggle"}},
         {
           category: { name: "MCS Properties" }, children: [
             { setting: { name: "MCS all", varPath: "kind2", varName: "mcs_all", commandType: "toggle" } },
