@@ -8,6 +8,12 @@
   - see what sort of info can be provided on error
   - Can have view array output buttons either blank or decolored before there is output in them
 
+
+-(kind2) storing invariants from one run to another
+-(kind 2) report more info for the kind 2 errors?
+-(kind 2) report line number of cut property
+
+- study ocaml read textbooks
 *)
 
 
@@ -113,8 +119,13 @@ let
   result = arr;
 tel
 
-function id_2d(arr: int^5^5) returns (result: int^5^5);
+function id_2d(arr: int^100^100) returns (result: int^100^100);
 let 
   result = arr;
+tel
+
+function id_bool(arr: bool^5^5) returns (result: bool^5^5);
+let
+  result=arr;
 tel
 

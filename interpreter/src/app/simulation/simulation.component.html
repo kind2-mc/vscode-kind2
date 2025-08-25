@@ -25,7 +25,7 @@
             <td *ngFor="let value of stream.instantValues" [ngSwitch]="stream.type">
             <input class="checkbox" *ngSwitchCase="&quot;bool&quot;"
               (change)="checkboxChanged(component, stream, value, $event)" type="checkbox" [checked]="value[1]">
-            <button class="button" *ngSwitchCase="&quot;array&quot;" [disabled]="false" (click)="openArrayEditor(stream, value)">
+            <button class="button" *ngSwitchCase="&quot;array&quot;" [disabled]="!showViewArrayButton(stream)" (click)="openArrayEditor(stream, value)">
               View Array
             </button>
             <input class="textbox" *ngSwitchDefault [disabled]="isDisabled(component, stream)" type="text"
@@ -42,28 +42,11 @@
 <div class="array-overlay" *ngIf="showArrayEditor">
   <div class="array-editor-modal">
     <div class="array-editor-header">
-      <h3>Edit Array: {{currentStream?.name}}</h3>
+      <h3>Edit ({{currentStream?.name}}: {{currentStream?.typeInfo?.baseType}}^{{currentStream?.typeInfo?.sizes?.join("^")}})</h3>
       <button class="close-button" (click)="closeArrayEditor()">×</button>
     </div>
     <div class="array-editor-content">
-      <!-- Your array editing content goes here -->
-      <p>Array Type: {{currentStream?.type}}</p>
-      <p>Base Type: {{currentStream?.typeInfo?.baseType}}</p>
-      <p>Size: {{currentStream?.typeInfo?.sizes?.[0]}}</p>
-      
-      <!-- Example array editing interface -->
-      <!-- <div class="array-values">
-        <div *ngFor="let value of arrayValues; let i = index" class="array-item">
-          <span class="array-index">{{i}}:</span>
-            <input
-            type="text"
-            [attr.value]="value"
-            (change)="arrayValueChanged($event, i)"
-            class="array-input"
-            [disabled]="currentStream?.class === 'output'"
-            />
-        </div>
-      </div> -->
+
   <div *ngIf="currentStream?.typeInfo?.sizes.length <= 2" class="array-table-container">
     <table class="array-table">
       <thead>
@@ -76,11 +59,18 @@
         <tr *ngFor="let row of getRowIndices(); let rowIdx = index">
           <th class="row-header">{{row}}</th>
           <td *ngFor="let col of getColIndices(); let colIdx = index">
-            <input
+            <input *ngIf="currentStream?.typeInfo?.baseType !== 'bool'"
               type="text"
               [attr.value]="getArrayValue(row, col)"
               (change)="arrayValueChanged($event, row, col)"
               class="array-input"
+              [disabled]="currentStream?.class === 'output'"
+            />
+            <input *ngIf="currentStream?.typeInfo?.baseType === 'bool'"
+              type="checkbox"
+              [attr.checked]="getArrayValue(row, col)"
+              (change)="arrayValueChanged($event, row, col)"
+              class="array-checkbox"
               [disabled]="currentStream?.class === 'output'"
             />
           </td>

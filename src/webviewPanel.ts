@@ -83,6 +83,9 @@ export class WebPanel {
         if (message === "ready") {
           this.ready = true;
           this.onReady();
+        } else if (message.command === "showErrorMessage") {
+          console.log("Error message from webview: " + message.text);
+          vscode.window.showErrorMessage(message.text);
         } else {
           await vscode.commands.executeCommand(message.command, ...message.args);
         }

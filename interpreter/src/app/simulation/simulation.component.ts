@@ -25,7 +25,11 @@ export class SimulationComponent implements OnInit {
         this._uri = event.data.uri;
         this._main = event.data.main;
         console.log("Received data:", this._uri, this._main, event.data.json);
-        this._components = this.flatten(JSON.parse(event.data.json)[0]);
+        try {
+          this._components = this.flatten(JSON.parse(event.data.json)[0]);
+        } catch (e) {
+          vscode.postMessage({ command: "showErrorMessage", text: "Kind 2 Error" });
+        }
       }
     });
     vscode.postMessage("ready");
@@ -117,6 +121,8 @@ export class SimulationComponent implements OnInit {
       case "array":
         console.error("Array input not implemented yet");
         return Number.parseInt(val);
+      case "bool":
+        return val === "true";
       default:
         console.error("Unknown type: " + type);
         return -1;
@@ -284,25 +290,39 @@ export class SimulationComponent implements OnInit {
    
   }
 
-  public getArrayValue(row: number, col?: number): string {
+  public getArrayValue(row: number, col?: number): string | boolean {
+    let ret: string = "";
     if(col !== undefined && col !== -1) {
-      return (this.unsavedValues as string[][])[row][col];
+      console.log("Getting value from 2D array at row:", row, "col:", col);
+      ret = (this.unsavedValues as string[][])[row][col];
     } else {
-      return (this.unsavedValues as string[])[row];
+      console.log("Getting value from 1D array at row:", row);
+      ret = (this.unsavedValues as string[])[row];
     }
+    if (this.currentStream?.typeInfo.baseType === 'bool') {
+      return ret === "true";
+    }
+    return ret;
+  }
+  public getValueFromEvent(event: Event): string {
+    if(this.currentStream?.typeInfo.baseType === 'bool') {
+      return (event.target as HTMLInputElement).checked ? "false" : "true";
+    }
+    return (event.target as HTMLInputElement).value;
   }
   public arrayValueChanged( event: Event, row: number, col?: number): void {
+    console.log("arrayValueChanged called with row:", row, "col:", col, "value:", this.getValueFromEvent(event));
     if(this.currentStream?.type == undefined){
       console.error("Current stream type is undefined");
       return;
     }
     if(col !== -1 && col !== undefined) {
       console.log("Updating unsaved value as 2D array", col);
-      (this.unsavedValues as string[][])[row][col] = (event.target as HTMLInputElement).value;
+      (this.unsavedValues as string[][])[row][col] = this.getValueFromEvent(event);
     } else{
       console.log("Updating unsaved value as 1D array");
       console.log("UnsavedValues before change:", this.unsavedValues);
-      this.unsavedValues[row] = (event.target as HTMLInputElement).value;
+      this.unsavedValues[row] = this.getValueFromEvent(event);
       console.log("UnsavedValues after change:", this.unsavedValues);
 
     }
@@ -367,6 +387,14 @@ export class SimulationComponent implements OnInit {
 
     this.closeArrayEditor();
   }
+  public showViewArrayButton(stream: Stream): boolean {
+  if(stream.class === "output") {
+      return stream.instantValues.length === 0;
+  } 
+  return true;
 }
+}
+
+
 
 declare const vscode: VSCode;
