@@ -85,6 +85,24 @@ export async function activate(context: vscode.ExtensionContext) {
      Kind2SettingsProvider.updateSetting(treeNode);
   });
 
+  registerCommand('kind2/activateIVC', (element : Container) => {
+     element.activateIVC();
+    //  for(let ele of (element.parent as Container).children){
+    //     kind2._treeDataChanged.fire(ele);
+    //  }
+    kind2._treeDataChanged.fire(element.parent);
+    
+     kind2.updateDecorations();
+  });
+  registerCommand('kind2/activateMCS', (element : Container) => {
+     element.activateMCS();
+    //  for(let ele of (element.parent as Container).children){
+    //     kind2._treeDataChanged.fire(ele);
+    //  }
+    kind2._treeDataChanged.fire(element.parent);
+    
+     kind2.updateDecorations();
+  });
   
   registerCommand('kind2/check', async (node: Component, options) => {
     kind2.reveal(node, treeView);
