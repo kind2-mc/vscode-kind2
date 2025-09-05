@@ -90,9 +90,7 @@ export class Component {
     let ivcProperties: Property[] = [];
     for (const analysis of this._analyses) {
       for (const property of analysis.ivcPropertiesDisplay) {
-        //if (property.state === "ivc must" || property.state === "ivc may") {
-          ivcProperties.push(property);
-        //}
+        ivcProperties.push(property);
       }
     }
     return ivcProperties;
@@ -101,9 +99,7 @@ export class Component {
     let mcsProperties: Property[] = [];
     for (const analysis of this._analyses) {
       for (const property of analysis.mcsPropertiesDisplay) {
-        //if (property.state === "ivc must" || property.state === "ivc may") {
-          mcsProperties.push(property);
-        //}
+        mcsProperties.push(property);
       }
     }
     return mcsProperties;
@@ -320,7 +316,7 @@ export type State =
   "pending" | "running" | "passed" | "reachable" | "failed" | "unreachable" 
 | "unknown" | "stopped" | "errored" | "realizable" | "unrealizable" | "inputs realizable"
 | "inputs unrealizable" | "contract realizable" | "contract unrealizable"
-| "type realizable" | "type unrealizable" | "conflicting" | "ivc must" | "ivc may" | "mcs property" | "mcs cut";
+| "type realizable" | "type unrealizable" | "conflicting" | "ivc" | "mcs property" | "mcs cut";
 
 export function statePath(state: State) {
   switch (state) {
@@ -402,8 +398,7 @@ export function stateColor(state: State): ThemeColor {
     case "errored":
     case "inputs unrealizable":
       return undefined; // Invisible highlight, can hover to see text
-    case "ivc must":
-    case "ivc may":
+    case "ivc":
       return new ThemeColor("editorOverviewRuler.addedForeground");
     case "mcs property":
       return new ThemeColor("editorOverviewRuler.deletedForeground");

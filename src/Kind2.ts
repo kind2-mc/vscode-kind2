@@ -45,8 +45,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       [ "type unrealizable",      window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("type unrealizable")),      backgroundColor: stateColor("type unrealizable") }) ],
       [ "inputs realizable",      window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs realizable")),      backgroundColor: stateColor("inputs realizable") }) ],
       [ "inputs unrealizable",    window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs unrealizable")),    backgroundColor: stateColor("inputs unrealizable") }) ],
-      [ "ivc must",               window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("ivc must") }) ],
-      [ "ivc may",                window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("ivc may") }) ],
+      [ "ivc",               window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("ivc") }) ],
       [ "mcs property",           window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("mcs property") }) ],
       [ "mcs cut",                window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("mcs cut") }) ],
     ]);
@@ -204,7 +203,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
                                                                      ["unreachable", []], ["stopped", []], ["unknown", []], ["errored", []], ["realizable", []], 
                                                                      ["inputs realizable", []], ["contract realizable", []], ["type realizable", []], 
                                                                      ["unrealizable", []], ["inputs unrealizable", []], ["contract unrealizable", []], 
-                                                                     ["type unrealizable", []], ["conflicting", []], ["ivc must", []], ["ivc may", []], ["mcs cut", []], ["mcs property", []]]));
+                                                                     ["type unrealizable", []], ["conflicting", []], ["ivc", []], ["mcs cut", []], ["mcs property", []]]));
     }
     for (const file of this._files) {
       for (const component of file.components) {
@@ -255,7 +254,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     for (const uri of decorations.keys()) {
       let editor = window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri);
       for (const state of <State[]>["pending", "running", "passed", "reachable", "failed", "unreachable", "stopped", "unknown", "errored", "realizable", "unrealizable", "inputs realizable", "contract realizable", 
-                                    "inputs unrealizable", "contract unrealizable", "type realizable", "type unrealizable", "conflicting","ivc must", "ivc may", 
+                                    "inputs unrealizable", "contract unrealizable", "type realizable", "type unrealizable", "conflicting","ivc", 
                                   "mcs cut", "mcs property"]) {
         editor?.setDecorations(this._decorationTypeMap.get(state)!, decorations.get(uri)?.get(state)!);
       }
@@ -509,7 +508,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
               for (const ivcNode of ivc.nodes) {
                 for(const ivcElement of ivcNode.elements) {
                   let ivcProperty = new Property(ivcElement.name, ivcElement.line - 1, component.uri, analysis, ivcElement.column - 1);
-                  ivcProperty.state = "ivc must";
+                  ivcProperty.state = "ivc";
                   ivcProperties.push(ivcProperty);
                 }
               }
@@ -525,7 +524,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
               for (const ivcNode of ivcMust.nodes) {
                 for(const ivcElement of ivcNode.elements) {
                   let ivcProperty = new Property(ivcElement.name, ivcElement.line - 1, component.uri, analysis, ivcElement.column - 1);
-                  ivcProperty.state = "ivc must";
+                  ivcProperty.state = "ivc";
                   mustProperties.push(ivcProperty);
                 }
               }
