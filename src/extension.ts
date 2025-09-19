@@ -137,7 +137,7 @@ export async function activate(context: vscode.ExtensionContext) {
     await kind2.interpret(component.uri, component.name, json);
   });
 
-  registerCommand('kind2/showSource', async (node: TreeNode) => await kind2.showSource(node));
+  registerCommand('kind2/showSource', async (node: TreeNode | Container) => await kind2.showSource(node));
 
   const treeView = vscode.window.createTreeView("properties", { treeDataProvider: kind2, canSelectMany: false, showCollapseAll: true });
   

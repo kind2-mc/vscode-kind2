@@ -34,8 +34,11 @@ export class Container{
   uri: string;
 
   children: TreeNode[];
-  constructor(readonly parent: TreeNode, children: TreeNode[], readonly name: string, readonly tag: string, readonly value?: number){
+  constructor(readonly parent: TreeNode, children: TreeNode[], readonly name: string, readonly tag: string, 
+    readonly value?: number, line?: number, uri?: string) {
     this.children = children;
+    this.line = line;
+    this.uri = uri;
   }
   private get parentAnalysis(): Analysis{
      

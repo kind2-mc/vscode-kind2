@@ -172,14 +172,14 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       let children: TreeNode[] = [new Container(element, element.properties, "Properties", "properties")];
       if(element.hasIVC()){
         let ivcContainer = new Container(element, [], "Merit Assignment", "ivc_container")
-        let ivcChildren = element.ivcs.map((value, index) => new Container(ivcContainer, [], "IVC " + (index + 1), "ivc_button", index));
+        let ivcChildren = element.ivcs.map((value, index) => new Container(ivcContainer, [], "IVC " + (index + 1), "ivc_button", index,  element.parent.line, element.parent.uri));
         if(element.must != undefined) ivcChildren.unshift(new Container(ivcContainer, [], "Must Set", "ivc_button", -1));
         ivcContainer.children = ivcChildren;
         children.push(ivcContainer);
       } 
       if(element.hasMCS()){
         let mcsContainer = new Container(element, [], "Blame Assignment", "mcs_container")
-        let mcsChildren = element.mcss.map((value, index) => new Container(mcsContainer, [], "MCS " + (index + 1), "mcs_button", index));
+        let mcsChildren = element.mcss.map((value, index) => new Container(mcsContainer, [], "MCS " + (index + 1), "mcs_button", index,  element.parent.line, element.parent.uri));
         mcsContainer.children = mcsChildren;
         children.push(mcsContainer);
       }
@@ -240,7 +240,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         }
         for(const mcsProperty of component.mcsProperties) {
           if (decorations.has(mcsProperty.uri) && (mcsProperty.line != component.line) && (mcsProperty.line != component.contractLine)) {
-            let msg: string = mcsProperty.state === "mcs property" ? "Cut property: " + mcsProperty.name : mcsProperty.state;
+            let msg: string = mcsProperty.state === "mcs property" ? "Cut property: " + mcsProperty.name : mcsProperty.name;
             let decorationOptions: DecorationOptions = { range: new Range(new Position(mcsProperty.line, mcsProperty.startCol), (new Position(mcsProperty.line, 100))), hoverMessage: `${msg}` };
             decorations.get(mcsProperty.uri)?.get(mcsProperty.state)?.push(decorationOptions);          }
         }
@@ -365,7 +365,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     this.updateDecorations();
   }
 
-  public async showSource(node: TreeNode): Promise<void> {
+  public async showSource(node: TreeNode | Container): Promise<void> {
     if (node instanceof Analysis) {
       return;
     }
