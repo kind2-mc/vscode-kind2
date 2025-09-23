@@ -49,16 +49,16 @@ let settingTree: SettingTreeNode = {
             },
             { setting: { name: "IVC All", varPath: "kind2", varName: "ivc_all", commandType: "toggle" } },
             { setting: { name: "Unsat core timeout", varPath: "kind2", varName: "ivc_uc_to", commandType: "number" } },
-            {
-              setting: {
-                name: "Minimize Program", varPath: "kind2", varName: "minimize_program", commandType: "selectorSingle", selectorOptions: [
-                  { name: "No", var: "no" },
-                  { name: "Valid Lustre", var: "valid_lustre" },
-                  { name: "Concise", var: "concise" },
+            // {
+            //   setting: {
+            //     name: "Minimize Program", varPath: "kind2", varName: "minimize_program", commandType: "selectorSingle", selectorOptions: [
+            //       { name: "No", var: "no" },
+            //       { name: "Valid Lustre", var: "valid_lustre" },
+            //       { name: "Concise", var: "concise" },
 
-                ]
-              }
-            },
+            //     ]
+            //   }
+            // }, This setting is currently unimplemented in the VSCode extension
             { setting: { name: "IVC Must Set", varPath: "kind2", varName: "ivc_must", commandType: "toggle" } }
           ]
         }
