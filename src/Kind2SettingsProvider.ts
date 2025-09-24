@@ -34,8 +34,8 @@ let settingTree: SettingTreeNode = {
 
       category: { name: "Merit Assignment" }, children: [
         { setting: { name: "Inductive Validity Core (IVC) Generation", varPath: "kind2", varName: "ivc", commandType: "toggle" } },
-        {
-          category: { name: "IVC Properties" }, children: [
+        { category: { name: "IVC Properties" }, children: [
+            { setting: { name: "IVC All", varPath: "kind2", varName: "ivc_all", commandType: "toggle" } },
             {
               setting: {
                 name: "IVC Categories", varPath: "kind2", varName: "ivc_categories", commandType: "selectorMultiple", selectorOptions: [
@@ -47,7 +47,6 @@ let settingTree: SettingTreeNode = {
                 ]
               }
             },
-            { setting: { name: "IVC All", varPath: "kind2", varName: "ivc_all", commandType: "toggle" } },
             { setting: { name: "Unsat core timeout", varPath: "kind2", varName: "ivc_uc_to", commandType: "number" } },
             // {
             //   setting: {
