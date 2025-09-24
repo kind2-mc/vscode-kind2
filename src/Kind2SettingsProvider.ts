@@ -11,6 +11,59 @@ type SettingTreeNode = { category: SettingLiteralCategory, children: SettingTree
 let settingTree: SettingTreeNode = {
   category: { name: "Settings" }, children: [
     {
+      category: { name: "Blame Assignment" }, children: [
+        {
+          category: { name: "MCS Properties" }, children: [
+            { setting: { name: "MCS all", varPath: "kind2", varName: "mcs_all", commandType: "toggle" } },
+            {
+              setting: {
+                name: "MCS categories", varPath: "kind2", varName: "mcs_categories", commandType: "selectorMultiple", selectorOptions: [
+                  { name: "Node calls", var: "node_calls" },
+                  { name: "Contracts", var: "contracts" },
+                  { name: "Equations", var: "equations" },
+                  { name: "Assertions", var: "assertions" },
+                  { name: "Annotations", var: "annotations" }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+
+      category: { name: "Merit Assignment" }, children: [
+        { setting: { name: "Inductive Validity Core (IVC) Generation", varPath: "kind2", varName: "ivc", commandType: "toggle" } },
+        { category: { name: "IVC Properties" }, children: [
+            { setting: { name: "IVC All", varPath: "kind2", varName: "ivc_all", commandType: "toggle" } },
+            {
+              setting: {
+                name: "IVC Categories", varPath: "kind2", varName: "ivc_categories", commandType: "selectorMultiple", selectorOptions: [
+                  { name: "Node calls", var: "node_calls" },
+                  { name: "Contracts", var: "contracts" },
+                  { name: "Equations", var: "equations" },
+                  { name: "Assertions", var: "assertions" },
+                  { name: "Annotations", var: "annotations" }
+                ]
+              }
+            },
+            { setting: { name: "Unsat core timeout", varPath: "kind2", varName: "ivc_uc_to", commandType: "number" } },
+            // {
+            //   setting: {
+            //     name: "Minimize Program", varPath: "kind2", varName: "minimize_program", commandType: "selectorSingle", selectorOptions: [
+            //       { name: "No", var: "no" },
+            //       { name: "Valid Lustre", var: "valid_lustre" },
+            //       { name: "Concise", var: "concise" },
+
+            //     ]
+            //   }
+            // }, This setting is currently unimplemented in the VSCode extension
+            { setting: { name: "IVC Must Set", varPath: "kind2", varName: "ivc_must", commandType: "toggle" } }
+          ]
+        }
+      ]
+    },
+    {
       category: { name: "Contracts" }, children: [
         { setting: { name: "Compositional", varPath: "kind2.contracts", varName: "compositional", commandType: "toggle"} },
         { setting: { name: "Modular",       varPath: "kind2",           varName: "modular",       commandType: "toggle"} }
@@ -217,7 +270,7 @@ export class SettingNode implements SettingTreeElement {
           prompt: `Enter a value for ${this.name}`,
           placeHolder: "Enter a number",
           validateInput: (value: string) =>
-            isNaN(Number(value)) ? "Please enter a valid number" : undefined,
+            isNaN(Number(value)) || Number(value) < 0 ? "Please enter a valid number" : undefined,
         });
         return input !== undefined ? Number(input) : undefined;
       default:
@@ -250,7 +303,7 @@ export class SettingNode implements SettingTreeElement {
         return;
       case "number":
         this.inputArg().then((input) => {
-          if (input) {
+          if (input !== undefined) {
             workspace.getConfiguration(this.varPath).update(this.varName, input);
           }
         });

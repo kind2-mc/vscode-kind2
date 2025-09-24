@@ -14,7 +14,7 @@ import {
   StreamInfo
 } from 'vscode-languageclient';
 import { Kind2 } from './Kind2';
-import { Component, Property, TreeNode, Analysis } from './treeNode';
+import { Component, Property, TreeNode, Analysis, Container } from './treeNode';
 import { WebPanel } from './webviewPanel';
 import { Kind2SettingsProvider, SelectorNode, SettingNode} from './Kind2SettingsProvider';
 
@@ -65,6 +65,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.window.onDidChangeActiveTextEditor(() => kind2.updateDecorations());
 
+  // Could potentially remove these commands, keeping because it takes away functionality that would have been previously present
+  // The settings menu now manages the environment settings with one command "kind2/modifySetting"
   registerCommand('kind2/enableModular', () => {
     workspace.getConfiguration("kind2").update("modular", true);
   });
@@ -77,13 +79,39 @@ export async function activate(context: vscode.ExtensionContext) {
   registerCommand('kind2/disableCompositional', () => {
     workspace.getConfiguration("kind2.contracts").update("compositional", false);
   });
+  // end commands to potentially remove
 
   registerCommand('kind2/modifySetting', (treeNode: SettingNode | SelectorNode) => {
      Kind2SettingsProvider.updateSetting(treeNode);
   });
+
+  registerCommand('kind2/activateIVC', (element : Container) => {
+     element.activateIVC();
+    //  for(let ele of (element.parent as Container).children){
+    //     kind2._treeDataChanged.fire(ele);
+    //  }
+    kind2._treeDataChanged.fire(element.parent);
+    
+     kind2.updateDecorations();
+  });
+  registerCommand('kind2/activateMCS', (element : Container) => {
+     element.activateMCS();
+    //  for(let ele of (element.parent as Container).children){
+    //     kind2._treeDataChanged.fire(ele);
+    //  }
+    kind2._treeDataChanged.fire(element.parent);
+    
+     kind2.updateDecorations();
+  });
+  
   registerCommand('kind2/check', async (node: Component, options) => {
     kind2.reveal(node, treeView);
     await kind2.check(node);
+  });
+
+  registerCommand('kind2/minimalCutSet', async (node: Component, options) => {
+    kind2.reveal(node, treeView);
+    await kind2.minimalCutSet(node);
   });
 
   registerCommand('kind2/realizability', async (node: Component, options) => {
@@ -109,7 +137,7 @@ export async function activate(context: vscode.ExtensionContext) {
     await kind2.interpret(component.uri, component.name, json);
   });
 
-  registerCommand('kind2/showSource', async (node: TreeNode) => await kind2.showSource(node));
+  registerCommand('kind2/showSource', async (node: TreeNode | Container) => await kind2.showSource(node));
 
   const treeView = vscode.window.createTreeView("properties", { treeDataProvider: kind2, canSelectMany: false, showCollapseAll: true });
   
