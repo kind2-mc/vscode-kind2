@@ -173,7 +173,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       if(element.hasIVC()){
         let ivcContainer = new Container(element, [], "Merit Assignment", "ivc_container")
         let ivcChildren = element.ivcs.map((value, index) => new Container(ivcContainer, [], "IVC " + (index + 1), "ivc_button", index,  element.parent.line, element.parent.uri));
-        if(element.must != undefined) ivcChildren.unshift(new Container(ivcContainer, [], "Must Set", "ivc_button", -1));
+        if(element.must != undefined) ivcChildren.unshift(new Container(ivcContainer, [], "Must Set", "ivc_button", -1,  element.parent.line, element.parent.uri));
         ivcContainer.children = ivcChildren;
         children.push(ivcContainer);
       } 
