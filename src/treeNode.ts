@@ -200,6 +200,9 @@ export class Component {
     if (passedProperties.size !== 0) {
       return ["passed"]
     }
+    if(this.analyses.some(a => a.hasMCS())){
+      return ["failed"]
+    }
     return ["unknown"];
   }
   containsUnrealizable() {
