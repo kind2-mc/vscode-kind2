@@ -135,7 +135,6 @@ tel
 node Sofar( X : bool ) returns ( Y : bool );
 let
   Y = X -> (X and pre Y);
---    initial -> next timesteps (need to guard the use of pre) 
 tel
 
 -- Counts how many consecutive steps X has been true

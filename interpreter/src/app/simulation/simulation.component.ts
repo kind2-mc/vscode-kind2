@@ -87,8 +87,6 @@ export class SimulationComponent implements OnInit {
     return value.toString();
   }
 
- 
-
   public checkboxChanged(component: Interpretation, stream: Stream, value: (StreamValue)[], event: Event): void {
     if (this.isDisabled(component, stream)) {
       if (typeof value[1] === "boolean") {
