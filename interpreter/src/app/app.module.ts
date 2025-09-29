@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { FormsModule } from '@angular/forms';  // Add this import
+import { FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -14,7 +14,7 @@ import { SimulationComponent } from './simulation/simulation.component';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    FormsModule  // Add this to imports array
+    FormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

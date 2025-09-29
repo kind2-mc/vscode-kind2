@@ -165,8 +165,6 @@ export class SimulationComponent implements OnInit {
               case "array":
                 stream.instantValues.push([i, this.defaultValueFor(stream.type, stream.typeInfo)]);
                 break;
-              // case "array":
-              //   stream.instantValues.push([i, this.createNDimensionalArray(stream.typeInfo.sizes, this.defaultValueFor(stream.typeInfo.baseType, stream.typeInfo.baseTypeInfo))]);
             }
           } else {
             stream.instantValues.push([i]);
@@ -252,7 +250,6 @@ export class SimulationComponent implements OnInit {
     }
     if(Array.isArray(value)) {
       return value;
-      // return "[" + value.map(v => this.valueToString(v)).join(",") + "]";
     }
     if(typeof value === "boolean") {
       return value;
@@ -342,7 +339,6 @@ export class SimulationComponent implements OnInit {
     this.currentStream = null;
     this.arrayValues = [];
     this.unsavedValues = [];
-    // this.arrayValues = [];
   }
 
   public saveArray(): void {
