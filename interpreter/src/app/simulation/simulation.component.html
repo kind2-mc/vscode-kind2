@@ -22,14 +22,68 @@
             <i *ngSwitchCase="&quot;local&quot;" class="bi bi-geo-fill localIcon"></i>
             {{stream.name}} ({{stream.type}})
           </td>
-          <td *ngFor="let value of stream.instantValues" [ngSwitch]="stream.type">
+            <td *ngFor="let value of stream.instantValues" [ngSwitch]="stream.type">
             <input class="checkbox" *ngSwitchCase="&quot;bool&quot;"
               (change)="checkboxChanged(component, stream, value, $event)" type="checkbox" [checked]="value[1]">
+            <button class="button" *ngSwitchCase="&quot;array&quot;" [disabled]="!showViewArrayButton(stream)" (click)="openArrayEditor(stream, value)">
+              View Array
+            </button>
             <input class="textbox" *ngSwitchDefault [disabled]="isDisabled(component, stream)" type="text"
               (change)="inputChanged(stream.type, value, $event)" [attr.value]="valueToString(value[1])">
+            </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+
+<div class="array-overlay" *ngIf="showArrayEditor">
+  <div class="array-editor-modal">
+    <div class="array-editor-header">
+      <h3>Edit ({{currentStream?.name}}: {{currentStream?.typeInfo?.baseType}}^{{currentStream?.typeInfo?.sizes?.join("^")}})</h3>
+      <button class="close-button" (click)="closeArrayEditor()">×</button>
+    </div>
+    <div class="array-editor-content">
+
+  <div *ngIf="currentStream?.typeInfo?.sizes.length <= 2" class="array-table-container">
+    <table class="array-table">
+      <thead>
+        <tr>
+          <th class="corner-cell"></th>
+          <th *ngFor="let col of getColIndices()" class="col-header">{{(col === -1 ? "" : col)}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of getRowIndices(); let rowIdx = index">
+          <th class="row-header">{{row}}</th>
+          <td *ngFor="let col of getColIndices(); let colIdx = index">
+            <input *ngIf="currentStream?.typeInfo?.baseType !== 'bool'"
+              type="text"
+              [attr.value]="getArrayValue(row, col)"
+              (change)="arrayValueChanged($event, row, col)"
+              class="array-input"
+              [disabled]="currentStream?.class === 'output'"
+            />
+            <input *ngIf="currentStream?.typeInfo?.baseType === 'bool'"
+              type="checkbox"
+              [attr.checked]="getArrayValue(row, col)"
+              (change)="arrayValueChanged($event, row, col)"
+              class="array-checkbox"
+              [disabled]="currentStream?.class === 'output'"
+            />
           </td>
         </tr>
       </tbody>
     </table>
+  </div>
+            
+      <div class="array-editor-actions">
+        <button class="button"  *ngIf="currentStream?.class !== 'output'" (click)="saveArray()">Save</button>
+        <button class="button"  *ngIf="currentStream?.class !== 'output'" (click)="closeArrayEditor()">Cancel</button>
+        <button class="button"  *ngIf="currentStream?.class === 'output'" (click)="closeArrayEditor()">Close</button>
+      </div>
+    </div>
   </div>
 </div>

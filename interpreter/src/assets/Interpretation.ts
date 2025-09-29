@@ -6,10 +6,13 @@ export type Interpretation = {
     subnodes: Interpretation[] | undefined
 }
 
+export type StreamValue = boolean | number | string | { num: number, den: number } | StreamValue[] ;
+
 export type Stream = {
     name: string,
     type: string,
     typeInfo: any,
     class: string,
-    instantValues: (boolean | number | string | { num: number, den: number })[][]
+    //instantValues: StreamValue[time][?]
+    instantValues: StreamValue[][]
 }

@@ -1,0 +1,110 @@
+function add(a: int; b: int) returns (c: int);
+let
+  c = a + b;
+tel
+
+type Color = enum {Red, Blue, Green, Yellow, Orange, Purple};
+type Vector = struct {x: int; y: int; z: int};
+
+function all_types(a: bool; b: real; c: Vector; d: Color^3) returns (x: int);
+let  
+  x = 0;
+tel
+
+
+(* Pretty sure these two functions showcase a bug where unused arrays cause issues, I cannot find a use-case where you would want to do  *)
+function bug_not_present(x: int^3) returns (i: int);
+let  
+  i = x[0] + x[1] + x[2];
+tel
+
+function bug_present(x: int^3) returns (i: int);
+let 
+  i = x[0];
+tel
+
+
+function bug2(x: int^3^3) returns (i: int^3);
+let  
+  i = [0,0,0];
+tel
+
+function complement_color(c: Color) returns (comp: Color);
+(*@contract
+  guarantee "forall c, c != comp" c = comp => false;
+*)
+
+let
+    comp = 
+        if c = Red then Green
+        else if c = Green then Red
+        else if c = Blue then Orange
+        else if c = Orange then Blue
+        else if c = Yellow then Purple
+        else Yellow; 
+tel
+
+function complement_colors(arr: Color^5) returns (result: Color^5);
+let 
+  result = [complement_color(arr[0]),
+            complement_color(arr[1]),
+            complement_color(arr[2]),
+            complement_color(arr[3]),
+            complement_color(arr[4])];
+tel
+
+
+function reflect_xy_plane(p: Vector) returns (r: Vector);
+(*@contract
+  guarantee "forall p: p.x = r.x" p.x = r.x;
+  guarantee "forall p: p.y = r.y" p.y = r.y;
+  guarantee "forall p: p.z = -r.z" p.z = -r.z;
+*)
+
+let
+
+  r = Vector {x = p.x; y = p.y; z = -p.z};
+
+tel
+
+function id_vector_set(in: Vector^3) returns (out: Vector^3);
+let 
+  out = in;
+tel
+
+
+type Particle = struct {pos : Vector; vel: Vector};
+
+function turn_around(init: Particle) returns (post: Particle);
+(*@contract
+    guarantee "position invariant" init.pos = post.pos;
+    guarantee "velocity x flipped" init.vel.x = -post.vel.x;
+    guarantee "velocity y flipped" init.vel.y = -post.vel.y;
+    guarantee "velocity z flipped" init.vel.z = -post.vel.z;
+*)
+let 
+  post = Particle { pos = init.pos; vel = Vector {x = -init.vel.x;y = -init.vel.y ;z = -init.vel.z;}};
+tel
+
+
+
+function increment_pos_1(arr: int^10) returns (result: int^10);
+let 
+  -- result = [arr[0] , arr[1] + 1, arr[2]];
+tel
+
+function id(arr: int^5) returns (result: int^5);
+let 
+  result = arr;
+tel
+
+function id_2d(arr: int^100^100) returns (result: int^100^100);
+let 
+  result = arr;
+tel
+
+function id_bool(arr: bool^5^5) returns (result: bool^5^5);
+let
+  result=arr;
+tel
+
