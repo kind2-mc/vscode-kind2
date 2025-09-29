@@ -45,8 +45,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       [ "type unrealizable",      window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("type unrealizable")),      backgroundColor: stateColor("type unrealizable") }) ],
       [ "inputs realizable",      window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs realizable")),      backgroundColor: stateColor("inputs realizable") }) ],
       [ "inputs unrealizable",    window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs unrealizable")),    backgroundColor: stateColor("inputs unrealizable") }) ],
-      [ "ivc must",               window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("ivc must") }) ],
-      [ "ivc may",                window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("ivc may") }) ],
+      [ "ivc",               window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("ivc") }) ],
       [ "mcs property",           window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("mcs property") }) ],
       [ "mcs cut",                window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("mcs cut") }) ],
     ]);
@@ -136,7 +135,6 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         item.contextValue = "hasTrace";
       }
       item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath(element.state)));
-      // item.iconPath = stateIcon(element.state);
     } else if(element instanceof Container){
       item = new TreeItem(element.name, TreeItemCollapsibleState.Collapsed);
       if (element.tag === "ivc_button"){
@@ -171,18 +169,17 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       return element.analyses;
     }
     if (element instanceof Analysis) {
-     //("Getting children of analysis treeNode");
       let children: TreeNode[] = [new Container(element, element.properties, "Properties", "properties")];
       if(element.hasIVC()){
         let ivcContainer = new Container(element, [], "Merit Assignment", "ivc_container")
-        let ivcChildren = element.ivcs.map((value, index) => new Container(ivcContainer, [], "IVC " + (index + 1), "ivc_button", index));
-        if(element.must != undefined) ivcChildren.unshift(new Container(ivcContainer, [], "Must Set", "ivc_button", -1));
+        let ivcChildren = element.ivcs.map((value, index) => new Container(ivcContainer, [], "IVC " + (index + 1), "ivc_button", index,  element.parent.line, element.parent.uri));
+        if(element.must != undefined) ivcChildren.unshift(new Container(ivcContainer, [], "Must Set", "ivc_button", -1,  element.parent.line, element.parent.uri));
         ivcContainer.children = ivcChildren;
         children.push(ivcContainer);
       } 
       if(element.hasMCS()){
         let mcsContainer = new Container(element, [], "Blame Assignment", "mcs_container")
-        let mcsChildren = element.mcss.map((value, index) => new Container(mcsContainer, [], "MCS " + (index + 1), "mcs_button", index));
+        let mcsChildren = element.mcss.map((value, index) => new Container(mcsContainer, [], "MCS " + (index + 1), "mcs_button", index,  element.parent.line, element.parent.uri));
         mcsContainer.children = mcsChildren;
         children.push(mcsContainer);
       }
@@ -206,7 +203,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
                                                                      ["unreachable", []], ["stopped", []], ["unknown", []], ["errored", []], ["realizable", []], 
                                                                      ["inputs realizable", []], ["contract realizable", []], ["type realizable", []], 
                                                                      ["unrealizable", []], ["inputs unrealizable", []], ["contract unrealizable", []], 
-                                                                     ["type unrealizable", []], ["conflicting", []], ["ivc must", []], ["ivc may", []], ["mcs cut", []], ["mcs property", []]]));
+                                                                     ["type unrealizable", []], ["conflicting", []], ["ivc", []], ["mcs cut", []], ["mcs property", []]]));
     }
     for (const file of this._files) {
       for (const component of file.components) {
@@ -215,7 +212,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
             decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.contractLine, 0), (new Position(component.contractLine, 999))), hoverMessage: `${state}`  });
           }
           else if (state.startsWith("inputs")) {
-            if (component.containsUnrealizable() && component.line === component.contractLine) { // At least one unrealizable result causes component's icon to be an X
+            if (component.containsUnrealizable() && component.line === component.contractLine) { 
               decorations.get(component.uri)?.get("unrealizable")?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 999))), hoverMessage: `${state}` });
             } else {
               decorations.get(component.uri)?.get(state)?.push({ range: new Range(new Position(component.line, 0), (new Position(component.line, 999))), hoverMessage: `${state}` });
@@ -238,14 +235,12 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         }
         for(const ivcProperty of component.ivcProperties) {
           if (decorations.has(ivcProperty.uri) && (ivcProperty.line != component.line) && (ivcProperty.line != component.contractLine)) {
-            //console.log(`Trying to decorate IVC property ${ivcProperty.name} at line ${ivcProperty.line} with state ${ivcProperty.state}`);
             let decorationOptions: DecorationOptions = { range: new Range(new Position(ivcProperty.line, ivcProperty.startCol), (new Position(ivcProperty.line, 100))), hoverMessage: `${ivcProperty.state}` };
             decorations.get(ivcProperty.uri)?.get(ivcProperty.state)?.push(decorationOptions);          }
         }
         for(const mcsProperty of component.mcsProperties) {
           if (decorations.has(mcsProperty.uri) && (mcsProperty.line != component.line) && (mcsProperty.line != component.contractLine)) {
-            //console.log(`Trying to decorate mcs property ${mcsProperty.name} at line ${mcsProperty.line} with state ${ivcProperty.state}`);
-            let msg: string = mcsProperty.state === "mcs property" ? mcsProperty.name : mcsProperty.state;
+            let msg: string = mcsProperty.state === "mcs property" ? "Cut property: " + mcsProperty.name : mcsProperty.name;
             let decorationOptions: DecorationOptions = { range: new Range(new Position(mcsProperty.line, mcsProperty.startCol), (new Position(mcsProperty.line, 100))), hoverMessage: `${msg}` };
             decorations.get(mcsProperty.uri)?.get(mcsProperty.state)?.push(decorationOptions);          }
         }
@@ -259,7 +254,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     for (const uri of decorations.keys()) {
       let editor = window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri);
       for (const state of <State[]>["pending", "running", "passed", "reachable", "failed", "unreachable", "stopped", "unknown", "errored", "realizable", "unrealizable", "inputs realizable", "contract realizable", 
-                                    "inputs unrealizable", "contract unrealizable", "type realizable", "type unrealizable", "conflicting","ivc must", "ivc may", 
+                                    "inputs unrealizable", "contract unrealizable", "type realizable", "type unrealizable", "conflicting","ivc", 
                                   "mcs cut", "mcs property"]) {
         editor?.setDecorations(this._decorationTypeMap.get(state)!, decorations.get(uri)?.get(state)!);
       }
@@ -370,7 +365,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     this.updateDecorations();
   }
 
-  public async showSource(node: TreeNode): Promise<void> {
+  public async showSource(node: TreeNode | Container): Promise<void> {
     if (node instanceof Analysis) {
       return;
     }
@@ -395,35 +390,23 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     this.updateDecorations();
     let tokenSource = new CancellationTokenSource();
     this._runningChecks.set(mainComponent, tokenSource);
-    // let ivc = workspace.getConfiguration("kind2.contracts").get("ivc");
-    // if (ivc) {
-    //   console.log("Running IVC realizability check (In theory: actual call is unimplemented)");
-    // }
     await this._client.sendRequest("kind2/minimalCutSet", [mainComponent.uri, mainComponent.name], tokenSource.token).then((values: string[]) => {
-      //console.log("Values recieved: " + values);
       let results: any[] = values.map(s => JSON.parse(s));
       let result: any = results[0];
-      //console.log(results);
         let component = mainComponent;
         component.analyses = [];
         
           let analysis: Analysis = new Analysis(["abstract"], ["concrete"], component);
-          //console.log("results.mcsAnalysis: " + result.mcsAnalysis);
           //now handle IVC if present
           if (result.mcsAnalysis) {
-            console.log("MCS found");
-            //console.log(`MCS for ${component.name} found with ${result.mcsAnalysis.length} elements`);
             for(let mcs of result.mcsAnalysis){
-              //console.log(`MCS for ${component.name} found with ${mcs.size} elements`);
               let mcsProperties: Property[]  = [];
               //TODO need kind2 output for the line number of the property that is invalidated by the cut
-              //console.log(`Creating cutProperty with name: ${mcs.property}, line: ${component.line - 1}, uri: ${component.uri}, analysis:`, analysis, `, column: 0`);
               let cutProperty = new Property(mcs.property, component.line + 1, component.uri, analysis, 0);
               cutProperty.state = "mcs property";
               mcsProperties.push(cutProperty);
               for (const mcsNode of mcs.nodes) {
                 for(const mcsElement of mcsNode.elements) {
-                  //console.log(`MCS element: ${JSON.stringify(mcsElement)}`);
                   let mcsProperty = new Property(mcsElement.name, mcsElement.line - 1, component.uri, analysis, mcsElement.column - 1);
                   mcsProperty.state = "mcs cut";
                   mcsProperties.push(mcsProperty);
@@ -432,12 +415,10 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
               analysis.addMCS(mcsProperties);
             }
           } else {
-            console.log("WTF????? NO ANALYSIS!");
+            console.log("Error: MCS analysis not found in response");
           }
           
           component.analyses.push(analysis);
-          //console.log(`Analysis for component ${component.name} has ${component.analyses[0].mcsPropertiesDisplay.length} mcs properties hasMCS() = ${analysis.hasMCS()}`);
-        
         
         if (component.analyses.length == 0) {
           component.state = ["passed"];
@@ -520,17 +501,14 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
             analysis.realizability = undefined;
             analysis.properties.push(property);
           }
-          console.log(analysisResult);
           //now handle IVC if present
           if (analysisResult.ivcAnalysis) {
             for(let ivc of analysisResult.ivcAnalysis){
-              console.log(`IVC for ${component.name} found with ${ivc.size} elements`);
               let ivcProperties: Property[]  = [];
               for (const ivcNode of ivc.nodes) {
                 for(const ivcElement of ivcNode.elements) {
-                  console.log(`IVC element: ${JSON.stringify(ivcElement)}`);
                   let ivcProperty = new Property(ivcElement.name, ivcElement.line - 1, component.uri, analysis, ivcElement.column - 1);
-                  ivcProperty.state = "ivc must";
+                  ivcProperty.state = "ivc";
                   ivcProperties.push(ivcProperty);
                 }
               }
@@ -539,22 +517,18 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
           }
           
           component.analyses.push(analysis);
-          console.log(`Analysis for component ${component.name} has ${analysis.ivcPropertiesDisplay.length} ivc properties`);
 
           if (analysisResult.ivcMust) {
               let ivcMust = analysisResult.ivcMust;
-              console.log(`IVC for ${component.name} found with ${ivcMust.size} elements`);
               let mustProperties: Property[]  = [];
               for (const ivcNode of ivcMust.nodes) {
                 for(const ivcElement of ivcNode.elements) {
-                  console.log(`IVC element: ${JSON.stringify(ivcElement)}`);
                   let ivcProperty = new Property(ivcElement.name, ivcElement.line - 1, component.uri, analysis, ivcElement.column - 1);
-                  ivcProperty.state = "ivc must";
+                  ivcProperty.state = "ivc";
                   mustProperties.push(ivcProperty);
                 }
               }
               analysis.must = mustProperties;
-              console.log("Must set is now: " + analysis.must);
           }
         }
         

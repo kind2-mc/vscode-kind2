@@ -73,29 +73,3 @@ let
     y = x;
     check x = y;
 tel
-
-
-
-
-
-
-
-(* Hover fail icons and it would say fn is unrealizable
-  hover guaruntes and show info that guaruntees are conflicting
-  Add same functionality for checking contracts
-
-*)
-
-(* Next steps: WHen you prove properties, kind 2 provides subset of 
-model elemetns that are sufficient to prove that property
-example: ./kind2 src/test/test.lus --ivc true
-Highlight relevant lines (from start column to the end of the line) any edit to file must erase line
-ivc feature should be toggleable (new button on top of extention)
-temporary highlighting solution: highlight form start column to first semicolon
--- 
-aDD HOVER for conflicting set INFO TO THE PANE ISTELF
-Could add extra tab in the upper bar (file edit etc) for Kind2 flags
-
---
-TODO later: for node calss may have to blaance parenthensis, OCaml modification to return end col as well as start
-*)

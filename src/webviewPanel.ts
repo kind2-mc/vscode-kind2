@@ -87,7 +87,7 @@ export class WebPanel {
           console.log("Error message from webview: " + message.text);
           vscode.window.showErrorMessage(message.text);
         } else {
-          await vscode.commands.executeCommand(message.command, ...message.args);
+          await vscode.commands.executeCommand(message.command, message.args[0], message.args[1], message.args[2]);
         }
       },
       null,
