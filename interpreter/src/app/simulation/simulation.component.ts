@@ -389,7 +389,7 @@ export class SimulationComponent implements OnInit {
   }
   public showViewArrayButton(stream: Stream): boolean {
   if(stream.class === "output") {
-      return stream.instantValues.length === 0;
+      return stream.instantValues.some(value => value.length > 1);
   } 
   return true;
 }

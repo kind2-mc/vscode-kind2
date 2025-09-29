@@ -110,6 +110,11 @@ body {
   background: var(--vscode-button-background);
 }
 
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .button:hover {
   cursor: pointer;
   background: var(--vscode-button-hoverBackground);
@@ -256,9 +261,9 @@ body {
   min-width: 30px;
 }
 
-/* Special styling for 1D arrays (single row) */
+
 .array-table tbody tr:only-child .row-header {
-  /* Hide row header for 1D arrays or make it less prominent */
+  /* Hide row header for 1D arrays */
   background-color: #646464;
   font-size: 10px;
   color: #999;
@@ -270,7 +275,7 @@ body {
   border: none;
   text-align: center;
   font-size: 12px;
-  background-color: #a8a8a8;
+  background-color: #dddddd;
 }
 
 .array-input:focus {
@@ -279,6 +284,6 @@ body {
 }
 
 .array-input:disabled {
-  background-color: #b9b9b9;
-  color: #999;
+  background-color: #a8a8a8;
+  color: #000000;
 }
