@@ -80,8 +80,9 @@
   </div>
             
       <div class="array-editor-actions">
-        <button class="button" (click)="saveArray()">Save</button>
-        <button class="button" (click)="closeArrayEditor()">Cancel</button>
+        <button class="button"  *ngIf="currentStream?.class !== 'output'" (click)="saveArray()">Save</button>
+        <button class="button"  *ngIf="currentStream?.class !== 'output'" (click)="closeArrayEditor()">Cancel</button>
+        <button class="button"  *ngIf="currentStream?.class === 'output'" (click)="closeArrayEditor()">Close</button>
       </div>
     </div>
   </div>
