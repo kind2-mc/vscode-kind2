@@ -1,7 +1,7 @@
 import { Component, input, OnInit } from '@angular/core';
 import { Interpretation, Stream, StreamValue } from 'src/assets/Interpretation';
 import { VSCode } from 'src/assets/VSCode';
-//ng build --output-path=../out/interpreter
+
 @Component({
     selector: 'app-simulation',
     templateUrl: './simulation.component.html',
@@ -43,7 +43,6 @@ export class SimulationComponent implements OnInit {
   }
 
   private flatten(interp: Interpretation): Interpretation[] {
-    console.log(interp);
     let interps: Interpretation[] = [];
     let stack: Interpretation[] = [interp];
     while (stack.length !== 0) {
@@ -55,7 +54,6 @@ export class SimulationComponent implements OnInit {
         }
       }
     }
-    console.log(interps);
     return interps;
   }
 
@@ -89,9 +87,7 @@ export class SimulationComponent implements OnInit {
     return value.toString();
   }
 
-  public inputArray(component: Interpretation, stream: Stream, value: (StreamValue)[]): void {
-    console.log("Input array for " + stream.name);
-  }
+ 
 
   public checkboxChanged(component: Interpretation, stream: Stream, value: (StreamValue)[], event: Event): void {
     if (this.isDisabled(component, stream)) {
@@ -277,10 +273,8 @@ export class SimulationComponent implements OnInit {
     if (this.currentStream?.typeInfo.sizes.length === 2) {
       return Array.from({ length: this.currentStream?.typeInfo.sizes[1] }, (_, i) => i);
     } else if (this.currentStream?.typeInfo.sizes.length === 1) {
-      console.log("1D array detected, returning -1 for column indices");
       return [-1];
     } else {
-      console.error("Unsupported number of dimensions for array editor: " + this.currentStream?.typeInfo.sizes.length);
       return [];
     }
   }
@@ -293,10 +287,8 @@ export class SimulationComponent implements OnInit {
   public getArrayValue(row: number, col?: number): string | boolean {
     let ret: string = "";
     if(col !== undefined && col !== -1) {
-      console.log("Getting value from 2D array at row:", row, "col:", col);
       ret = (this.unsavedValues as string[][])[row][col];
     } else {
-      console.log("Getting value from 1D array at row:", row);
       ret = (this.unsavedValues as string[])[row];
     }
     if (this.currentStream?.typeInfo.baseType === 'bool') {
@@ -311,29 +303,22 @@ export class SimulationComponent implements OnInit {
     return (event.target as HTMLInputElement).value;
   }
   public arrayValueChanged( event: Event, row: number, col?: number): void {
-    console.log("arrayValueChanged called with row:", row, "col:", col, "value:", this.getValueFromEvent(event));
     if(this.currentStream?.type == undefined){
       console.error("Current stream type is undefined");
       return;
     }
     if(col !== -1 && col !== undefined) {
-      console.log("Updating unsaved value as 2D array", col);
       (this.unsavedValues as string[][])[row][col] = this.getValueFromEvent(event);
     } else{
-      console.log("Updating unsaved value as 1D array");
-      console.log("UnsavedValues before change:", this.unsavedValues);
       this.unsavedValues[row] = this.getValueFromEvent(event);
-      console.log("UnsavedValues after change:", this.unsavedValues);
 
     }
-    console.log("UnsavedValues is now:", this.unsavedValues, "(index changed at " + row + (col !== undefined ? ", " + col : "") + ")");
   }
   public openArrayEditor(stream: Stream, values: StreamValue[]): void {
     this.currentStream = stream;
     
 
     if(values[1] !== undefined){
-      console.log("Opening array editor with existing values:", values);
       this.arrayValues = values[1] as StreamValue[];
     } else {
       this.arrayValues = this.createNDimensionalArray(this.currentStream.typeInfo.sizes, "");
@@ -346,11 +331,9 @@ export class SimulationComponent implements OnInit {
     } else if(numDims === 2) {
       this.unsavedValues = this.arrayValues.map(row => (row as StreamValue[]).map(value => value.toString()));
     } else {
-      console.error("Unsupported number of dimensions for array editor: " + numDims);
       return;
     }
 
-    console.log("Opening array editor for:", stream.name, "with values:", this.unsavedValues);
     this.showArrayEditor = true;
   }
 
@@ -365,24 +348,17 @@ export class SimulationComponent implements OnInit {
   public saveArray(): void {
     const is2D = Array.isArray(this.unsavedValues[0]);
     if(is2D){
-      console.log("Handling save as 2D array");
       for (let i = 0; i < (this.unsavedValues as string[][]).length; i++) {
         const row = (this.unsavedValues as string[][])[i];
         for (let j = 0; j < row.length; j++) {
           (this.arrayValues[i] as StreamValue[])[j] = this.getValueFromString(row[j], this.currentStream?.typeInfo.baseType);
         }
       }
-      console.log("Array values after save:", this.arrayValues);
-      console.log("Instant values after save:", this.currentStream?.instantValues[1]);
     }else {
-      console.log("Saving value as 1D array");
-      console.log("Unsaved values before save:", this.unsavedValues);
       this.unsavedValues.forEach((value, index) => {
         this.arrayValues[index] = this.getValueFromString(value as string, this.currentStream?.typeInfo.baseType);
         
       });
-      console.log("Array values after save:", this.arrayValues);
-      console.log("Instant values after save:", this.currentStream?.instantValues[1]);
     }
 
     this.closeArrayEditor();

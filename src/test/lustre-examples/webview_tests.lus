@@ -1,24 +1,3 @@
-(* 
-- Features implemented are "prototype": they need a lot more debugging and testing because there are definitely going to be bugs everywhere
-- Not sure if arrays of records is optimal (see id_vector_set) this is the default behavior
-- bug with unused arrays? not sure why you would want to do the thing that causes the bug
-
-
--visibility disabled, error messages, fix header info in array editor, arrays of bools
-  - see what sort of info can be provided on error
-  - Can have view array output buttons either blank or decolored before there is output in them
-
-
--(kind2) storing invariants from one run to another
--(kind 2) report more info for the kind 2 errors?
--(kind 2) report line number of cut property
-
-- study ocaml read textbooks
-*)
-
-
-
-
 function add(a: int; b: int) returns (c: int);
 let
   c = a + b;
