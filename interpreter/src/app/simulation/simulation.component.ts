@@ -24,9 +24,16 @@ export class SimulationComponent implements OnInit {
       if (event.data.uri !== undefined && event.data.main !== undefined && event.data.json !== undefined) {
         this._uri = event.data.uri;
         this._main = event.data.main;
-        console.log("Received data:", this._uri, this._main, event.data.json);
         try {
-          this._components = this.flatten(JSON.parse(event.data.json)[0]);
+          let json_data: any = JSON.parse(event.data.json)[0];
+          console.log("Received data:", this._uri, this._main, json_data);
+          let nd_vars: Array<any> = this.nonDeterministicVarsOf(json_data);
+          if(nd_vars && nd_vars.length > 0) {
+            let nd_vars_names: Array<string> = nd_vars.map( (nd_var) => {return nd_var.name} ); 
+            vscode.postMessage({command: "showErrorMessage", text : `Cannot simulate non-determnistic systems (Variables: ${nd_vars_names.join(", ")})`})
+            return;
+          }
+          this._components = this.flatten(json_data);
         } catch (e) {
           vscode.postMessage({ command: "showErrorMessage", text: "Kind 2 Error" });
         }
@@ -38,7 +45,18 @@ export class SimulationComponent implements OnInit {
   public get components(): Interpretation[] {
     return this._components;
   }
+  private nonDeterministicVarsOf(json: any) {
+    let streams : Array<any> = json.streams;
+    let nd_streams : Array<any> = streams.filter((stream) => {
+      let instant_values: Array<any> = stream.instantValues
+      console.log(`Stream ${JSON.stringify(stream)} with instantValues ${instant_values} :: ${typeof instant_values}`); 
+      return stream.instant_values == undefined && stream.class == "constant"; 
+      }
+    )
+    return nd_streams;
 
+
+  }
   public ngOnInit(): void {
   }
 
@@ -358,11 +376,11 @@ export class SimulationComponent implements OnInit {
     this.closeArrayEditor();
   }
   public showViewArrayButton(stream: Stream): boolean {
-  if(stream.class === "output") {
-      return stream.instantValues.some(value => value.length > 1);
-  } 
-  return true;
-}
+    if(stream.class === "output") {
+        return stream.instantValues.some(value => value.length > 1);
+    } 
+    return true;
+  }
 }
 
 
