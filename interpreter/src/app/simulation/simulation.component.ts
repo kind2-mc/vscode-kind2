@@ -45,6 +45,7 @@ export class SimulationComponent implements OnInit {
   public get components(): Interpretation[] {
     return this._components;
   }
+  //This function only works if constants with a definition are taken out of the interpreter trace.
   private nonDeterministicVarsOf(json: any) {
     let streams : Array<any> = json.streams;
     let nd_streams : Array<any> = streams.filter((stream) => {
