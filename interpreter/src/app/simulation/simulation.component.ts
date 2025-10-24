@@ -30,7 +30,7 @@ export class SimulationComponent implements OnInit {
           let nd_vars: Array<any> = this.nonDeterministicVarsOf(json_data);
           if(nd_vars && nd_vars.length > 0) {
             let nd_vars_names: Array<string> = nd_vars.map( (nd_var) => {return nd_var.name} ); 
-            vscode.postMessage({command: "showErrorMessage", text : `Cannot simulate non-determnistic systems (Variables: ${nd_vars_names.join(", ")})`})
+            vscode.postMessage({command: "showErrorMessage", text : `Cannot simulate nondeterministic systems (Variables: ${nd_vars_names.join(", ")})`})
             return;
           }
           this._components = this.flatten(json_data);
