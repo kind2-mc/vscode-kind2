@@ -86,6 +86,9 @@ export class WebPanel {
         } else if (message.command === "showErrorMessage") {
           console.log("Error message from webview: " + message.text);
           vscode.window.showErrorMessage(message.text);
+        } else if (message.command === "closeWebView"){
+           console.log("Trying to close webview panel");
+           WebPanel.currentPanel.panel.dispose();
         } else {
           await vscode.commands.executeCommand(message.command, message.args[0], message.args[1], message.args[2]);
         }
