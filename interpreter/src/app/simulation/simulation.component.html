@@ -1,7 +1,10 @@
 <div class="run">
   <label>Number of columns:</label>
-  <input class="textbox" type="number" min="1" (change)="columnsChangedEvent($event)" [attr.value]="numCols()">
-  <button class="button" (click)="simulate()">Simulate</button>
+  <input class="textbox" type="number" min="1"  [disabled]="simulateIsDisabled()" (change)="columnsChangedEvent($event)" [attr.value]="numCols()">
+  <button class="button" [disabled]="simulateIsDisabled()" (click)="simulate()">Simulate</button>
+</div>
+<div *ngIf="simulateIsDisabled()" class="error">
+  <label>{{ simulateErrorMessage() }}</label>
 </div>
 
 <div class="simulation">
