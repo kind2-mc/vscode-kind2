@@ -14,8 +14,10 @@ export class SimulationComponent implements OnInit {
   private _main: string;
   private _components: Interpretation[];
   private _ndVars: any[];
+  private _interp_mode: string;
   
   public constructor() {
+    this._interp_mode = "interp";
     this._ndVars = [];
     this._uri = "";
     this._main = "";
@@ -23,9 +25,10 @@ export class SimulationComponent implements OnInit {
     // Handle the message inside the webview
     window.addEventListener('message', event => {
       console.log(event);
-      if (event.data.uri !== undefined && event.data.main !== undefined && event.data.json !== undefined) {
+      if (event.data.uri !== undefined && event.data.main !== undefined && event.data.json !== undefined && event.data.type !== undefined) {
         this._uri = event.data.uri;
         this._main = event.data.main;
+        this._interp_mode = event.data.type;
         let json_data: any;
         try {
           json_data = JSON.parse(event.data.json)[0];
@@ -241,7 +244,10 @@ export class SimulationComponent implements OnInit {
 
   }
   public simulateIsDisabled(): boolean { //could add more cases where simulating is not allowed
-    return this.hasND();
+    return this.hasND() || this.isCexMode();
+  }
+  public isCexMode(): boolean {
+    return this._interp_mode == "cex";
   }
 
   public simulate(): void {

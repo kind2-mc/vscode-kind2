@@ -3,7 +3,7 @@
   <input class="textbox" type="number" min="1"  [disabled]="simulateIsDisabled()" (change)="columnsChangedEvent($event)" [attr.value]="numCols()">
   <button class="button" [disabled]="simulateIsDisabled()" (click)="simulate()">Simulate</button>
 </div>
-<div *ngIf="simulateIsDisabled()" class="error">
+<div *ngIf="simulateIsDisabled() && !isCexMode()" class="error">
   <label>{{ simulateErrorMessage() }}</label>
 </div>
 
