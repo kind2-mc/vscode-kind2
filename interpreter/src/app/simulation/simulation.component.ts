@@ -13,30 +13,35 @@ export class SimulationComponent implements OnInit {
   private _uri: string;
   private _main: string;
   private _components: Interpretation[];
-
+  private _ndVars: any[];
+  private _interp_mode: string;
+  
   public constructor() {
+    this._interp_mode = "interp";
+    this._ndVars = [];
     this._uri = "";
     this._main = "";
     this._components = [];
     // Handle the message inside the webview
     window.addEventListener('message', event => {
       console.log(event);
-      if (event.data.uri !== undefined && event.data.main !== undefined && event.data.json !== undefined) {
+      if (event.data.uri !== undefined && event.data.main !== undefined && event.data.json !== undefined && event.data.type !== undefined) {
         this._uri = event.data.uri;
         this._main = event.data.main;
+        this._interp_mode = event.data.type;
+        let json_data: any;
         try {
-          let json_data: any = JSON.parse(event.data.json)[0];
+          json_data = JSON.parse(event.data.json)[0];
           console.log("Received data:", this._uri, this._main, json_data);
-          let nd_vars: Array<any> = this.nonDeterministicVarsOf(json_data);
-          if(nd_vars && nd_vars.length > 0) {
-            let nd_vars_names: Array<string> = nd_vars.map( (nd_var) => {return nd_var.name} ); 
-            vscode.postMessage({command: "showErrorMessage", text : `Cannot simulate nondeterministic systems (Variables: ${nd_vars_names.join(", ")})`})
-            return;
-          }
-          this._components = this.flatten(json_data);
-        } catch (e) {
+          } catch (e) {
           vscode.postMessage({ command: "showErrorMessage", text: "Kind 2 Error" });
+          
+          return;
         }
+          
+          this._ndVars = this.nonDeterministicVarsOf(json_data).map( (nd_var) => {return nd_var.name} ); 
+          this._components = this.flatten(json_data);
+
       }
     });
     vscode.postMessage("ready");
@@ -85,8 +90,12 @@ export class SimulationComponent implements OnInit {
     return nCols;
   }
 
+  private hasND() : boolean {
+    return this._ndVars.length > 0;
+  }
+
   public isDisabled(component: Interpretation, stream: Stream): boolean {
-    return component !== this._components[0] || stream.class !== "input";
+    return this.hasND() || component !== this._components[0] || stream.class !== "input";
   }
 
   public valueToString(value: any): string | String | undefined {
@@ -230,7 +239,27 @@ export class SimulationComponent implements OnInit {
 }
   
 
+  public simulateErrorMessage(): string { //could add more error messages here
+    return this.hasND() ? `Cannot simulate nondeterministic systems (Variables: ${this._ndVars.join(", ")})` : "";
+
+  }
+  public simulateIsDisabled(): boolean { //could add more cases where simulating is not allowed
+    return this.hasND() || this.isCexMode();
+  }
+  public isCexMode(): boolean {
+    return this._interp_mode == "cex";
+  }
+
   public simulate(): void {
+    if(this.hasND()){
+      // this should not be reachable by the simulate button since the 
+      // simulate button should be disabled if nondeterministic vars are found
+      vscode.postMessage({
+        command: "showErrorMessage", 
+        text : `Cannot simulate nondeterministic systems (Variables: ${this._ndVars.join(", ")})`
+      });
+      return;
+    }
     let json: any[] = new Array();
     let mainComponent: Interpretation = this._components[0];
     let inputStreams: Stream[] = mainComponent.streams.filter(stream => stream.class === "input");

@@ -650,7 +650,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   public async interpret(uri: string, main: string, json: string): Promise<void> {
     await this._client.sendRequest("kind2/interpret", [uri, main, json]).then(async (interp: string) => {
       WebPanel.createOrShow(this._context.extensionPath);
-      await WebPanel.currentPanel?.sendMessage({ uri: uri, main: main, json: interp });
+      await WebPanel.currentPanel?.sendMessage({ uri: uri, main: main, json: interp, type: "interp" });
     }).catch(reason => {
       window.showErrorMessage(reason.message);
     });
@@ -673,7 +673,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     await this._client.sendRequest("kind2/counterExample", [property.parent.parent.uri, property.parent.parent.name,
     property.parent.abstract, property.parent.concrete, property.name]).then((ce: string) => {
       WebPanel.createOrShow(this._context.extensionPath);
-      WebPanel.currentPanel?.sendMessage({ uri: property.parent.parent.uri, main: property.parent.parent.name, json: ce });
+      WebPanel.currentPanel?.sendMessage({ uri: property.parent.parent.uri, main: property.parent.parent.name, json: ce, type: "cex" });
     }).catch(reason => {
       window.showErrorMessage(reason.message);
     });

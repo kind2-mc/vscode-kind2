@@ -22,6 +22,13 @@ body {
   text-align: center;
 }
 
+.error {
+  color: rgb(163, 0, 0);
+  font-weight: bold;
+  text-align: center;
+}
+
+
 *:focus {
   outline-color: var(--vscode-focusBorder);
 }
@@ -89,6 +96,11 @@ body {
   color: var(--vscode-input-foreground);
   outline-color: var(--vscode-input-border);
   background-color: var(--vscode-input-background);
+}
+
+.textbox:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
 }
 
 .checkbox {
