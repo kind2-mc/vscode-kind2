@@ -470,7 +470,9 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         let component = undefined;
         let i = 0;
         while (component === undefined) {
-          component = files[i].components.find(c => c.name === nodeResult.name);
+          // Ignore type parameters on function names from the result
+          // as they are represented as just the name in the components
+          component = files[i].components.find(c => c.name === nodeResult.name.split("<")[0]);
           ++i;
         }
         component.analyses = [];
