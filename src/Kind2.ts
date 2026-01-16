@@ -139,6 +139,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     else if(element instanceof Property) {
       item = new TreeItem(element.name, TreeItemCollapsibleState.None);
+      item.command = {
+          command: "kind2/showSource",
+          title: element.name,
+          arguments: [element]
+        };
       if (element.state == "failed" || element.state == "reachable") {
         item.contextValue = "hasTrace";
       }
