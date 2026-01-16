@@ -28,7 +28,7 @@
             <td *ngFor="let value of stream.instantValues" [ngSwitch]="stream.type">
             <input class="checkbox" *ngSwitchCase="&quot;bool&quot;"
               (change)="checkboxChanged(component, stream, value, $event)" type="checkbox" [checked]="value[1]">
-            <button class="button" *ngSwitchCase="&quot;array&quot;" [disabled]="!showViewArrayButton(stream)" (click)="openArrayEditor(stream, value)">
+            <button class="button array-view" *ngSwitchCase="&quot;array&quot;" [disabled]="!showViewArrayButton(stream)" (click)="openArrayEditor(stream, value)">
               Array
             </button>
             <input class="textbox" *ngSwitchDefault [disabled]="isDisabled(component, stream)" type="text"
