@@ -94,6 +94,12 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     else if (element instanceof Component) {
       item = new TreeItem(element.name, element.analyses.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
       item.contextValue = element.state.length > 0 && element.state[0] === "running" ? "running" : "component";
+      item.command = {
+          command: "kind2/showSource",
+          title: element.name,
+          arguments: [element]
+        };
+      
       if (element.containsUnrealizable()) { // At least one unrealizable result causes component's icon to be an X
         item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath("unrealizable")));
       }
