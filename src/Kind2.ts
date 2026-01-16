@@ -117,6 +117,8 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
           else if (element.realizability === "unrealizable") {
             item = new TreeItem(element.realizabilitySource + ": conflicting set", TreeItemCollapsibleState.Collapsed);
             item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath("failed")));
+            item.contextValue = "hasDeadlock";
+
           }
       }
       else if (element.realizability === "realizable") {
@@ -696,7 +698,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     await this._client.sendRequest("kind2/deadlock", [analysis.parent.uri, name, context]).then((dl: string) => {
       WebPanel.createOrShow(this._context.extensionPath);
-      WebPanel.currentPanel?.sendMessage({ uri: analysis.parent.uri, main: analysis.parent.name, json: dl });
+      WebPanel.currentPanel?.sendMessage({ uri: analysis.parent.uri, main: analysis.parent.name, json: dl, type : "dl" });
     }).catch(reason => {
       window.showErrorMessage(reason.message);
     });
