@@ -1,0 +1,11 @@
+{
+  "let ... tel": {
+    "prefix": "let",
+    "body": [
+      "let",
+      "\t$0",
+      "tel"
+    ],
+    "description": "Insert let/tel block"
+  }
+}

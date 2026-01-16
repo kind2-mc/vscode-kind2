@@ -37,10 +37,11 @@
             "\"",
             "\""
         ],
-        [
-            "let",
-            "tel"
-        ]
+        // This functionality now belongs to snippets/lustre.json
+        // [
+        //     "let",
+        //     "tel"
+        // ]
     ],
     "surroundingPairs": [
         [

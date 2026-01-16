@@ -647,6 +647,12 @@
           "light": "icons/disable-compositional-light.svg"
         }
       }
+    ],
+     "snippets": [
+      {
+        "language": "lustre",
+        "path": "./snippets/lustre.json"
+      }
     ]
   },
   "scripts": {
