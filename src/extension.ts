@@ -86,22 +86,14 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerCommand('kind2/activateIVC', (element : Container) => {
-     element.activateIVC();
-    //  for(let ele of (element.parent as Container).children){
-    //     kind2._treeDataChanged.fire(ele);
-    //  }
-    kind2._treeDataChanged.fire(element.parent);
-    
-     kind2.updateDecorations();
+    element.activateIVC();
+    kind2.changeTreeData(element.parent);
+    kind2.updateDecorations();
   });
   registerCommand('kind2/activateMCS', (element : Container) => {
-     element.activateMCS();
-    //  for(let ele of (element.parent as Container).children){
-    //     kind2._treeDataChanged.fire(ele);
-    //  }
-    kind2._treeDataChanged.fire(element.parent);
-    
-     kind2.updateDecorations();
+    element.activateMCS();
+    kind2.changeTreeData(element.parent);
+    kind2.updateDecorations();
   });
   
   registerCommand('kind2/check', async (node: Component, options) => {

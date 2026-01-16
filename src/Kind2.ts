@@ -86,6 +86,10 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
 
   public readonly onDidChangeTreeData: Event<TreeNode | null | undefined>;
 
+  public changeTreeData(element: TreeNode) {
+        this._treeDataChanged.fire(element);
+
+  }
   public getTreeItem(element: TreeNode): TreeItem | Thenable<TreeItem> {
     let item: TreeItem;
     if (element instanceof File) {
@@ -415,7 +419,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
             for(let mcs of result.mcsAnalysis){
               let mcsProperties: Property[]  = [];
               //TODO need kind2 output for the line number of the property that is invalidated by the cut
-              let cutProperty = new Property(mcs.property, component.line + 1, component.uri, analysis, 0);
+              let cutProperty = new Property(mcs.property, component.line, component.uri, analysis, 0);
               cutProperty.state = "mcs property";
               mcsProperties.push(cutProperty);
               for (const mcsNode of mcs.nodes) {
