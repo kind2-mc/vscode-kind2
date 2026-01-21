@@ -251,6 +251,25 @@
               "include": "#contractBody"
             }
           ]
+        },
+        {
+          "begin": "\\b(con)\\b",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.other.lustre"
+            }
+          },
+          "end": "\\b(noc)\\b",
+          "endCaptures": {
+            "1": {
+              "name": "keyword.other.lustre"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#contractBody"
+            }
+          ]
         }
       ]
     },
@@ -556,7 +575,7 @@
     "componentDecl": {
       "comment": "More precisely, a node, a contract, or a function prefix.",
       "begin": "\\b(contract|node|function)\\b",
-      "end": ";|(?=\\(\\*@contract|const|param|var|let)",
+      "end": ";|(?=\\(\\*@contract|con|const|param|var|let)",
       "beginCaptures": {
         "1": {
           "name": "keyword.other.lustre"
