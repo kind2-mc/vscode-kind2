@@ -196,7 +196,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       } 
       if(element.hasMCS()){
         let mcsContainer = new Container(element, [], "Blame Assignment", "mcs_container")
-        let mcsChildren = element.mcss.map((value, index) => new Container(mcsContainer, [], "MCS " + (index + 1), "mcs_button", index,  element.parent.line, element.parent.uri));
+        let mcsChildren = element.mcss.map((value, index) => new Container(mcsContainer, [], "MCS " + (index + 1) + ": " + value[0].name, "mcs_button", index,  element.parent.line, element.parent.uri));
         mcsContainer.children = mcsChildren;
         children.push(mcsContainer);
       }
