@@ -127,6 +127,7 @@ export class SimulationComponent implements OnInit {
   public getValueFromString(val: string, type: string): StreamValue {
     switch (type) {
       case "int":
+      case "subrange":
         return Number.parseInt(val);
         break;
       case "real":
@@ -160,6 +161,7 @@ export class SimulationComponent implements OnInit {
       case "real":
       case "enum":
       case "array":
+      case "subrange":
         value[1] = this.getValueFromString((event.target as HTMLInputElement).value, type);
         break;
       default:
@@ -189,6 +191,7 @@ export class SimulationComponent implements OnInit {
               case "real":
               case "enum":
               case "array":
+              case "subrange":
                 stream.instantValues.push([i, this.defaultValueFor(stream.type, stream.typeInfo)]);
                 break;
             }
@@ -219,6 +222,8 @@ export class SimulationComponent implements OnInit {
         return  typeInfo.values[0];
       case "array":
         return this.createNDimensionalArray(typeInfo.sizes, this.defaultValueFor(typeInfo.baseType, typeInfo.baseTypeInfo));
+      case "subrange":
+        return typeInfo.min ?? typeInfo.max;
       default:
         console.error("Unknown type: " + type);
         return -1;

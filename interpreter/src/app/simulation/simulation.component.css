@@ -76,7 +76,7 @@ body {
 }
 
 .table th, .table td {
-  padding: 0.75rem;
+  padding: 0.5rem;
 }
 
 .table tr:active, .table tr:hover {
@@ -89,7 +89,8 @@ body {
 
 .textbox {
   height: 1.5rem;
-  width: 3rem;
+  width: 5ch;
+  text-align: left;
   border: none;
   font-family: var(--vscode-font-family);
   padding: var(--input-padding-vertical) var(--input-padding-horizontal);
@@ -113,13 +114,17 @@ body {
 .button {
   border: none;
   height: 1.5rem;
-  width: 4rem;
   padding: var(--input-padding-vertical) var(--input-padding-horizontal);
   text-align: center;
+  padding: 2px;
   outline: 1px solid transparent;
   outline-offset: 2px !important;
   color: var(--vscode-button-foreground);
   background: var(--vscode-button-background);
+}
+
+.button.array-view {
+  font-size: 9pt;
 }
 
 .button:disabled {
@@ -244,7 +249,7 @@ body {
   justify-content: flex-end;
 }
 
-/* Add to simulation.component.css */
+
 .array-table {
   border-collapse: collapse;
   margin: 10px 0;

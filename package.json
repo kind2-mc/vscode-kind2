@@ -566,21 +566,6 @@
           "command": "kind2/deadlock",
           "group": "inline@1",
           "when": "view == properties && viewItem == hasDeadlock"
-        },
-        {
-          "command": "kind2/check",
-          "group": "inline@1",
-          "when": "view == properties && viewItem == component"
-        },
-        {
-          "command": "kind2/cancel",
-          "group": "inline@1",
-          "when": "view == properties && viewItem == running"
-        },
-        {
-          "command": "kind2/showSource",
-          "group": "inline@2",
-          "when": "view == properties && viewItem != analysis"
         }
       ]
     },
@@ -646,6 +631,12 @@
           "dark": "icons/disable-compositional-dark.svg",
           "light": "icons/disable-compositional-light.svg"
         }
+      }
+    ],
+     "snippets": [
+      {
+        "language": "lustre",
+        "path": "./snippets/lustre.json"
       }
     ]
   },

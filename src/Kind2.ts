@@ -45,7 +45,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       [ "type unrealizable",      window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("type unrealizable")),      backgroundColor: stateColor("type unrealizable") }) ],
       [ "inputs realizable",      window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs realizable")),      backgroundColor: stateColor("inputs realizable") }) ],
       [ "inputs unrealizable",    window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs unrealizable")),    backgroundColor: stateColor("inputs unrealizable") }) ],
-      [ "ivc",               window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("ivc") }) ],
+      [ "ivc",                    window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("ivc") }) ],
       [ "mcs property",           window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("mcs property") }) ],
       [ "mcs cut",                window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("mcs cut") }) ],
     ]);
@@ -86,6 +86,10 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
 
   public readonly onDidChangeTreeData: Event<TreeNode | null | undefined>;
 
+  public changeTreeData(element: TreeNode) {
+        this._treeDataChanged.fire(element);
+
+  }
   public getTreeItem(element: TreeNode): TreeItem | Thenable<TreeItem> {
     let item: TreeItem;
     if (element instanceof File) {
@@ -94,6 +98,12 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     else if (element instanceof Component) {
       item = new TreeItem(element.name, element.analyses.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Expanded);
       item.contextValue = element.state.length > 0 && element.state[0] === "running" ? "running" : "component";
+      item.command = {
+          command: "kind2/showSource",
+          title: element.name,
+          arguments: [element]
+        };
+      
       if (element.containsUnrealizable()) { // At least one unrealizable result causes component's icon to be an X
         item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath("unrealizable")));
       }
@@ -117,6 +127,8 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
           else if (element.realizability === "unrealizable") {
             item = new TreeItem(element.realizabilitySource + ": conflicting set", TreeItemCollapsibleState.Collapsed);
             item.iconPath = Uri.file(path.join(this._context.extensionPath, statePath("failed")));
+            item.contextValue = "hasDeadlock";
+
           }
       }
       else if (element.realizability === "realizable") {
@@ -131,6 +143,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     else if(element instanceof Property) {
       item = new TreeItem(element.name, TreeItemCollapsibleState.None);
+      item.command = {
+          command: "kind2/showSource",
+          title: element.name,
+          arguments: [element]
+        };
       if (element.state == "failed" || element.state == "reachable") {
         item.contextValue = "hasTrace";
       }
@@ -179,7 +196,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       } 
       if(element.hasMCS()){
         let mcsContainer = new Container(element, [], "Blame Assignment", "mcs_container")
-        let mcsChildren = element.mcss.map((value, index) => new Container(mcsContainer, [], "MCS " + (index + 1), "mcs_button", index,  element.parent.line, element.parent.uri));
+        let mcsChildren = element.mcss.map((value, index) => new Container(mcsContainer, [], "MCS " + (index + 1) + ": " + value[0].name, "mcs_button", index,  element.parent.line, element.parent.uri));
         mcsContainer.children = mcsChildren;
         children.push(mcsContainer);
       }
@@ -402,7 +419,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
             for(let mcs of result.mcsAnalysis){
               let mcsProperties: Property[]  = [];
               //TODO need kind2 output for the line number of the property that is invalidated by the cut
-              let cutProperty = new Property(mcs.property, component.line + 1, component.uri, analysis, 0);
+              let cutProperty = new Property(mcs.property, component.line, component.uri, analysis, 0);
               cutProperty.state = "mcs property";
               mcsProperties.push(cutProperty);
               for (const mcsNode of mcs.nodes) {
@@ -696,7 +713,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     await this._client.sendRequest("kind2/deadlock", [analysis.parent.uri, name, context]).then((dl: string) => {
       WebPanel.createOrShow(this._context.extensionPath);
-      WebPanel.currentPanel?.sendMessage({ uri: analysis.parent.uri, main: analysis.parent.name, json: dl });
+      WebPanel.currentPanel?.sendMessage({ uri: analysis.parent.uri, main: analysis.parent.name, json: dl, type : "dl" });
     }).catch(reason => {
       window.showErrorMessage(reason.message);
     });
