@@ -557,7 +557,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         modifiedComponents.push(component);
       }
       if (results.length == 0) {
-        mainComponent.state = ["unknown"];
+        mainComponent.state = ["passed"];
       }
     }).catch(reason => {
       if (reason.message.includes("cancelled")) {

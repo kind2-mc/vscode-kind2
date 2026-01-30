@@ -163,7 +163,7 @@ export class Component {
       }
       // "Trivial" type declaration realizability checks give a question mark
       if (analysis.realizability === "realizable" && !this.hasRefType && analysis.realizabilitySource === "type") {
-        return ["unknown"]
+        return ["type realizable"]
       }
       if (analysis.realizability === "realizable" && analysis.realizabilitySource === "contract") { 
         ret.push("contract realizable"); 
