@@ -5,6 +5,7 @@
  */
 
 import { ThemeColor, ThemeIcon } from "vscode";
+import * as vscode from 'vscode';
 
 export type TreeNode = File | Component | Analysis | Property | Container;
 
@@ -54,8 +55,8 @@ export class Container{
    if(this.tag != "ivc_button"){
       throw new Error("Function parentAnalysis was called in error: this Container does not have tag 'ivc_button'.");
     }
-    
     this.parentAnalysis.setActiveIVC(this.value);
+    vscode.commands.executeCommand('kind2/showSource', this);
     
   }
 
@@ -65,7 +66,7 @@ export class Container{
     }
     
     this.parentAnalysis.setActiveMCS(this.value);
-    
+    vscode.commands.executeCommand('kind2/showSource', this);
   }
 }
 
