@@ -90,6 +90,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         this._treeDataChanged.fire(element);
 
   }
+  
   public getTreeItem(element: TreeNode): TreeItem | Thenable<TreeItem> {
     let item: TreeItem;
     if (element instanceof File) {
