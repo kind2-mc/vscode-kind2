@@ -148,6 +148,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
           title: element.name,
           arguments: [element]
         };
+      item.command = {
+          command: "kind2/showSource",
+          title: element.name,
+          arguments: [element]
+        };
       if (element.state == "failed" || element.state == "reachable") {
         item.contextValue = "hasTrace";
       }
