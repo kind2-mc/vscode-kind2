@@ -352,6 +352,12 @@ export function statePath(state: State) {
       return "icons/stopped.svg";
     case "errored":
       return "icons/errored.svg";
+    case "mcs property":
+      return "icons/arrow-right-red.svg";
+    case "mcs cut":
+      return "icons/arrow-right-yellow.svg";
+    case "ivc":
+      return "icons/arrow-right-green.svg";
   }
 }
 
@@ -383,7 +389,7 @@ export function stateIcon(state: State) {
   }
 }
 
-//for editor highlighting in future ivc/mcs features
+
 export function stateColor(state: State): ThemeColor {
   switch (state) {
     case "pending":
@@ -404,13 +410,15 @@ export function stateColor(state: State): ThemeColor {
     case "unknown":
     case "errored":
     case "inputs unrealizable":
-      return undefined; // Invisible highlight, can hover to see text
     case "ivc":
-      return new ThemeColor("editorOverviewRuler.addedForeground");
-    case "mcs property":
-      return new ThemeColor("editorOverviewRuler.deletedForeground");
     case "mcs cut":
-      return new ThemeColor("editorOverviewRuler.warningForeground");
+    case "mcs property":
+      return undefined; // Invisible highlight, can hover to see text
+
+    // Useful highlight colors
+    // return new ThemeColor("editorOverviewRuler.deletedForeground");
+    // return new ThemeColor("editorOverviewRuler.warningForeground");
+    // return new ThemeColor("editorOverviewRuler.addedForeground");
   }
   throw new Error(`Unknown state: ${state}`); 
 }
