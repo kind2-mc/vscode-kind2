@@ -234,21 +234,16 @@ export class SettingNode implements SettingTreeElement {
       let value: boolean = this.getWorkspaceSettingValue<boolean>();
       if (value === true) {
         switch (this.name) {
-          case "Compositional":
-            return "icons/disable-compositional-dark.svg";
-          case "Modular":
-            return "icons/disable-modular-dark.svg";
+          // This is where you would put unique icons 
+          // for certain options in the settings treeview
           default:
             return new ThemeIcon("pass-filled", new ThemeColor("settings.toggle"));
 
         }
       } else if (value === false) {
         switch (this.name) {
-
-          case "Compositional":
-            return "icons/enable-compositional-dark.svg";
-          case "Modular":
-            return "icons/enable-modular-dark.svg";
+          // This is where you would put unique icons 
+          // for certain options in the settings treeview
           default:
             return new ThemeIcon("circle-large-outline", new ThemeColor("settings.toggle"));
         }

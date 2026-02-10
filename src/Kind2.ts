@@ -148,6 +148,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
           title: element.name,
           arguments: [element]
         };
+      item.command = {
+          command: "kind2/showSource",
+          title: element.name,
+          arguments: [element]
+        };
       if (element.state == "failed" || element.state == "reachable") {
         item.contextValue = "hasTrace";
       }
@@ -189,14 +194,31 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       let children: TreeNode[] = [new Container(element, element.properties, "Properties", "properties")];
       if(element.hasIVC()){
         let ivcContainer = new Container(element, [], "Merit Assignment", "ivc_container")
-        let ivcChildren = element.ivcs.map((value, index) => new Container(ivcContainer, [], "IVC " + (index + 1), "ivc_button", index,  element.parent.line, element.parent.uri));
-        if(element.must != undefined) ivcChildren.unshift(new Container(ivcContainer, [], "Must Set", "ivc_button", -1,  element.parent.line, element.parent.uri));
+        let ivcChildren = element.ivcs.map(
+          (value, index) => 
+            new Container(
+              ivcContainer, 
+              [], 
+              "IVC " + (index + 1), "ivc_button", 
+              index,  
+              Math.min(...value.map(p => p.line)), 
+              element.parent.uri));
+        if(element.must != undefined) ivcChildren.unshift(new Container(ivcContainer, [], "Must Set", "ivc_button", -1, Math.min(...element.must.map(p => p.line)), element.parent.uri));
         ivcContainer.children = ivcChildren;
         children.push(ivcContainer);
       } 
       if(element.hasMCS()){
         let mcsContainer = new Container(element, [], "Blame Assignment", "mcs_container")
-        let mcsChildren = element.mcss.map((value, index) => new Container(mcsContainer, [], "MCS " + (index + 1) + ": " + value[0].name, "mcs_button", index,  element.parent.line, element.parent.uri));
+        let mcsChildren = element.mcss.map(
+          (value, index) => 
+            new Container(mcsContainer, 
+              [], 
+              "MCS " + (index + 1) + ": " + value[0].name, 
+              "mcs_button", 
+              index,  
+              Math.min(...value.slice(1).map(p => p.line)), 
+              element.parent.uri)
+        );
         mcsContainer.children = mcsChildren;
         children.push(mcsContainer);
       }
@@ -557,7 +579,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         modifiedComponents.push(component);
       }
       if (results.length == 0) {
-        mainComponent.state = ["unknown"];
+        mainComponent.state = ["passed"];
       }
     }).catch(reason => {
       if (reason.message.includes("cancelled")) {

@@ -5,6 +5,7 @@
  */
 
 import { ThemeColor, ThemeIcon } from "vscode";
+import * as vscode from 'vscode';
 
 export type TreeNode = File | Component | Analysis | Property | Container;
 
@@ -54,8 +55,8 @@ export class Container{
    if(this.tag != "ivc_button"){
       throw new Error("Function parentAnalysis was called in error: this Container does not have tag 'ivc_button'.");
     }
-    
     this.parentAnalysis.setActiveIVC(this.value);
+    vscode.commands.executeCommand('kind2/showSource', this);
     
   }
 
@@ -65,7 +66,7 @@ export class Container{
     }
     
     this.parentAnalysis.setActiveMCS(this.value);
-    
+    vscode.commands.executeCommand('kind2/showSource', this);
   }
 }
 
@@ -163,7 +164,7 @@ export class Component {
       }
       // "Trivial" type declaration realizability checks give a question mark
       if (analysis.realizability === "realizable" && !this.hasRefType && analysis.realizabilitySource === "type") {
-        return ["unknown"]
+        return ["type realizable"]
       }
       if (analysis.realizability === "realizable" && analysis.realizabilitySource === "contract") { 
         ret.push("contract realizable"); 
