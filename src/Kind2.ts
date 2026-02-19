@@ -441,7 +441,6 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
           if (result.mcsAnalysis) {
             for(let mcs of result.mcsAnalysis){
               let mcsProperties: Property[]  = [];
-              //TODO need kind2 output for the line number of the property that is invalidated by the cut
               let cutProperty = new Property(mcs.property, mcs.line - 1, component.uri, analysis, mcs.column - 1);
               cutProperty.state = "mcs property";
               mcsProperties.push(cutProperty);
