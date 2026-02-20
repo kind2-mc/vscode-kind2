@@ -45,9 +45,9 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       [ "type unrealizable",      window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("type unrealizable")),      backgroundColor: stateColor("type unrealizable") }) ],
       [ "inputs realizable",      window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs realizable")),      backgroundColor: stateColor("inputs realizable") }) ],
       [ "inputs unrealizable",    window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("inputs unrealizable")),    backgroundColor: stateColor("inputs unrealizable") }) ],
-      [ "ivc",                    window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("ivc") }) ],
-      [ "mcs property",           window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("mcs property") }) ],
-      [ "mcs cut",                window.createTextEditorDecorationType({                                                                                    backgroundColor: stateColor("mcs cut") }) ],
+      [ "ivc",                    window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("ivc")),                                                                                     backgroundColor: stateColor("ivc") }) ],
+      [ "mcs property",           window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("mcs property")),                                                                                     backgroundColor: stateColor("mcs property") }) ],
+      [ "mcs cut",                window.createTextEditorDecorationType({ gutterIconPath: this._context.asAbsolutePath(statePath("mcs cut")),                                                                                      backgroundColor: stateColor("mcs cut") }) ],
     ]);
   }
 
@@ -90,6 +90,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         this._treeDataChanged.fire(element);
 
   }
+  
   public getTreeItem(element: TreeNode): TreeItem | Thenable<TreeItem> {
     let item: TreeItem;
     if (element instanceof File) {
@@ -440,8 +441,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
           if (result.mcsAnalysis) {
             for(let mcs of result.mcsAnalysis){
               let mcsProperties: Property[]  = [];
-              //TODO need kind2 output for the line number of the property that is invalidated by the cut
-              let cutProperty = new Property(mcs.property, component.line, component.uri, analysis, 0);
+              let cutProperty = new Property(mcs.property, mcs.line - 1, component.uri, analysis, mcs.column - 1);
               cutProperty.state = "mcs property";
               mcsProperties.push(cutProperty);
               for (const mcsNode of mcs.nodes) {
