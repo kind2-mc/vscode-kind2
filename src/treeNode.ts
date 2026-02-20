@@ -345,6 +345,7 @@ export function statePath(state: State) {
     case "contract unrealizable":
     case "type unrealizable":
     case "conflicting":  
+    case "mcs property":
       return "icons/failed.svg";
     case "unknown":
       return "icons/unknown.svg";
@@ -352,8 +353,6 @@ export function statePath(state: State) {
       return "icons/stopped.svg";
     case "errored":
       return "icons/errored.svg";
-    case "mcs property":
-      return "icons/red-x-big.svg";
     case "mcs cut":
       return "icons/arrow-right-yellow.svg";
     case "ivc":
