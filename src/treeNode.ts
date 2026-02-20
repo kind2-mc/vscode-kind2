@@ -353,7 +353,7 @@ export function statePath(state: State) {
     case "errored":
       return "icons/errored.svg";
     case "mcs property":
-      return "icons/arrow-right-red.svg";
+      return "icons/red-x-big.svg";
     case "mcs cut":
       return "icons/arrow-right-yellow.svg";
     case "ivc":
