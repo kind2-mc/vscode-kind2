@@ -201,8 +201,12 @@ export class Component {
     if (passedProperties.size !== 0) {
       return ["passed"]
     }
-    if(this.analyses.some(a => a.hasMCS())){
-      return ["failed"]
+    if(this.analyses.some(a => a.hasMCS)){
+      if(this.analyses.some(a => a.mcss.length > 1)){
+        return ["failed"];
+      } else {
+        return ["passed"];
+      }
     }
     return ["unknown"];
   }
@@ -228,6 +232,7 @@ export class Analysis {
   
   private _activeMCS: number;
   private _mcss: Property[][];
+  private _hasMCS: boolean;
   
   private _activeIvc: number;
   private _ivcs: Property[][];
@@ -260,13 +265,17 @@ export class Analysis {
   get activeIVC(){
     return this._activeIvc;
   }
-  public hasIVC(){
+  get hasIVC(){
     return this._ivcs.length != 0
   }
   get ivcs() {return this._ivcs}
 
 
   get mcss() {return this._mcss}
+
+  set hasMCS(value: boolean){
+    this._hasMCS = value;
+  }
   public addMCS(mcs: Property[]){
     mcs.forEach((property, index) => {
     });
@@ -274,8 +283,8 @@ export class Analysis {
     this._mcss.push(mcs);
   }
 
-  public hasMCS(){
-    return this._mcss.length != 0
+  get hasMCS(){
+    return this._hasMCS;
   }
   get activeMCS(){
     return this._activeMCS;
