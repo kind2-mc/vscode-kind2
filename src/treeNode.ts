@@ -202,7 +202,7 @@ export class Component {
       return ["passed"]
     }
     if(this.analyses.some(a => a.hasMCS)){
-      if(this.analyses.some(a => a.mcss.length > 1)){
+      if(this.analyses.some(a => a.mcss.length > 0)){
         return ["failed"];
       } else {
         return ["passed"];
