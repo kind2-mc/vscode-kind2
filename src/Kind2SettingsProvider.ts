@@ -2,7 +2,7 @@ import { TreeDataProvider, EventEmitter, Event, ThemeIcon, ThemeColor, workspace
 
 type CommandType = "toggle" | "number" | "selectorMultiple" | "selectorSingle";
 type SelectorButton = { name: string, var: string }
-type SettingLiteral = { name: string, varPath: string, varName: string, commandType: CommandType, selectorOptions?: SelectorButton[] };
+type SettingLiteral = { name: string, varPath: string, varName: string, commandType: CommandType, selectorOptions?: SelectorButton[], minSelected? : number, maxSelected? : number };
 type SettingLiteralCategory = { name: string };
 type SettingTreeNode = { category: SettingLiteralCategory, children: SettingTreeNode[] } | { setting: SettingLiteral };
 
@@ -17,7 +17,7 @@ let settingTree: SettingTreeNode = {
             { setting: { name: "MCS all", varPath: "kind2", varName: "mcs_all", commandType: "toggle" } },
             {
               setting: {
-                name: "MCS categories", varPath: "kind2", varName: "mcs_categories", commandType: "selectorMultiple", selectorOptions: [
+                name: "MCS categories", varPath: "kind2", varName: "mcs_categories", commandType: "selectorMultiple", minSelected: 1, selectorOptions: [
                   { name: "Node calls", var: "node_calls" },
                   { name: "Contracts", var: "contracts" },
                   { name: "Equations", var: "equations" },
@@ -38,7 +38,7 @@ let settingTree: SettingTreeNode = {
             { setting: { name: "IVC All", varPath: "kind2", varName: "ivc_all", commandType: "toggle" } },
             {
               setting: {
-                name: "IVC Categories", varPath: "kind2", varName: "ivc_categories", commandType: "selectorMultiple", selectorOptions: [
+                name: "IVC Categories", varPath: "kind2", varName: "ivc_categories", commandType: "selectorMultiple", minSelected: 1, selectorOptions: [
                   { name: "Node calls", var: "node_calls" },
                   { name: "Contracts", var: "contracts" },
                   { name: "Equations", var: "equations" },
@@ -195,15 +195,19 @@ export class SettingNode implements SettingTreeElement {
   readonly varName: string;
   readonly commandType: CommandType;
   readonly varPath: string;
+  readonly minSelected: number;
+  readonly maxSelected: number;
   children: SettingTreeElement[] = [];
   parent: SettingCategory | undefined;
 
-  constructor(name: string, commandRoot: string, commandType: CommandType, parent: SettingCategory, varPath: string) {
+  constructor(name: string, commandRoot: string, commandType: CommandType, parent: SettingCategory, varPath: string, minSelected: number, maxSelected: number) {
     this.name = name;
     this.varName = commandRoot;
     this.varPath = varPath
     this.commandType = commandType;
     this.parent = parent;
+    this.minSelected = minSelected;
+    this.maxSelected = maxSelected;
   }
   public getName(): string {
     if (this.commandType === "number") {
@@ -287,9 +291,17 @@ export class SettingNode implements SettingTreeElement {
         let currentValues = this.getWorkspaceSettingValue<string[]>();
         if (currentValues.includes(varName)) {
           currentValues = currentValues.filter(value => value !== varName);
+          if (currentValues.length < this.minSelected) { // Will always be false if minSelected is undefined
+            window.showInformationMessage(`Must have at least ${this.minSelected} option${this.maxSelected > 1 ? "s" : ""} selected for ${this.getName()}`)
+            return;
+          }
         }
         else {
           currentValues.push(varName);
+          if (currentValues.length > this.maxSelected) { // Will always be false if maxSelected is undefined
+            window.showInformationMessage(`Must have at most ${this.maxSelected} option${this.maxSelected > 1 ? "s" : ""} selected for ${this.getName()}`)
+            return;
+          }
         }
         workspace.getConfiguration(this.varPath).update(this.varName, currentValues);
         return;
@@ -342,7 +354,10 @@ export class SettingCategory implements SettingTreeElement {
           }
           return category;
         } else if ("setting" in node) {
-          let setting: SettingNode = new SettingNode(node.setting.name, node.setting.varName, node.setting.commandType, parent, node.setting.varPath);
+          let setting: SettingNode = new SettingNode(
+            node.setting.name, node.setting.varName, node.setting.commandType, 
+            parent, node.setting.varPath, node.setting.minSelected, node.setting.maxSelected
+          );
           if (node.setting.selectorOptions) {
             setting.registerSelectorOptions(node.setting.selectorOptions);
           }
