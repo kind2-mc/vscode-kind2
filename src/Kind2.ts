@@ -71,6 +71,10 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         } else if (component.typeDecl) {
           codeLenses. push(new CodeLens(range, { title: "Check Realizability", command: "kind2/realizability", arguments: [component] }));
           codeLenses.push(new CodeLens(range, { title: "Show in Explorer", command: "kind2/reveal", arguments: [component] }));
+        } else if (component.constDecl){
+          codeLenses.push(new CodeLens(range, { title: "Check Properties", command: "kind2/check", arguments: [component] }));
+          codeLenses.push(new CodeLens(range, { title: "Check Realizability", command: "kind2/realizability", arguments: [component] }));
+          codeLenses.push(new CodeLens(range, { title: "Show in Explorer", command: "kind2/reveal", arguments: [component] }));
         } else {
           codeLenses.push(new CodeLens(range, { title: "Check Properties", command: "kind2/check", arguments: [component] }));
           codeLenses.push(new CodeLens(range, { title: "Check Minimal Cut Set", command: "kind2/minimalCutSet", arguments: [component] }));
@@ -360,6 +364,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       mainFile.components = []
       newFiles.push(mainFile);
     }
+    console.log(components);
     for (let component of components) {
       this._fileMap.get(uri).add(component.file);
       // Only add components if this is the first time we see their files.

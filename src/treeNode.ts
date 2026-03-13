@@ -76,6 +76,7 @@ export class Component {
   private _imported: boolean;
   private _typeDecl: boolean;
   private _hasRefType: boolean;
+  private _constDecl: boolean;
   set analyses(analyses: Analysis[]) { this._analyses = analyses; }
   get analyses(): Analysis[] { return this._analyses; }
   set imported(imported: boolean) { this._imported = imported; }
@@ -84,6 +85,8 @@ export class Component {
   get typeDecl(): boolean { return this._typeDecl; }
   set hasRefType(hasRefType: boolean) { this._hasRefType = hasRefType; }
   get hasRefType(): boolean { return this._hasRefType; }
+  get constDecl() { return this._constDecl; }
+  set constDecl(constDecl: boolean){ this._constDecl = constDecl; }
   set state(state: State[]) {
     if (this._analyses.length == 0) {
       this._state = state;
@@ -215,6 +218,7 @@ export class Component {
     this._analyses = [];
     this._imported = importedComp === "true";
     this._typeDecl = compKind === "typeDecl";
+    this._constDecl = compKind === "constDecl";
     this._hasRefType = hasRefinementType;
   }
 }
