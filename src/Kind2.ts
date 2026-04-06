@@ -75,6 +75,9 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
           codeLenses.push(new CodeLens(range, { title: "Check Properties", command: "kind2/check", arguments: [component] }));
           codeLenses.push(new CodeLens(range, { title: "Check Realizability", command: "kind2/realizability", arguments: [component] }));
           codeLenses.push(new CodeLens(range, { title: "Show in Explorer", command: "kind2/reveal", arguments: [component] }));
+        }else if (component.paramDecl){
+          codeLenses.push(new CodeLens(range, { title: "Check Realizability", command: "kind2/realizability", arguments: [component] }));
+          codeLenses.push(new CodeLens(range, { title: "Show in Explorer", command: "kind2/reveal", arguments: [component] }));
         } else {
           codeLenses.push(new CodeLens(range, { title: "Check Properties", command: "kind2/check", arguments: [component] }));
           codeLenses.push(new CodeLens(range, { title: "Check Minimal Cut Set", command: "kind2/minimalCutSet", arguments: [component] }));
@@ -435,7 +438,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     this.updateDecorations();
     let tokenSource = new CancellationTokenSource();
     this._runningChecks.set(mainComponent, tokenSource);
-    await this._client.sendRequest("kind2/minimalCutSet", [mainComponent.uri, mainComponent.name], tokenSource.token).then((values: string[]) => {
+    await this._client.sendRequest("kind2/minimalCutSet", [mainComponent.uri, mainComponent.name, mainComponent.kind], tokenSource.token).then((values: string[]) => {
       let results: any[] = values.map(s => JSON.parse(s));
       let result: any = results[0];
         let component = mainComponent;
@@ -508,7 +511,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     this.updateDecorations();
     let tokenSource = new CancellationTokenSource();
     this._runningChecks.set(mainComponent, tokenSource);
-    await this._client.sendRequest("kind2/check", [mainComponent.uri, mainComponent.name], tokenSource.token).then((values: string[]) => {
+    await this._client.sendRequest("kind2/check", [mainComponent.uri, mainComponent.name, mainComponent.kind], tokenSource.token).then((values: string[]) => {
       let results: any[] = values.map(s => JSON.parse(s));
       for (const nodeResult of results) {
         let component = undefined;
@@ -622,7 +625,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     this.updateDecorations();
     let tokenSource = new CancellationTokenSource();
     this._runningChecks.set(mainComponent, tokenSource);
-    await this._client.sendRequest("kind2/realizability", [mainComponent.uri, mainComponent.name, mainComponent.typeDecl], tokenSource.token).then((values: string[]) => {
+    await this._client.sendRequest("kind2/realizability", [mainComponent.uri, mainComponent.name, mainComponent.kind], tokenSource.token).then((values: string[]) => {
       let results: any[] = values.map(s => JSON.parse(s));
       for (const nodeResult of results) {
         let component = undefined;
@@ -655,6 +658,8 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
             analysis.realizabilitySource = "inputs"
           }
           else if (analysisResult.context === "type") {
+            analysis.realizabilitySource = "type"
+          } else if (analysisResult.context === "global constant"){
             analysis.realizabilitySource = "type"
           }
           else {

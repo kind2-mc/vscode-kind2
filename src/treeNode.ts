@@ -69,24 +69,39 @@ export class Container{
     vscode.commands.executeCommand('kind2/showSource', this);
   }
 }
-
+export type component_kind = "typeDecl" | "constDecl" | "paramDecl" | "nodeDecl";
 export class Component {
   private _state: State[];
   private _analyses: Analysis[];
   private _imported: boolean;
-  private _typeDecl: boolean;
   private _hasRefType: boolean;
-  private _constDecl: boolean;
+  private _kind: component_kind;
   set analyses(analyses: Analysis[]) { this._analyses = analyses; }
   get analyses(): Analysis[] { return this._analyses; }
   set imported(imported: boolean) { this._imported = imported; }
   get imported(): boolean { return this._imported; }
-  set typeDecl(typeDecl: boolean) { this._typeDecl = typeDecl; }
-  get typeDecl(): boolean { return this._typeDecl; }
   set hasRefType(hasRefType: boolean) { this._hasRefType = hasRefType; }
-  get hasRefType(): boolean { return this._hasRefType; }
-  get constDecl() { return this._constDecl; }
-  set constDecl(constDecl: boolean){ this._constDecl = constDecl; }
+  get hasRefType(): boolean { return this._hasRefType;}
+  get typeDecl(): boolean { return this._kind == "typeDecl"; }
+  get constDecl(): boolean { return this._kind == "constDecl";}
+  get paramDecl(): boolean {return this._kind == "paramDecl";}
+  get nodeDecl(): boolean {return this._kind == "nodeDecl";}
+  set kind(kind: string){
+    switch(kind){
+      case "constDecl":
+      case "nodeDecl":
+      case "typeDecl":
+      case "paramDecl":
+        this._kind = kind;
+        break;
+      case "node":
+        this._kind = "nodeDecl";
+        break;
+      default:
+        throw new Error(`Component kind must be of the type \"constDecl\",\"paramDecl\",\"typeDecl\", or \"nodeDecl\". Got \"${kind}\"`);
+    }
+  }
+  get kind(){return this._kind;}
   set state(state: State[]) {
     if (this._analyses.length == 0) {
       this._state = state;
@@ -213,12 +228,11 @@ export class Component {
     return this.state.some(str => str.includes("unrealizable"))
   }
   get uri(): string { return this.parent.uri; }
-  constructor(readonly name: string, readonly line: number, readonly contractLine: number, readonly parent: File, readonly importedComp: string, readonly compKind: string, readonly hasRefinementType: boolean) {
+  constructor(readonly name: string, readonly line: number, readonly contractLine: number, readonly parent: File, readonly importedComp: string, compKind: string, readonly hasRefinementType: boolean) {
     this._state = ["pending"];
     this._analyses = [];
     this._imported = importedComp === "true";
-    this._typeDecl = compKind === "typeDecl";
-    this._constDecl = compKind === "constDecl";
+    this.kind = compKind;
     this._hasRefType = hasRefinementType;
   }
 }
