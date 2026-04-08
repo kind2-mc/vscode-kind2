@@ -367,7 +367,6 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       mainFile.components = []
       newFiles.push(mainFile);
     }
-    console.log(components);
     for (let component of components) {
       this._fileMap.get(uri).add(component.file);
       // Only add components if this is the first time we see their files.
