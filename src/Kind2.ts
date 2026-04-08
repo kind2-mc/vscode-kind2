@@ -123,7 +123,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       if (element.realizability === undefined) {
         let label = "Abstract: " + (element.abstract.length == 0 ? "none" : "[" + element.abstract.toString() + "]");
         label += " - Concrete: " + (element.concrete.length == 0 ? "none" : "[" + element.concrete.toString() + "]");
-        let hasContents: boolean = element.properties.length !== 0 || element.hasIVC() || element.hasMCS();
+        let hasContents: boolean = element.properties.length !== 0 || element.hasIVC || element.hasMCS;
         item = new TreeItem(label,  hasContents ? TreeItemCollapsibleState.Expanded : TreeItemCollapsibleState.None);
         item.contextValue = "analysis";
       } 
@@ -200,7 +200,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
     if (element instanceof Analysis) {
       let children: TreeNode[] = [new Container(element, element.properties, "Properties", "properties")];
-      if(element.hasIVC()){
+      if(element.hasIVC){
         let ivcContainer = new Container(element, [], "Merit Assignment", "ivc_container")
         let ivcChildren = element.ivcs.map(
           (value, index) => 
@@ -215,7 +215,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         ivcContainer.children = ivcChildren;
         children.push(ivcContainer);
       } 
-      if(element.hasMCS()){
+      if(element.hasMCS){
         let mcsContainer = new Container(element, [], "Blame Assignment", "mcs_container")
         let mcsChildren = element.mcss.map(
           (value, index) => 
@@ -445,8 +445,10 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         component.analyses = [];
         
           let analysis: Analysis = new Analysis(["abstract"], ["concrete"], component);
+          
           //now handle IVC if present
           if (result.mcsAnalysis) {
+            analysis.hasMCS = true;
             for(let mcs of result.mcsAnalysis){
               let mcsProperties: Property[]  = [];
               let cutProperty = new Property(mcs.property, mcs.line - 1, component.uri, analysis, mcs.column - 1);
