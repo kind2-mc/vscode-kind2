@@ -228,7 +228,7 @@ export class Component {
     return this.state.some(str => str.includes("unrealizable"))
   }
   get uri(): string { return this.parent.uri; }
-  constructor(readonly name: string, readonly line: number, readonly contractLine: number, readonly parent: File, readonly importedComp: string, compKind: string, readonly hasRefinementType: boolean) {
+  constructor(readonly name: string, readonly line: number, readonly contractLine: number, readonly parent: File, readonly importedComp: string, readonly hasRefinementType: boolean, compKind: string) {
     this._state = ["pending"];
     this._analyses = [];
     this._imported = importedComp === "true";

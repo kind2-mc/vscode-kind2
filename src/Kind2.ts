@@ -388,7 +388,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         if (component.containsRefinementType !== undefined) {
           hasRefType = component.containsRefinementType === "true";
         }
-        file.components.push(new Component(component.name, component.startLine - 1, contractStart, file, component.imported, component.kind, hasRefType));
+        file.components.push(new Component(component.name, component.startLine - 1, contractStart, file, component.imported, hasRefType, component.kind));
       }
     }
     this._files = this._files.concat(newFiles);
