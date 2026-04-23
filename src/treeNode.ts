@@ -95,6 +95,7 @@ export class Component {
         this._kind = kind;
         break;
       case "node":
+      case "function":
         this._kind = "nodeDecl";
         break;
       default:
