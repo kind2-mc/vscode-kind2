@@ -341,7 +341,8 @@ export class Property {
     readonly line: number,
     readonly uri: string,
     readonly parent: Analysis,
-    readonly startCol?: number
+    readonly startCol?: number,
+    readonly expr?: string
   ) {
     this._state = "pending";
   }

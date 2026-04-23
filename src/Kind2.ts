@@ -161,6 +161,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
           title: element.name,
           arguments: [element]
         };
+      item.tooltip = element.expr ?? element.name;
       if (element.state == "failed" || element.state == "reachable") {
         item.contextValue = "hasTrace";
       }
@@ -531,7 +532,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
             if (propertyResult.isCandidate === "true") {
               continue
             }
-            let property = new Property(propertyResult.name, propertyResult.line - 1, propertyResult.file, analysis);
+            let property = new Property(propertyResult.name, propertyResult.line - 1, propertyResult.file, analysis,undefined, propertyResult.expr);
             switch (propertyResult.answer.value) {
               case "valid":   
                 property.state = "passed";
