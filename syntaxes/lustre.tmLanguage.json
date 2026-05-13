@@ -715,7 +715,7 @@
         {
           "comment": "Keywords",
           "name": "keyword.control.lustre",
-          "match": "\\b(if|then|else|otherwise|not|and|xor|or|pre|fby|div|mod|lsh|rsh|reachable|provided|assuming|invariant|from|within|at|any)\\b"
+          "match": "\\b(if|then|else|otherwise|not|and|xor|or|pre|fby|div|mod|lsh|rsh|reachable|provided|assuming|invariant|from|within|at|any|when|end)\\b"
         },
         {
           "comment": "Merge",
@@ -978,6 +978,77 @@
         }
       ]
     },
+    "whenBlock": {
+      "begin": "\\b(when)\\b",
+      "end": "\\b(end)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.lustre"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "keyword.other.lustre"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(?<=(when|elsif))",
+          "end": "(?=then)",
+          "patterns": [ 
+            {
+              "include": "#expression"
+            },
+            {
+              "include": "#comment"
+            }
+          ]
+        },
+        {
+          "begin": "\\b(then)\\b",
+          "end": "\\b(elsif|else)\\b|(?=end)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.other.lustre"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "keyword.other.lustre"
+            }
+          },
+          "patterns": [ 
+            {
+              "include": "#whenBlock"
+            },
+            {
+              "include": "#equation"
+            },
+            {
+              "include": "#comment"
+            }
+          ]
+        },
+        {
+          "begin": "(?<=else)",
+          "end": "(?=end)",
+          "patterns": [ 
+            {
+              "include": "#whenBlock"
+            },
+            {
+              "include": "#equation"
+            },
+            {
+              "include": "#comment"
+            }
+          ]
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
     "frameBlock": {
       "begin": "\\b(frame)\\b",
       "end": "\\b(tel)\\b",
@@ -1087,6 +1158,9 @@
         },
         {
           "include": "#ifBlock"
+        },
+        {
+          "include": "#whenBlock"
         },
         {
           "include": "#equation"
