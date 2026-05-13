@@ -140,7 +140,7 @@
       ]
     },
     "blockAssGua": {
-      "begin": "\\b(assume|guarantee)\\b",
+      "begin": "\\b(assume|guarantee|decreases)\\b",
       "beginCaptures": {
         "0": {
           "name": "keyword.other.lustre"
@@ -540,7 +540,7 @@
       ]
     },
     "component": {
-      "begin": "(?=(opaque|transparent)?\\s*(node|function)\\b)",
+      "begin": "(?=(opaque|transparent)?\\s*(node|function|lemma)\\b)",
       "beginCaptures":
         {
 	  "1": {
@@ -573,8 +573,8 @@
       ]
     },
     "componentDecl": {
-      "comment": "More precisely, a node, a contract, or a function prefix.",
-      "begin": "\\b(contract|node|function)\\b",
+      "comment": "More precisely, a node, a contract, a function, or a lemma prefix.",
+      "begin": "\\b(contract|node|function|lemma)\\b",
       "end": ";|(?=\\(\\*@contract|con|const|param|var|let)",
       "beginCaptures": {
         "1": {
@@ -583,7 +583,7 @@
       },
       "patterns": [
         {
-          "match": "\\b(imported|returns)\\b",
+          "match": "\\b(imported|rec|returns)\\b",
           "captures": {
             "1": {
               "name": "keyword.other.lustre"
@@ -1302,7 +1302,7 @@
     },
     "const": {
       "begin": "\\b(const|param)\\b",
-      "end": "(?=const|param|contract|function|node|opaque|transparent|let|type|var)",
+      "end": "(?=const|param|contract|function|lemma|node|opaque|transparent|let|type|var)",
       "beginCaptures": {
         "1": {
           "name": "keyword.other.lustre"
