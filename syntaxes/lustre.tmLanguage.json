@@ -993,7 +993,7 @@
       },
       "patterns": [
         {
-          "begin": "(?<=(when|elsif))",
+          "begin": "(?<=when)",
           "end": "(?=then)",
           "patterns": [ 
             {
@@ -1006,7 +1006,7 @@
         },
         {
           "begin": "\\b(then)\\b",
-          "end": "\\b(elsif|else)\\b|(?=end)",
+          "end": "\\b(else)\\b|(?=end)",
           "beginCaptures": {
             "1": {
               "name": "keyword.other.lustre"
@@ -1090,6 +1090,9 @@
           "patterns": [
             { 
               "include": "#ifBlock" 
+            },
+            {
+              "include": "#whenBlock"
             },
             {
               "include": "#equation"
