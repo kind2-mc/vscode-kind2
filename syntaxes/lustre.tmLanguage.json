@@ -715,7 +715,7 @@
         {
           "comment": "Keywords",
           "name": "keyword.control.lustre",
-          "match": "\\b(if|then|else|otherwise|not|and|xor|or|pre|fby|div|mod|lsh|rsh|reachable|provided|assuming|invariant|from|within|at|any|when|end)\\b"
+          "match": "\\b(if|then|else|otherwise|not|and|xor|or|pre|fby|div|mod|lsh|rsh|reachable|provided|assuming|invariant|from|within|at|any|when|cond|end)\\b"
         },
         {
           "comment": "Merge",
@@ -1022,6 +1022,9 @@
               "include": "#whenBlock"
             },
             {
+              "include": "#condBlock"
+            },
+            {
               "include": "#equation"
             },
             {
@@ -1037,7 +1040,112 @@
               "include": "#whenBlock"
             },
             {
+              "include": "#condBlock"
+            },
+            {
               "include": "#equation"
+            },
+            {
+              "include": "#comment"
+            }
+          ]
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "condBlock": {
+      "begin": "\\b(cond)\\b",
+      "end": "\\b(end)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.lustre"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "keyword.other.lustre"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "\\|",
+          "beginCaptures": {
+            "0": {
+              "name": "keyword.operator.lustre"
+            }
+          },
+          "end": "(?=\\||\\botherwise\\b|\\bend\\b)",
+          "patterns": [
+            {
+              "begin": "(?<=\\|)",
+              "end": "(?=:)",
+              "patterns": [
+                {
+                  "include": "#expression"
+                },
+                {
+                  "include": "#comment"
+                }
+              ]
+            },
+            {
+              "begin": ":",
+              "beginCaptures": {
+                "0": {
+                  "name": "keyword.operator.lustre"
+                }
+              },
+              "end": "(?=\\||\\botherwise\\b|\\bend\\b)",
+              "patterns": [
+                {
+                  "include": "#whenBlock"
+                },
+                {
+                  "include": "#condBlock"
+                },
+                {
+                  "include": "#equation"
+                },
+                {
+                  "include": "#comment"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "begin": "\\b(otherwise)\\b",
+          "end": "(?=\\bend\\b)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.other.lustre"
+            }
+          },
+          "patterns": [
+            {
+              "begin": ":",
+              "beginCaptures": {
+                "0": {
+                  "name": "keyword.operator.lustre"
+                }
+              },
+              "end": "(?=\\bend\\b)",
+              "patterns": [
+                {
+                  "include": "#whenBlock"
+                },
+                {
+                  "include": "#condBlock"
+                },
+                {
+                  "include": "#equation"
+                },
+                {
+                  "include": "#comment"
+                }
+              ]
             },
             {
               "include": "#comment"
@@ -1093,6 +1201,9 @@
             },
             {
               "include": "#whenBlock"
+            },
+            {
+              "include": "#condBlock"
             },
             {
               "include": "#equation"
@@ -1164,6 +1275,9 @@
         },
         {
           "include": "#whenBlock"
+        },
+        {
+          "include": "#condBlock"
         },
         {
           "include": "#equation"
