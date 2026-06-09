@@ -1,3 +1,18 @@
+### Unreleased
+- Add support for merit and blame assignment (i.e. IVC/MCS)
+- Add support for displaying conflicting set when checking realizability
+- Add support for verification of constant definitions and realizability checks of free constants (a.k.a system parameters)
+- Several improvements to Simulation interface:
+  - Inputs that are enum types or subranges now have valid default values
+  - Support for variables with record types
+  - Support for 1D and 2D array variables
+- Add syntax highlighting for `when` and `cond` blocks, and new contract syntax
+- Add Bitwuzla to the list of interpolating solvers
+- New TreeView for Kind 2 settings
+- Update language-server version to 0.2.3
+- Trivial checks now show as passed instead of unknown 
+- Multiple bug fixes and improvements
+
 ### Version 0.12.1
 - Update version in package files
 
