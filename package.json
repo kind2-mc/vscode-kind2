@@ -112,7 +112,8 @@
             "MathSAT",
             "OpenSMT",
             "SMTInterpol",
-            "Z3qe"
+            "Z3qe",
+            "Bitwuzla"
           ],
           "default": "detect",
           "order": 0,
