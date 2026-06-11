@@ -9,6 +9,7 @@
 - Add syntax highlighting for `when` and `cond` blocks, and new contract syntax
 - Add Bitwuzla to the list of interpolating solvers
 - New TreeView for Kind 2 settings
+- Update Kind 2 to version 3.0.0
 - Update language-server version to 0.2.3
 - Trivial checks now show as passed instead of unknown 
 - Multiple bug fixes and improvements
