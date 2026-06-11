@@ -1,4 +1,4 @@
-### Unreleased
+### Version 0.13.0
 - Add support for merit and blame assignment (i.e. IVC/MCS)
 - Add support for displaying conflicting set when checking realizability
 - Add support for verification of constant definitions and realizability checks of free constants (a.k.a system parameters)
