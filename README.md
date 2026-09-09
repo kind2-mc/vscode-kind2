@@ -10,10 +10,24 @@ Java 11+ run-time.
 
 ***Note:*** This extension only works with versions 1.5.1 and above of `kind2`.
 
-Windows is supported natively; running the extension through WSL is no longer
-required. WSL remains a working alternative: install the extension into the WSL
-window with the [WSL extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl),
-and it will use the Linux build.
+Windows is supported natively; running the extension through
+[WSL2](https://docs.microsoft.com/en-us/windows/wsl/about) is no longer required.
+
+### Windows through WSL2 (Advanced)
+Running the extension inside WSL2 remains supported, and uses the Linux build.
+WSL1 is not supported. Follow these steps to run the extension on WSL2 (Windows
+10 version 1903+ or Windows 11):
+1. Install WSL
+    * Windows 10 version 2004+ and Windows 11: Run `wsl --install` in PowerShell or Windows Command Prompt and restart your machine.
+    * Windows 10 version 1903+: follow the manual steps in [this page](https://docs.microsoft.com/en-us/windows/wsl/install).
+2. Follow the instructions on [this page](https://docs.microsoft.com/en-us/windows/wsl/setup/environment#set-up-your-linux-user-info) to finish setting up your WSL2 Linux environment.
+3. Install the [Remote - WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) extension for VS Code.
+4. Click on the green rectangle in the bottom-left corner of the VS Code window. A prompt will appear on the top. click on `new WSL window`.
+![WSL window](images/wsl.png)
+5. Press `` Ctrl+Shift+` `` to open a Linux terminal on the new VS Code window. Use the terminal to install the Java run-time.
+6. In the same VS Code window, go to the extension view in the activity bar to the left and lookup the `Kind 2` extension. Click `Install in WSL: <distro name>`.
+![Install extension](images/install.png)
+Refer to [this page](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-vscode) to learn more about using WSL with VS Code.
 
 ## Options
 The extension supports modular and compositional analysis modes of Kind 2. Those modes are disabled by default. Follow the steps below to enable them (and other Kind 2 configurations):
