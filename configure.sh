@@ -29,6 +29,10 @@ case "$1" in
   linux*)
     OSTYPE=linux
     ;;
+  win32-x64)
+    OSTYPE=windows
+    ARCH=x86_64
+    ;;
   *)
     ;;
 esac
@@ -62,17 +66,36 @@ case "$OSTYPE" in
         echo "unsupported ARCH: $ARCH";
         exit 2;;
     esac ;;
+  windows*|msys*|cygwin*)
+    case "$ARCH" in
+      x86_64|AMD64)
+        Z3_OS_VERSION=x64-win
+        KIND2_OS_VERSION=windows-x86_64
+        EXE_SUFFIX=.exe
+        KIND2_PKG_EXT=zip
+        ;;
+      *)
+        echo "unsupported ARCH: $ARCH";
+        exit 2;;
+    esac ;;
   *)
     echo "unsupported OS: $OSTYPE";
     exit 1;;
 esac
 
+# Defaults for the Unix-like platforms; the Windows branch above overrides both.
+# Kind 2 ships a .tar.gz everywhere except Windows, where it ships a .zip.
+EXE_SUFFIX=${EXE_SUFFIX:-}
+KIND2_PKG_EXT=${KIND2_PKG_EXT:-tar.gz}
+Z3_BIN=z3$EXE_SUFFIX
+KIND2_BIN=kind2$EXE_SUFFIX
+
 Z3_ZIP_NAME=z3-$Z3_VERSION-$Z3_OS_VERSION
-KIND2_TAR_NAME=kind2-v$KIND2_VERSION-$KIND2_OS_VERSION
+KIND2_PKG_NAME=kind2-v$KIND2_VERSION-$KIND2_OS_VERSION.$KIND2_PKG_EXT
 
 # Install Z3
-if [ -e z3 ]; then
-  echo "z3 already present; skipping download."
+if [ -e $Z3_BIN ]; then
+  echo "$Z3_BIN already present; skipping download."
 else
   case "$2" in
     # z3-static)
@@ -95,19 +118,24 @@ else
       wget https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_ZIP_NAME.zip
       unzip -o $Z3_ZIP_NAME.zip
       rm $Z3_ZIP_NAME.zip
-      cp $Z3_ZIP_NAME/bin/z3 .
+      cp $Z3_ZIP_NAME/bin/$Z3_BIN .
+      # z3.exe is dynamically linked against libz3.dll.
+      if [ -n "$EXE_SUFFIX" ]; then cp $Z3_ZIP_NAME/bin/libz3.dll .; fi
       rm -r $Z3_ZIP_NAME;;
   esac
 fi
 
 # Install Kind 2
-if [ -e kind2 ]; then
-  echo "kind2 already present; skipping download."
+if [ -e $KIND2_BIN ]; then
+  echo "$KIND2_BIN already present; skipping download."
 else
-  rm -f $KIND2_TAR_NAME.tar.gz
-  wget https://github.com/kind2-mc/kind2/releases/download/v$KIND2_VERSION/$KIND2_TAR_NAME.tar.gz
-  tar -xf $KIND2_TAR_NAME.tar.gz
-  rm $KIND2_TAR_NAME.tar.gz
+  rm -f $KIND2_PKG_NAME
+  wget https://github.com/kind2-mc/kind2/releases/download/v$KIND2_VERSION/$KIND2_PKG_NAME
+  case "$KIND2_PKG_NAME" in
+    *.zip) unzip -o $KIND2_PKG_NAME;;
+    *)     tar -xf $KIND2_PKG_NAME;;
+  esac
+  rm $KIND2_PKG_NAME
 fi
 
 # Install language server for Kind 2
