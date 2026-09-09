@@ -11,6 +11,15 @@ jobs:
         platform: [linux-x64, linux-arm64, darwin-x64, darwin-arm64]
         node-version: [22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        include:
+          - platform: linux-x64
+            kind2_asset: kind2-linux-x86_64.tar.gz
+          - platform: linux-arm64
+            kind2_asset: kind2-linux-arm64.tar.gz
+          - platform: darwin-x64
+            kind2_asset: kind2-macos-12-x86_64.tar.gz
+          - platform: darwin-arm64
+            kind2_asset: kind2-macos-12-arm64.tar.gz
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
@@ -20,12 +29,53 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         cache-dependency-path: '**/package-lock.json'
+    - name: Download development build of Kind 2
+      # configure.sh skips its own Kind 2 download when ./kind2 already exists,
+      # so CI tests against the current main branch instead of the pinned release.
+      run: |
+        wget https://github.com/kind2-mc/kind2/releases/download/latest/${{ matrix.kind2_asset }}
+        tar -xf ${{ matrix.kind2_asset }}
+        rm ${{ matrix.kind2_asset }}
     - name: Configure dependencies
       run: ./configure.sh ${{ matrix.platform }}
     - name: Package extension
-      run: npx vsce package --target ${{ matrix.platform }}
+      # Omit the version from the file name so the release assets keep stable URLs.
+      run: npx vsce package --target ${{ matrix.platform }} -o vscode-kind2-${{ matrix.platform }}.vsix
     - name: Upload artifact
       uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.platform }}
         path: "*.vsix"
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    # Only publish from the main branch; pull request builds stay artifact-only.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    # Serialize concurrent pushes so they cannot race while replacing the release.
+    concurrency:
+      group: latest-release
+      cancel-in-progress: false
+    steps:
+      - name: Download extension packages
+        uses: actions/download-artifact@v8
+        with:
+          path: packages
+      - name: Update the 'latest' pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          {
+            echo 'VSIX packages automatically built from the `main` branch on every push.'
+            echo "Built from ${GITHUB_SHA:0:7} on $(date -u '+%Y-%m-%d %H:%M UTC')."
+          } > notes.md
+          # Replace the release outright so packages from older versions do not linger.
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest packages/*/*.vsix \
+            --prerelease \
+            --target "$GITHUB_SHA" \
+            --title 'Kind 2 VS Code Extension (main branch)' \
+            --notes-file notes.md
