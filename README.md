@@ -2,16 +2,21 @@
 This extension provides basic support for the Lustre programming language with [Kind 2 Model Checker](https://kind2-mc.github.io/kind2) annotations.
 
 ## Requirements
-### Linux and MacOS
-* Java 11+ run-time.
-  * Debian-based Linux: `sudo apt install openjdk-17-jdk`
-  * RHEL-based Linux: `sudo yum install java-17-openjdk`
-  * MacOS: `brew install --cask temurin`
+Java 11+ run-time.
+* Debian-based Linux: `sudo apt install openjdk-17-jdk`
+* RHEL-based Linux: `sudo yum install java-17-openjdk`
+* MacOS: `brew install --cask temurin`
+* Windows: install a JDK from [Adoptium](https://adoptium.net/), or run `winget install EclipseAdoptium.Temurin.17.JDK`.
 
 ***Note:*** This extension only works with versions 1.5.1 and above of `kind2`.
 
-### Windows (Advanced)
-Windows is only supported through [WSL2](https://docs.microsoft.com/en-us/windows/wsl/about) (Windows 10 version 1903+ or Windows 11). WSL1 is not supported. Follow these steps to run the extension on WSL2:
+Windows is supported natively; running the extension through
+[WSL2](https://docs.microsoft.com/en-us/windows/wsl/about) is no longer required.
+
+### Windows through WSL2 (Advanced)
+Running the extension inside WSL2 remains supported, and uses the Linux build.
+WSL1 is not supported. Follow these steps to run the extension on WSL2 (Windows
+10 version 1903+ or Windows 11):
 1. Install WSL
     * Windows 10 version 2004+ and Windows 11: Run `wsl --install` in PowerShell or Windows Command Prompt and restart your machine.
     * Windows 10 version 1903+: follow the manual steps in [this page](https://docs.microsoft.com/en-us/windows/wsl/install).

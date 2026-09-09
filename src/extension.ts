@@ -32,7 +32,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // The server is implemented in node
   let serverCmd = context.asAbsolutePath(
-    path.join('kind2-language-server', 'bin', 'kind2-language-server')
+    path.join('kind2-language-server', 'bin',
+      process.platform === 'win32' ? 'kind2-language-server.bat' : 'kind2-language-server')
   );
 
   // If the extension is launched in debug mode then the debug server options are used

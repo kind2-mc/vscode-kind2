@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [linux-x64, linux-arm64, darwin-x64, darwin-arm64]
+        platform: [linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64]
         node-version: [22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
         include:
@@ -20,6 +20,8 @@ jobs:
             kind2_asset: kind2-macos-12-x86_64.tar.gz
           - platform: darwin-arm64
             kind2_asset: kind2-macos-12-arm64.tar.gz
+          - platform: win32-x64
+            kind2_asset: kind2-windows-x86_64.zip
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
@@ -34,7 +36,10 @@ jobs:
       # so CI tests against the current main branch instead of the pinned release.
       run: |
         wget https://github.com/kind2-mc/kind2/releases/download/latest/${{ matrix.kind2_asset }}
-        tar -xf ${{ matrix.kind2_asset }}
+        case "${{ matrix.kind2_asset }}" in
+          *.zip) unzip -o ${{ matrix.kind2_asset }};;
+          *)     tar -xf ${{ matrix.kind2_asset }};;
+        esac
         rm ${{ matrix.kind2_asset }}
     - name: Configure dependencies
       run: ./configure.sh ${{ matrix.platform }}

@@ -343,11 +343,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   }
 
   public getDefaultKind2Path(): string {
-    return this._context.asAbsolutePath("kind2");
+    return this._context.asAbsolutePath(process.platform === "win32" ? "kind2.exe" : "kind2");
   }
 
   public getDefaultZ3Path(): string {
-    return this._context.asAbsolutePath("z3");
+    return this._context.asAbsolutePath(process.platform === "win32" ? "z3.exe" : "z3");
   }
 
   private updateFileNames(): void {
