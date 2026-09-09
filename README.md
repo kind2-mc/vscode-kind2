@@ -7,12 +7,6 @@ This extension provides basic support for the Lustre programming language with [
   * Debian-based Linux: `sudo apt install openjdk-17-jdk`
   * RHEL-based Linux: `sudo yum install java-17-openjdk`
   * MacOS: `brew install --cask temurin`
-* (Optional) ZeroMQ messaging library.
-  * Debian-based Linux: `sudo apt install libzmq3-dev`
-  * RHEL-based Linux: `sudo yum install libzmq3-devel`
-  * MacOS: `brew install zmq`
-
-  The `kind2` executable bundled with this extension is _statically_ linked against the ZeroMQ messaging library and does not require it to be installed in the system. Manually built `kind2` executables are dynamically linked by default and *do* require the library to be installed in the system.
 
 ***Note:*** This extension only works with versions 1.5.1 and above of `kind2`.
 
@@ -25,7 +19,7 @@ Windows is only supported through [WSL2](https://docs.microsoft.com/en-us/window
 3. Install the [Remote - WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) extension for VS Code.
 4. Click on the green rectangle in the bottom-left corner of the VS Code window. A prompt will appear on the top. click on `new WSL window`.
 ![WSL window](images/wsl.png)
-5. Press `` Ctrl+Shift+` `` to open a Linux terminal on the new VS Code window. Use the terminal to install the Java run-time and the ZeroMQ messaging library (follow the instructions in the above section for your Linux distribution).
+5. Press `` Ctrl+Shift+` `` to open a Linux terminal on the new VS Code window. Use the terminal to install the Java run-time.
 6. In the same VS Code window, go to the extension view in the activity bar to the left and lookup the `Kind 2` extension. Click `Install in WSL: <distro name>`.
 ![Install extension](images/install.png)
 Refer to [this page](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-vscode) to learn more about using WSL with VS Code.
