@@ -1,0 +1,323 @@
+
+--==================
+-- Simple Elevator 
+--==================
+
+(*
+Acknowledgements: This example is inspired by a similar one 
+by Prover Technology AB, later adapted at Chalmers University 
+by Carl Johan Lillieroth, K.V.S. Prasad, Mary Sheeran, Angela 
+Wallenburg, and Jan-Willem Roorda. 
+
+-------
+Setting
+-------
+.                      |
+.                      |
+.                      |
+.               _______________
+.               |      |      | 
+.               |      |      | 
+.               |      |      | o Call 2
+.               |      |      | 
+.               |      |      |
+.               |      |      |
+.               |      |      |         Floor 2
+-------------------------------------------------------
+.                      |
+.                      |
+.                      |
+.                      |
+.                      |
+.               _______________
+.               |______|______|
+.               ||           || 
+.               ||  o 2      || o Call 1
+.               ||  o 1      ||
+.               ||  o stop   ||
+.               ||           || 
+.               ||___________||         Floor 1
+-------------------------------------------------------
+
+
+It models a simple elevator, moving people between two floors. 
+In the elevator, there are three buttons: 
+- a button 1 to go to the first floor, 
+- a button 2 to go to the first floor, and 
+- a stop switch to stop the elevator. 
+On each floor, there is a button to call the elevator. 
+
+The elevator has three sensors, 
+- the first indicating if the elevator is on the first floor or not, 
+- the second doing the same for the second floor, and 
+- the third indicating if the elevator's door is closed or not.
+
+The stop switch is located within the elevator and can be pressed to 
+block the elevator. While the switch is on, the elevator stops immediately 
+if it was moving and ignores any other input. Turning the switch back off 
+makes the elevator responsive again to other inputs.
+
+The elevator is moved up and down by a motor that is on the roof of the 
+building. The motor is controlled by two signals, 
+- one for moving the elevator up and 
+- one for moving it down.
+
+The control system looks at the buttons that are being pressed and
+the sensors that say where the elevator is and whether the door is open, 
+and then decides if the motor should move the elevator up or down, 
+or do nothing.
+
+For simplicity, we do not distinguish between the case of someone 
+on floor 1 (resp., 2) pressing the call button and someone 
+in the elevator pressing the button 1 (resp., 2). 
+
+-------------------
+Safety Requirements
+-------------------
+
+The controller is supposed to satisfy the following safety requirements:
+
+R1  The elevator shall move only when the door is closed and the stop switch 
+    is off.
+R2  The elevator shall not try to pass the end positions
+    (that is, try go through the roof or the floor).
+R3  A moving elevator shall halt only if the stop switch is on, or the door 
+    is open, or the elevator has arrived at the destination floor.
+R4  The elevator shall halt before changing direction.
+R5  The signals sent to the motor shall not be contradictory.
+R6  The elevator shall move when it should. 
+R7  The elevator shall stay on a floor indefinitely 
+    while there is no call to the other floor.
+*)
+
+
+---------------------------------
+-- Controller high-level specs --
+---------------------------------
+
+contract ControlSpec( Floor1, Floor2, DoorOpen, Call1, Call2, Stop : bool )
+returns ( MotorUp, MotorDown : bool ) ;
+let
+ 
+  -------------------------------
+  -- Environmental assumptions --
+  -------------------------------
+  -- the elevator starts on the first floor
+  assume Initially(Floor1); 
+
+  -- if the elevator was on the first (second) floor and did not move up (down)
+  -- then it is still on that floor
+  assume "A1" true -> pre (Floor1 and not MotorUp and not MotorDown) => Floor1 ; 
+  assume "A2" true -> pre (Floor2 and not MotorUp and not MotorDown) => Floor2 ;
+ (*
+  -- if the elevator was on the first (second) floor and moved up (down)
+  -- then it has left that floor
+  assume true -> pre (Floor1 and MotorUp) => not Floor1 ;
+  assume true -> pre (Floor2 and MotorDown) => not Floor2 ;
+ *)
+ 
+  -----------
+  -- Modes --
+  -----------
+  mode blocked (
+    require Stop or DoorOpen ;
+    ensure not MotorUp ;
+    ensure not MotorDown ;
+  );
+  
+  mode dispatching1 (
+    require SinceIncl(Call1, not ::blocked and not Floor1  
+                             and not (false -> pre MotorUp)) ;
+    ensure MotorDown ;
+    ensure not MotorUp ;
+  ) ;
+  
+  mode dispatching2 (
+    require SinceIncl(Call2, not ::blocked and not Floor2  
+                             and not (false -> pre MotorDown)) ;
+    require not ::dispatching1; -- added to satisfy R5
+    ensure MotorUp ;
+    ensure not MotorDown ;
+  ) ;
+
+  mode ready (
+    require not ::blocked ;
+    require not ::dispatching1 ;
+    require not ::dispatching2 ;
+    ensure not MotorUp ;
+    ensure not MotorDown ;
+  ) ;
+
+  -------------------------
+  -- Auxiliary variables --
+  -------------------------
+  
+  -- Moving is true iff the elevator is moving now
+  var Moving: bool = MotorUp or MotorDown ;
+  
+  -- Halting is true iff the elevator has just come to a stop
+  var Halting: bool = not Moving and (false -> pre Moving);
+
+  -- The elevator can move now iff 
+  --   the Stop button is not pressed and
+  --   the door is not closed
+  var CanMove: bool = not Stop and not DoorOpen;
+  
+  -- The elevator should start moving iff 
+  --   it was not moving before
+  --   it can move,
+  --   there is a call to go to a floor, and
+  --   the elevator is not a that floor
+  var ShouldMove: bool = (true -> not pre Moving) 
+                         and CanMove
+                         and ((Call1 and not Floor1) or
+                              (Call2 and not Floor2)) ;
+                              
+  ----------------
+  -- Guarantees --
+  ----------------
+  -- The execution modes are mutually exclusive  
+  guarantee "ME" ToInt(::blocked) + ToInt(::dispatching1) + ToInt(::dispatching2) + ToInt(::ready) <= 1 ;
+
+  -- R1: The elevator shall move only when the door is closed and
+  --     the Stop switch is off
+  guarantee "R1" Moving => not DoorOpen and not Stop;
+  -- equivalent version:
+  guarantee "R1eq" Moving => not ::blocked;
+
+  -- R2: The elevator shall not try to pass the end positions.
+  guarantee "R2a" (Floor1 => not MotorDown) ; 
+  guarantee "R2b" (Floor2 => not MotorUp) ;
+
+  -- A moving elevator shall halt only if 
+  -- the stop switch is on
+  -- or the door is open
+  -- or the elevator has arrived at the destination floor.
+  guarantee "R3" Halting => ( Stop 
+                              or DoorOpen
+                              or ((true -> pre MotorDown) and Floor1)
+                              or ((true -> pre MotorUp) and Floor2)
+                            ) ;
+
+  -- R4: The elevator shall halt before changing direction
+  guarantee "R4a" true -> (pre MotorDown => not MotorUp) ; 
+  guarantee "R4b" true -> (pre MotorUp => not MotorDown) ;
+
+  -- R5: The signals sent to the motor shall not be contradictory
+  guarantee "R5" not (MotorUp and MotorDown) ;
+
+  -- R6: The elevator shall start moving when it should
+  guarantee "R6" ShouldMove => Moving ;
+ 
+  -- R7: The elevator shall stay at a floor indefinitely
+  --     while there is no call to the other floor
+  guarantee "R7a" Since(Floor1, not Once(Call2)) => Floor1 ;
+  guarantee "R7b" Since(Floor2, not Once(Call1)) => Floor2 ;
+ tel
+
+--
+
+--------------------------------
+-- Controller low-level specs --
+--------------------------------
+
+node Control( Floor1, Floor2, DoorOpen, Call1, Call2, Stop : bool )
+returns ( MotorUp, MotorDown : bool ) ;
+(*@contract import 
+    ControlSpec ( Floor1, Floor2, DoorOpen, Call1, Call2, Stop )
+    returns ( MotorUp, MotorDown ) ;
+*)
+  var CanMove : bool ;
+let
+  CanMove =  not Stop and not DoorOpen ;
+
+(*
+  The elevator goes up iff all the following hold:
+  1) there is a call to the second floor or it was already going up
+  2) it can move
+  3) it is not on the second floor already
+  4) it was not going down
+*)
+  MotorUp =  (Call2 or (false -> pre MotorUp))
+             and CanMove 
+             and not Floor2
+             and not (false -> pre MotorDown)
+             and not MotorDown -- added to satisfy R5
+             ;
+
+(*
+  The elevator goes down iff all the following hold:
+  1) there is a call to the first floor or it was already going down
+  2) it can move
+  3) it is not on the first floor already
+  4) it was not going up
+*)
+  MotorDown =  (Call1 or (false -> pre MotorDown)) 
+               and CanMove 
+               and not Floor1
+               and not (false -> pre MotorUp) 
+               ;
+
+  --%MAIN;
+tel
+
+
+(*
+  To simulate the elevator system make this the main file first
+
+  The simulator assumes (for brevity) that it takes 4 execution steps 
+  to go from one floor to the other, each corresponding to an intermediate
+  "level". Level 0 corresponds to the first floor, level 4 to the second 
+*)
+node Simulator( Call1, Call2, Stop, DoorOpen : bool )
+returns ( Floor1, Floor2 : bool ) ;
+  var L: int ;
+      MotorUp, MotorDown: bool ;
+let
+  L = 0 -> if pre MotorUp and pre MotorDown then 0
+           else if pre MotorUp then pre L + 1
+           else if pre MotorDown then pre L - 1
+           else pre L ;
+  Floor1 =  L = 0 ;
+  Floor2 =  L = 4 ;
+  
+  (MotorUp, MotorDown) = Control(Floor1, Floor2, DoorOpen, Call1, Call2, Stop) ;
+  -- %MAIN;
+tel
+
+
+-------------------------
+-- Auxiliary operators --
+-------------------------
+
+node Once(X : bool) returns (Y : bool);
+let
+  Y = X or (false -> pre Y) ;
+tel
+
+node Since( X, Y : bool ) returns ( Z : bool );
+let
+  Z =  X or (Y and (false -> pre Z));
+tel
+
+node SinceIncl( X, Y : bool ) returns ( Z : bool );
+let
+  Z =  Y and (X or (false -> pre Z));
+tel
+
+node ToInt(X: bool) returns (N: int);
+let
+  N = if X then 1 else 0;
+tel
+
+node Initially(X: bool) returns (Y: bool)
+let
+  Y = X -> pre Y;
+tel
+
+
+
+
+
+
+--   5) it is not going down (i.e., going down takes precedence over going up)

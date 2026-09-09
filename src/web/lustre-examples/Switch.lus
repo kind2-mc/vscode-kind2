@@ -1,0 +1,16 @@
+-----------------------------------------------------------------
+-- Boolean Switch
+--
+-- Model a switch with two buttons, Set and Reset.
+-- Pressing Set turns the switch on.
+-- Pressing Reset turns the switch off
+-- If Set and Reset are initially both unpressed,
+-- the initial position of the switch is determined by
+-- a third signal, Init
+
+node Switch( Set, Reset, Init : bool ) returns ( X : bool );
+let
+    X =      if Set then true
+        else if Reset then false
+        else (Init -> pre X);
+tel

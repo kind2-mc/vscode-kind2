@@ -22,6 +22,7 @@
     "onLanguage:lustre"
   ],
   "main": "out/main",
+  "browser": "out/web/main",
   "contributes": {
     "languages": [
       {
@@ -70,6 +71,14 @@
           "default": "",
           "order": 0,
           "description": "Path to the kind2 executable used by the extension."
+        },
+        "kind2.web.lsp_url": {
+          "title": "Web LSP URL",
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "",
+          "order": 0,
+          "description": "WebSocket URL used by the web extension. Supports full URLs (wss://example.org/lsp) or relative paths (/lsp). If empty, the extension uses ws(s)://<current-host>/lsp."
         },
         "kind2.smt.smt_solver": {
           "title": "Main SMT Solver",
@@ -221,8 +230,6 @@
           "order": 0,
           "description": "Abstract subnodes with a contract."
         },
-
-
         "kind2.ivc": {
           "scope": "machine-overridable",
           "type": "boolean",
@@ -237,7 +244,7 @@
           "order": 0,
           "description": "Explain results of checks by highlighting principal components."
         },
-         "kind2.ivc_all": {
+        "kind2.ivc_all": {
           "scope": "machine-overridable",
           "type": "boolean",
           "default": false,
@@ -276,15 +283,20 @@
               }
             ]
           },
-          "default": ["node_calls","contracts","equations","assertions","annotations"],
+          "default": [
+            "node_calls",
+            "contracts",
+            "equations",
+            "assertions",
+            "annotations"
+          ],
           "order": 0,
           "description": "Minimize only a specific category of elements"
         },
-
         "kind2.minimize_program": {
           "scope": "machine-overridable",
           "type": "string",
-          "enum":[
+          "enum": [
             "no",
             "valid_lustre",
             "concise"
@@ -293,8 +305,6 @@
           "order": 0,
           "description": "Minimize the source Lustre program according to the inductive validity core(s) computed"
         },
-
-
         "kind2.mcs": {
           "scope": "machine-overridable",
           "type": "boolean",
@@ -302,14 +312,13 @@
           "order": 0,
           "description": "Explain results of checks by highlighting principal components."
         },
-         "kind2.mcs_all": {
+        "kind2.mcs_all": {
           "scope": "machine-overridable",
           "type": "boolean",
           "default": false,
           "order": 0,
           "description": "Compute all the Minimal Inductive Validity Cores"
         },
-        
         "kind2.mcs_categories": {
           "scope": "machine-overridable",
           "type": "array",
@@ -334,15 +343,16 @@
               }
             ]
           },
-          "default": ["node_calls","contracts","equations","assertions","annotations"],
+          "default": [
+            "node_calls",
+            "contracts",
+            "equations",
+            "assertions",
+            "annotations"
+          ],
           "order": 0,
           "description": "Minimize only a specific category of elements"
         },
-
-
-
-
-        
         "kind2.certif.certif": {
           "scope": "machine-overridable",
           "type": "boolean",
@@ -634,7 +644,7 @@
         }
       }
     ],
-     "snippets": [
+    "snippets": [
       {
         "language": "lustre",
         "path": "./snippets/lustre.json"
@@ -642,13 +652,22 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "vscode:prepublish": "npm run esbuild-base -- --minify && npm run esbuild-web -- --minify",
     "esbuild-base": "esbuild src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild-web": "esbuild src/web/extension.ts --bundle --outfile=out/web/main.js --external:vscode --format=cjs --platform=browser",
     "esbuild": "npm run esbuild-base -- --sourcemap",
-    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
+    "check-types": "tsc --noEmit",
+    "package-web": "node esbuild-web.js --production",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "esbuild-web-watch": "npm run esbuild-web -- --sourcemap --watch",
+    "web:run": "npm run esbuild-web && npx vscode-test-web --browser chromium --extensionDevelopmentPath=. --open-devtools .",
+    "web:run:headless": "npm run esbuild-web && npx vscode-test-web --browser chromium --extensionDevelopmentPath=. --headless --host 0.0.0.0 --port 3000 ./src/web/lustre-examples",
+    "web:serve": "npm run esbuild-web && npx vscode-test-web --browser none --extensionDevelopmentPath=. --host 0.0.0.0 --port 3000 --verbose ./src/web/lustre-examples"
   },
   "dependencies": {
-    "vscode-languageclient": "^6.1.4"
+    "path-browserify": "^1.0.1",
+    "vscode-languageclient": "^8.1.0",
+    "vscode-ws-jsonrpc": "^3.5.0"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
@@ -657,8 +676,9 @@
     "@types/vscode": "^1.67.0",
     "@typescript-eslint/parser": "^5.30.0",
     "@vscode/test-electron": "^2.1.5",
+    "@vscode/test-web": "^0.0.81",
     "@vscode/vsce": "^3.4.2",
-    "esbuild": "^0.25.5",
+    "esbuild": "^0.25.12",
     "eslint": "^8.18.0",
     "js-yaml": "^4.1.0",
     "mocha": "^11.5.0",

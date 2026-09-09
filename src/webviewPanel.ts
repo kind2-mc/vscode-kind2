@@ -4,8 +4,6 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
 import * as vscode from 'vscode';
 
 /**
@@ -20,13 +18,12 @@ export class WebPanel {
   private static readonly viewType = 'angular';
 
   private readonly panel: vscode.WebviewPanel;
-  private readonly extensionPath: string;
-  private readonly builtAppFolder: string;
+  private readonly extensionUri: vscode.Uri;
   private ready: boolean;
-  private onReady: () => void;
+  private onReady: () => void = () => undefined;
   private disposables: vscode.Disposable[] = [];
 
-  public static createOrShow(extensionPath: string): WebPanel {
+  public static createOrShow(extensionUri: vscode.Uri): WebPanel {
     const column = vscode.ViewColumn.Beside;
 
     // If we already have a panel, show it.
@@ -36,7 +33,7 @@ export class WebPanel {
         WebPanel.currentPanel.panel.reveal(column);
       }
     } else {
-      WebPanel.currentPanel = new WebPanel(extensionPath, column || vscode.ViewColumn.One);
+      WebPanel.currentPanel = new WebPanel(extensionUri, column || vscode.ViewColumn.One);
     }
     return WebPanel.currentPanel;
   }
@@ -55,10 +52,9 @@ export class WebPanel {
     return await this.panel.webview.postMessage(message);
   }
 
-  private constructor(extensionPath: string, column: vscode.ViewColumn) {
+  private constructor(extensionUri: vscode.Uri, column: vscode.ViewColumn) {
     this.ready = false;
-    this.extensionPath = extensionPath;
-    this.builtAppFolder = path.join('out', 'interpreter');
+    this.extensionUri = extensionUri;
 
     // Create and show a new webview panel
     this.panel = vscode.window.createWebviewPanel(WebPanel.viewType, 'Kind 2 Simulation View', column, {
@@ -66,12 +62,12 @@ export class WebPanel {
       enableScripts: true,
 
       // And restrict the webview to only loading content from our extension's `media` directory.
-      localResourceRoots: [vscode.Uri.file(path.join(this.extensionPath, this.builtAppFolder))]
+      localResourceRoots: [vscode.Uri.joinPath(this.extensionUri, 'out', 'interpreter')]
     });
 
     // Set the webview's initial html content
-    this.panel.webview.html = this._getHtmlForWebview();
-    this.panel.iconPath = vscode.Uri.file(path.join(this.extensionPath, "icons", "kind.png"));
+    void this._setWebviewHtml();
+    this.panel.iconPath = vscode.Uri.joinPath(this.extensionUri, 'icons', 'kind.png');
 
     // Listen for when the panel is disposed
     // This happens when the user closes the panel or when the panel is closed programmatically
@@ -88,7 +84,7 @@ export class WebPanel {
           vscode.window.showErrorMessage(message.text);
         } else if (message.command === "closeWebView"){
            console.log("Trying to close webview panel");
-           WebPanel.currentPanel.panel.dispose();
+            WebPanel.currentPanel?.panel.dispose();
         } else {
           await vscode.commands.executeCommand(message.command, message.args[0], message.args[1], message.args[2]);
         }
@@ -115,23 +111,13 @@ export class WebPanel {
   /**
    * Returns html of the start page (index.html)
    */
-  private _getHtmlForWebview(): string {
-    // path to dist folder
-    const appDistPath = path.join(this.extensionPath, 'out', 'interpreter');
-    const appDistPathUri = vscode.Uri.file(appDistPath);
+  private async _setWebviewHtml(): Promise<void> {
+    const appDistPath = vscode.Uri.joinPath(this.extensionUri, 'out', 'interpreter');
+    const baseUri = this.panel.webview.asWebviewUri(appDistPath);
+    const indexUri = vscode.Uri.joinPath(appDistPath, 'index.html');
+    const indexBytes = await vscode.workspace.fs.readFile(indexUri);
+    const indexHtml = new TextDecoder('utf-8').decode(indexBytes).replace('<base href="/">', `<base href="${String(baseUri)}/">`);
 
-    // path as uri
-    const baseUri = this.panel.webview.asWebviewUri(appDistPathUri);
-
-    // get path to index.html file from dist folder
-    const indexPath = path.join(appDistPath, 'index.html');
-
-    // read index file from file system
-    let indexHtml = fs.readFileSync(indexPath, { encoding: 'utf8' });
-
-    // update the base URI tag
-    indexHtml = indexHtml.replace('<base href="/">', `<base href="${String(baseUri)}/">`);
-
-    return indexHtml;
+    this.panel.webview.html = indexHtml;
   }
 }

@@ -1,0 +1,10 @@
+-- the current value of Sum(X) is the sum of all values of X up to now
+node sum (X: int) returns (S: int);
+let
+   S =  X ->  X + (pre S);
+tel
+
+--        0   1   2   3   4   5 ...
+--   -------------------------------
+--   X =  5,  3, -1,  2,  7,  8, ...
+--   S =  5,  8,  7,  9, 16, 24, ...

@@ -1,0 +1,99 @@
+-----------------------------------------------------------------
+-- Boolean Switch
+--
+-- Model a switch with two buttons, Set and Reset.
+-- Pressing Set turns the switch on.
+-- Pressing Reset turns the switch off
+-- If Set and Reset are initially both unpressed,
+-- the initial position of the switch is determined by
+-- a third signal, Init
+
+node Switch( Set, Reset, Init : bool ) returns ( X : bool );
+let
+    X =      if Set then true
+        else if Reset then false
+        else (Init -> pre X);
+tel
+
+------------------------------------------------------------------
+-- The following observer expresses 3 safety requirements
+-- for the switch.
+
+--  R1: Setting turns the switch on
+--  R1: Resetting turns the switch off
+--  R3: Doing nothing keeps the switch as it was
+--  R4: The reset signal is ignore when Set is true
+--  R5: If the switch is on, it stays so until the next reset
+--  R6: If the switch is off, it stays so until the next set
+--  R7: Never setting or resetting maintains the initial position
+
+
+-- Notes
+--   - In R4 "ignoring" means that the behavior of Switch is exactly the same,
+--     independently of the value of Reset when Set is true.
+--   - R5 is equivalent to: if we have not reset, since the last time we set
+--     then the switch is on
+--   - R6 is equivalent to: if we have not set, since the last time we reset
+--     then the switch is off
+
+
+--------------------------------
+-- Auxiliary temporal operators
+--------------------------------
+
+-- First(X) is the constant stream consisting of the first value of X
+node First( X : bool ) returns ( Y : bool );
+let
+  Y = X -> pre Y;
+tel
+
+-- Sofar(X) is true at any point iff X has been true from the beginning
+-- until that point
+node Sofar( X : bool ) returns ( Y : bool );
+let
+  Y = X -> (X and (pre Y));
+tel
+
+-- Since(X,Y) is true precisely when X has been true at some point and
+-- Y has been continuously true afterwards
+node Since( X, Y : bool ) returns ( Z : bool );
+let
+  Z = X or (Y and (false -> pre Z));
+tel
+
+
+node SwitchReq( Set, Reset, Reset2, Init : bool )
+returns ( R1, R2, R3, R4, R5, R6, R7 : bool ) ;
+var X : bool;
+let
+  X = Switch( Set, Reset, Init ) ;
+
+  R1 = Set => X ;  -- not Set or X;
+
+  R2 = (not Set and Reset) => not X ;
+
+  R3 = true -> ((not Set and not Reset) => X = pre X) ;
+       -- note the use of true in for the first instant
+       -- since the requirement is not meaningful then
+
+  R4 = Set => Switch(Set, Reset, Init) = Switch(Set, Reset2, Init) ;
+       -- Note the use of use of the an extra reset input signal in the observer,
+       -- which can be arbitrarily different from the first reset signal
+
+  R5 = Since( Set, not Reset ) => X ;
+
+  R6 = Since( Reset and not Set, not Set ) => not X ;
+       -- Note that we need to add "and not Set" since resetting has no effect
+       -- when set is also true
+
+  R7 = Sofar( not Set and not Reset ) =>  (X = First(Init));
+
+--%MAIN;
+--%PROPERTY R1;
+--%PROPERTY R2;
+--%PROPERTY R3;
+--%PROPERTY R4;
+--%PROPERTY R5;
+--%PROPERTY R6;
+--%PROPERTY R7;
+tel

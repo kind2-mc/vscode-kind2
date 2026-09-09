@@ -1,0 +1,88 @@
+-----------------------------------------------------------------
+-- Three Boolean switch implementations
+--
+-- Model a switch with two buttons, Set and Reset.
+-- Pressing Set turns the switch on.
+-- Pressing Reset turns the switch off
+-- If Set and Reset are initially both unpressed,
+-- the initial position of the switch is determined by
+-- a third signal, Init
+
+-- this implementation prefers Set over Reset when they are both true
+node Switch1( Set, Reset, Init: bool )
+returns ( X: bool );
+let
+  X = if Set then true else
+        if Reset then false else
+          (Init -> pre X);
+tel
+
+-- this implementation prefers Reset over Set when they are both true
+node Switch2( Set, Reset, Init: bool )
+returns ( X: bool );
+let
+  X = if Reset then false else
+        if Set then true else
+          (Init -> pre X);
+tel
+
+-- Both implementations above are correct with respect to the specs
+-- because the specs do not prescribe what to do when both
+-- Set and Reset are true
+
+
+-- this implementation is a more compact version of Switch1
+node Switch3( Set, Reset, Init : bool ) returns ( X : bool );
+let
+  X = Set or (not Reset and (Init -> pre X)) ;
+tel
+
+
+-- auxiliary temporal operators
+node Sofar( X: bool ) returns ( Y: bool );
+let
+  Y = X and (true -> pre Y);
+tel
+
+node Since( X, Y : bool )
+returns ( SinceXY : bool );
+let
+  SinceXY = X or (Y and (false -> pre SinceXY));
+tel
+
+
+
+-----------------------------------------------------------------
+-- We would like to prove that:
+--
+--   R1: if Set and Reset are never true at the same time,
+--       then Switch1 and Switch2 behave in the same way
+--
+--   R2: Switch1 and Switch3 have the same external behaviour in all cases
+--
+
+-- Try to verify it and see what happens!
+
+node ReqSwitches( Set, Reset, Init: bool )
+returns ( R1, R1b, R2: bool );
+var S1, S2, S3: bool;
+let
+  S1 = Switch1( Set, Reset, Init );
+  S2 = Switch2( Set, Reset, Init );
+  S3 = Switch3( Set, Reset, Init );
+
+  R1 = not (Set and Reset) => (S1 = S2);  -- wrong!
+
+-- We need to make a stronger assumption, namely that Set and Reset
+-- never have been true at the same time *up to this point*. We can
+-- do this using the temporal combinator Sofar:
+--
+  R1b = Sofar(not (Set and Reset)) => (S1 = S2);
+
+  R2 = (S1 = S3);
+
+--%MAIN;
+--%PROPERTY R1;
+--%PROPERTY R1b;
+--%PROPERTY R2;
+tel

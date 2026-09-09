@@ -1,0 +1,42 @@
+----------------------------------------------------------------------
+-- A node that outputs true whenever there is a rising edge
+-- on its input stream.
+----------------------------------------------------------------------
+node RisingEdge( X: bool ) returns ( Y: bool );
+let
+  Y = false -> X and not pre X;
+tel
+
+----------------------------------------------------------------------
+-- A node that outputs true whenever there is a falling edge
+-- on its input stream.
+----------------------------------------------------------------------
+node FallingEdge( X: bool ) returns ( Y: bool );
+let
+ Y = false -> not X and pre X;
+tel
+
+----------------------------------------------------------------------
+-- This node has the same behaviour as the FallingEdge node above. 
+-- It just has a different implementation, using RisingEdge.
+----------------------------------------------------------------------
+node FallingEdge2( X: bool ) returns ( Y: bool );
+let
+  Y = RisingEdge(not X);
+tel
+
+----------------------------------------------------------------------
+-- A synchronous observer that checks whether the two implementations 
+-- of the falling edge are equal. 
+--
+-- Prove this using Kind 2.
+--
+-- Try to make other implementations of FallingEdge and check them 
+-- too.
+----------------------------------------------------------------------
+node EdgeReq(X: bool) returns(OK: bool);
+let
+  OK =  FallingEdge(X) = FallingEdge2(X);
+--%MAIN;
+--%PROPERTY OK;
+tel

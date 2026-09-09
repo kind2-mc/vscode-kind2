@@ -1,0 +1,298 @@
+(* Source: 
+
+   [1] Principles of Cyber-Physical Systems
+       by Rajeev Alur
+       MIT Press, 2015
+       https://www.cis.upenn.edu/~alur/pcps.html
+
+   Car and cruise controller examples from Chap. 6
+
+   Adapted to Kind 2 by CT
+*)
+
+
+-- This constant is used by in this model as a measure of the time 
+-- taken by each execution step. It must be positive.
+const STEP_TIME : real = 1.0 ; -- seconds
+
+
+-- The integrator node considers the stream as a function over time.
+-- At each step i, integrator(F, F0) computes an approximation of
+-- the integral of F(t) from time 0 to time i * STEP_TIME, with an
+-- initial value equal to the initial value of F0.
+-- Decreasing the value of STEP_TIME increases the sampling rate
+-- of the approximation and hence improves its quality.
+node integrator(F, F0: real) returns (I: real) ; 
+let
+  I =  F0 -> pre I + (F + pre F) * STEP_TIME / 2.0 ; 
+tel;
+
+
+-- At each step i, time() returns the elapsed time since time 0
+-- based on the duration of each step given by 'STEP_TIME'.
+node time() returns (t: real) ;
+let
+  t = 0.0 -> pre t + STEP_TIME ;
+tel;
+
+
+
+-------------------
+-- Auxiliary nodes 
+-------------------
+
+-- Sofar(X) is true at any point iff X has been true from
+-- the beginning until that point (it is the same as the 
+-- Historically operator of Past LTL).
+node Sofar(X: bool) returns (Y: bool) ;
+let
+  Y =  X -> (X and (pre Y)) ;
+tel;
+
+-- dist(x, y) is the distance on a line between points x and y
+function dist(x, y: real) returns (d: real);
+let
+  d = if x > y then x - y else y - x ; 
+tel;
+
+
+----------
+-- Events
+----------
+
+-- For simplicity, the event type is implemented as the bool type
+type event = bool ;
+
+-- Pres(e) is true iff the event e is present
+function Pres(e: event) returns (b: bool) ;
+let
+  b = e ;
+tel;
+
+-- Abs(e) is true iff the event e is absent
+function Abs(e: event) returns (b: bool) ;
+let
+  b = not e ;
+tel;
+
+
+-------------
+-- Car model
+-------------
+
+(*
+  The node below approximates the continuous dynamics of a car moving
+  on a horizontal surface, with no air drag (for simplicity) where 
+  the only friction is on the wheels. The car is propelled forward
+  by a force F produced by its engine.
+  Based on Figure 6.3 of Alur [1].
+*)
+
+-- friction coefficient
+const k: real = 50.0 ;
+-- car mass
+const m: real = 1000.0 ; --kg 
+
+-- Car(v0, F) returns the velocity of the car over time when subject
+-- to a propelling force F and starting at speed 'v0' at time 0.
+node Car(F: real; const v0: real) returns (v: real) ;
+   var pre_v: real ; --previous value of v 
+--  vx: real ; -- car position, not really needed later  
+
+let -- the car dynamics are based on Newton's law of motion
+  pre_v =  v0 -> pre v ;
+  -- x = integrator(pre_v, x0) ; 
+  v = integrator((F - k * pre_v)/m, v0) ;
+
+  -- %MAIN ;
+tel;
+
+
+-- Wrapper node for checking properties of 'Car' in a given scenario
+node check_Car(F: real; const v0: real) returns (v: real) ;
+(*@contract 
+  var t : real = time() ;
+  -- The following assumptions provide possible scenario for analysis:
+  -- The car is subject to a constant force
+  assume F = 500.0 ;
+  -- The car's initial velocity is 0
+  assume v0 = 0.0 ;
+
+  -- Under the given assumptions, the system exhibits these properties:
+  -- * The velocity never decreases
+  --   (this is modulo a small error due the integral approximation; 
+  -- * the error can be reduced by increasing the sampling rate)
+  guarantee "P1" true -> pre v <= v + 0.2 ;
+
+  -- velocity does not increase indefinitely and is bounded above
+  guarantee "P2" v <= 10.5 ;
+
+  -- velocity will pass 7 m/s after 19 seconds
+  -- (this is a form of _bounded_ liveness)
+  guarantee "P3" t >= 20.0 => v > 6.0 ;
+
+  -- velocity stays close to 10 after some specific time, i.e., 55 seconds
+  -- (this is a form of _bounded_ stability)
+  guarantee "P4" t >= 55.0 => dist(v, 10.0) < 1.5 ;
+*)
+let
+  v = Car(F, v0) ;
+
+  -- %MAIN ;
+tel
+
+-------------------------
+-- Car Cruise Controller
+-------------------------
+
+(*
+   Based on cruise controller example in Section 2 of 2 of Alur [1].
+   The main difference is that speeds and force are computed as real
+   values here instead of nat/int values. Also, outputs are provided
+   continually, instead of being events.
+   The Force value is 0 exactly when the corresponding event in Alur's 
+   formulation is absent. 
+*)
+
+-- 'MeasureSpeed' returns the currend car speed by counting the number 
+-- of wheel revolutions per second.
+-- The input events 'second' and 'rotate' respectively mark time and
+-- the completion of a full revolution.
+
+node MeasureSpeed(second, rotate: event) returns (speed: real);
+  -- 'ks' is a conversion coefficient to compute the speed in meters/second
+  -- from the number of revolutions/second. It depends on the size of 
+  -- the wheel. Its value below is currently bogus.
+  const ks: real = 1.0 ;
+  var count: real ;
+let
+  count = 0.0 -> if Pres(second) then 0.0
+                 else if Pres(rotate) then pre count + 1.0
+                 else pre count ;
+  speed = 0.0 -> if Pres(second) then ks * count else pre speed ;
+tel;
+
+
+-- Minimum car speed for the cruise controller 
+const minSpeed: real = 10.0 ; -- m/s = ~36 km/h = ~ 22 mi/hr
+-- Maximum car speed for the cruise controller 
+const maxSpeed: real = 30.0 ; -- m/s = ~108 km/h = ~ 67 mi/hr
+
+
+-- 'SetSpeed' contains the Cruise Controller's logic.
+-- SetSpeed(cruise, dec, inc, speed) returns the current desired 
+-- cruise speed based on the current car speed 'speed' and the inputs 
+-- coming from the driver ('cruise' turns the system on and off, 
+-- 'inc' and 'dec' increase and decrease the desired speed).
+node SetSpeed(cruise, dec, inc: event; speed: real) returns (cruiseSpeed: real);
+  var s, pre_s: real ;
+      on: bool ;
+let
+  on = Pres(cruise) -> (if Pres(cruise) then not pre on else pre on) ;
+
+  -- previous car speed (set to minimium speed initially)
+  pre_s = minSpeed -> pre s;
+
+  -- desired cruise speed
+  s =  if Pres(cruise) then (
+         if speed < minSpeed then minSpeed
+         else if speed > maxSpeed then maxSpeed
+         else speed
+       )
+       else if Pres(dec) and on and pre_s > minSpeed then pre_s - 1.0
+       else if Pres(inc) and on and pre_s < maxSpeed then pre_s + 1.0 
+       else pre_s ;
+  -- output cruise speed is 0 when the cruise controller is off
+  cruiseSpeed = if on then s else 0.0 ; 
+
+  --% MAIN ;
+tel;
+
+
+(*
+   The controller for the car speed is a PI controller with the following
+   values for the gain constant 'K_P' and the integral gain constant 'K_I'
+   (See Section 6 of Alur [1]).
+*)
+const K_P: real = 600.0 ;
+const K_I: real = 40.0 ;
+
+
+-- PI controller for the car. The force 'F' depends on the difference
+-- 'e' between the current speed and the desired speed 
+node ControlSpeed(speed, cruiseSpeed: real) returns (F: real);
+  var e: real ;
+let
+  e = cruiseSpeed - speed ;
+  F = K_P * e +
+      K_I * integrator(e, e) ;
+tel;
+
+
+-- CruiseController is the top-level node for the overall cruise controller.
+-- (See Figure 2.29 of [1])
+node CruiseController(second, rotate, cruise, dec, inc: event) 
+returns (speed, cruiseSpeed, F: real) ;
+let
+  F = ControlSpeed(speed, cruiseSpeed) ;
+  cruiseSpeed = SetSpeed(cruise, dec, inc, speed) ;
+  speed = MeasureSpeed(second, rotate) ;
+tel;
+
+
+-- This variation of the cruise controller replaces the 'MeasureSpeed'
+-- node with the plant model (of the car).
+-- 'v0' is the value of the car's initial speed.
+node CruiseController2(cruise, dec, inc: event; const v0: real) 
+returns (speed, cruiseSpeed, F: real) ;
+let
+  cruiseSpeed = SetSpeed(cruise, dec, inc, speed) ;
+  F = ControlSpeed(speed, cruiseSpeed) ;
+  speed = Car(0.0 -> pre F, 0.0) ;
+tel
+
+
+-- Wrapper node for checking properties of 'CruiseController2' 
+-- in a given scenario
+node check_CruiseController2(cruise, dec, inc: event; const v0: real) 
+returns (speed, cruiseSpeed, F: real) ;
+(*@contract 
+  var t : real = time() ;
+
+  -- Assumptions set a scenario where the cruise controller is turned on
+  -- at time 0 and never turned off, and there are no 'inc' events ever.
+  assume cruise -> not cruise ;
+  assume not inc ;
+
+  -- Car does not decelerate (modulo a small error margin)
+  guarantee "Accelerating" true -> pre speed <= speed + 0.85;
+
+  -- Car speed is bounded above by the cruise speed
+  -- (modulo an overshooting error caused by integral approximation)
+  guarantee "Bounded speed" speed < cruiseSpeed + 2.0 ;
+
+  -- Car speed goes above 8 m/s in 3s and stays above
+  guarantee "Sprinting" t >= 3.0 => speed > 8.0 ;
+*)
+let
+  (speed, cruiseSpeed, F) = CruiseController2(cruise, dec, inc, v0) ;
+  --%MAIN ;
+tel
+
+
+-- This simulator node runs the cruise controller and returns
+-- its outputs as integer values, for easier display
+-- (Kind 2's values for real-typed streams are infinite precision rationals) 
+node CCSimulator(cruise, dec, inc: event; const v0: real) 
+returns (iSpeed, iCSpeed, force: int) ;
+  var speed, cruiseSpeed, F: real ;
+let
+  (speed, cruiseSpeed, F) = CruiseController2(cruise, dec, inc, v0) ;
+
+  iSpeed = int(speed) ;
+  iCSpeed = int(cruiseSpeed) ;
+  force = int(F) ;
+
+  -- %MAIN ;
+tel
+

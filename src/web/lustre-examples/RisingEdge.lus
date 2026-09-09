@@ -1,0 +1,10 @@
+----------------------------------------------------------------------
+-- node RisingEdge
+-- returns true if input changes from negative to positive
+----------------------------------------------------------------------
+
+node RisingEdge( X : bool ) returns ( Y : bool );
+
+let
+  Y = false -> X and not pre X;
+tel

@@ -1,0 +1,118 @@
+
+const MIN_SPEED : real = 25.0;
+const MAX_SPEED : real = 130.0;
+const SPEED_CHANGE_STEP : real = 1.0;
+const FORCE_COEFFICIENT : real = 0.1;
+
+
+node ToInt
+  (b : bool)
+returns
+  (i : int);
+let
+  i = (if (b) then (1) else (0));
+tel
+
+node Max
+  (a : real;
+  b : real)
+returns
+  (z : real);
+let
+  z = (if (((a) >= (b))) then (a) else (b));
+tel
+
+node UnchangedReal
+  (n : real)
+returns
+  (b : bool);
+let
+  b = ((true) -> (((n) = ((pre (n))))));
+tel
+
+node InitiallyHolds
+  (X : bool)
+returns
+  (Y : bool);
+let
+  Y = ((X) -> (true));
+tel
+
+node imported SetSpeed
+  (on_off : bool;
+  resume_speed : bool;
+  set_speed : bool;
+  inc : bool;
+  dec : bool;
+  brake_cancel : bool;
+  speed : real)
+returns
+  (desired_speed : real;
+  enabled : bool);
+(*@contract
+  var off_mode : bool = ((true) -> ((((((((((pre (off_mode))) and ((not (on_off))))) or ((((pre (ready_mode))) and (on_off))))) or ((((pre (on_mode))) and (on_off))))) or ((((pre (paused_mode))) and (on_off))))));
+  var set_condition : bool = ((((set_speed) and (((MIN_SPEED) <= (speed))))) and (((speed) <= (MAX_SPEED))));
+  var ready_mode : bool = ((false) -> ((((((((pre (ready_mode))) and ((not (on_off))))) or ((((pre (ready_mode))) and ((not (set_condition))))))) or ((((pre (off_mode))) and (on_off))))));
+  var on_mode : bool = ((false) -> ((((((((((pre (on_mode))) and ((not (on_off))))) or ((((pre (on_mode))) and ((not (brake_cancel))))))) or ((((pre (ready_mode))) and (set_condition))))) or ((((pre (paused_mode))) and (resume_speed))))));
+  var paused_mode : bool = ((false) -> ((((((((pre (paused_mode))) and ((not (on_off))))) or ((((pre (paused_mode))) and ((not (resume_speed))))))) or ((((pre (on_mode))) and (brake_cancel))))));
+  var setting_condition : bool = ((false) -> ((((pre (ready_mode))) and (set_condition))));
+  var increment_condition : bool = ((false) -> ((((((pre (on_mode))) and (inc))) and ((((pre (desired_speed))) <= (((MAX_SPEED) - (SPEED_CHANGE_STEP))))))));
+  var decrement_condition : bool = ((false) -> ((((((pre (on_mode))) and (dec))) and ((((pre (desired_speed))) >= (((MIN_SPEED) + (SPEED_CHANGE_STEP))))))));
+  var invariance_condition : bool = (((((not (setting_condition))) and ((not (increment_condition))))) and ((not (decrement_condition))));
+  assume ((speed) > (0.0));
+  assume ((((((((((ToInt(on_off)) + (ToInt(resume_speed)))) + (ToInt(set_speed)))) + (ToInt(inc)))) + (ToInt(dec)))) <= (1));
+  guarantee "Cruise control is enabled if and only if it is On" ((enabled) = (on_mode));
+  guarantee "Desired speed setting" ((setting_condition) => (((desired_speed) = (speed))));
+  guarantee "Desired speed increment" ((true) -> (((increment_condition) => (((desired_speed) = ((((pre (desired_speed))) + (SPEED_CHANGE_STEP))))))));
+  guarantee "Desired speed decrement" ((true) -> (((decrement_condition) => (((desired_speed) = ((((pre (desired_speed))) - (SPEED_CHANGE_STEP))))))));
+  guarantee "Desired speed invariance" ((true) -> (((invariance_condition) => (((desired_speed) = ((pre (desired_speed))))))));
+*)
+
+node imported ControlSpeed
+  (speed : real;
+  desired_speed : real)
+returns
+  (force : real);
+(*@contract
+  assume ((speed) > (0.0));
+  guarantee "Force is zero when desired speed is not greater than the current speed" ((((desired_speed) <= (speed))) => (((force) = (0.0))));
+  guarantee "Force is bounded by a proportional factor of the speed difference" ((force) >= (Max(0.0, ((FORCE_COEFFICIENT) * (((desired_speed) - (speed)))))));
+*)
+
+node CruiseControllerSystem_Impl
+  (on_off : bool;
+  resume_speed : bool;
+  set_speed : bool;
+  inc : bool;
+  dec : bool;
+  brake_cancel : bool;
+  speed : real)
+returns
+  (force : real;
+  enabled : bool;
+  desired_speed : real);
+(*@contract
+  var disabled : bool = (not (enabled));
+  var no_button_pressed : bool = (((((((((((not (on_off))) and ((not (resume_speed))))) and ((not (set_speed))))) and ((not (inc))))) and ((not (dec))))) and ((not (brake_cancel))));
+  assume ((speed) > (0.0));
+  assume ((((((((((ToInt(on_off)) + (ToInt(resume_speed)))) + (ToInt(set_speed)))) + (ToInt(inc)))) + (ToInt(dec)))) <= (1));
+  guarantee "1. Cruise Controller System is enabled only if desired speed is within Cruise Controller minimum and maximun speed" ((enabled) => (((((desired_speed) >= (MIN_SPEED))) and (((desired_speed) <= (MAX_SPEED))))));
+  guarantee "2. Cruise Controller System is disabled initially" InitiallyHolds(disabled);
+  guarantee "3. When Cruise Controller System is disabled, the desired speed does not get changed" ((disabled) => (UnchangedReal(desired_speed)));
+  guarantee "4. When Cruise Controller System is enabled and speed increase request does not exceed the maximum cruise controller speed, the desired speed is then increased accordingly" ((true) -> (((((((enabled) and (inc))) and ((((pre (desired_speed))) <= (((MAX_SPEED) - (SPEED_CHANGE_STEP))))))) => (((desired_speed) = ((((pre (desired_speed))) + (SPEED_CHANGE_STEP))))))));
+  guarantee "5. When Cruise Controller System is enabled and speed decrease request does not make desired speed become less than the minimum cruise controller speed, the desired speed is then decreased accordingly" ((true) -> (((((((enabled) and (dec))) and ((((pre (desired_speed))) > (((MIN_SPEED) + (SPEED_CHANGE_STEP))))))) => (((desired_speed) = ((((pre (desired_speed))) - (SPEED_CHANGE_STEP))))))));
+  guarantee "6. When Cruise Controller System is enabled and no button is pressed, the desired speed does not get changed" ((((enabled) and (no_button_pressed))) => (UnchangedReal(desired_speed)));
+  guarantee "7. Force is zero if Cruise Controller System is enabled and the desired speed is not greater than the current speed" ((((enabled) and (((desired_speed) <= (speed))))) => (((force) = (0.0))));
+  guarantee "8. Force is positive if Cruise Controller System is enabled and the desired speed is greater than the current speed" ((((enabled) and (((desired_speed) > (speed))))) => (((force) > (0.0))));
+*)
+var
+  setSpeed_port_desired_speed : real;
+  setSpeed_port_enabled : bool;
+  controlSpeed_port_force : real;
+let
+  setSpeed_port_desired_speed, setSpeed_port_enabled = SetSpeed(on_off, resume_speed, set_speed, inc, dec, brake_cancel, speed);
+  controlSpeed_port_force = ControlSpeed(speed, setSpeed_port_desired_speed);
+  enabled = setSpeed_port_enabled;
+  force = controlSpeed_port_force;
+  desired_speed = setSpeed_port_desired_speed;
+tel

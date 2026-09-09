@@ -1,0 +1,25 @@
+-- s() = 1,2,3,3,3,3,...
+-- note: we use _ for inputs that are ignored by the node
+node s (_:bool) returns (X: int);
+let
+  X = 1 -> if (pre X) < 3 then (pre X) + 1 else 3 ;
+tel
+
+-- more compact version of s
+node s1 (_:bool) returns (X:  int);
+let
+  X = 1 -> pre (2 -> 3);
+tel
+-- (2 -> 3)     =   2, 3, 3, 3, ...
+-- pre (2 -> 3) =  //, 2, 3, 3, ...
+-- X            =   1, 2, 3, 3, ...
+
+
+-- observer node that returns true iff s() is the same as s1()
+node obs_s(_:bool) returns (OK: bool);
+let
+  OK = (s(_) = s1(_));
+
+--%MAIN;
+--%PROPERTY OK;
+tel

@@ -1,0 +1,9 @@
+----------------------------------------------------------------------
+-- A node that outputs true whenever there is a falling edge
+-- on its input stream.
+----------------------------------------------------------------------
+
+node FallingEdge( X: bool ) returns ( Y: bool );
+let
+  Y = false -> not X and pre X;
+tel

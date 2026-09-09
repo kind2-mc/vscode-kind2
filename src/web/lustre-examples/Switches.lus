@@ -1,0 +1,44 @@
+-----------------------------------------------------------------
+-- Three Boolean switch implementations
+--
+-- Model a switch with two buttons, Set and Reset.
+-- Pressing Set turns the switch on.
+-- Pressing Reset turns the switch off
+-- If Set and Reset are initially both unpressed,
+-- the initial position of the switch is determined by
+-- a third signal, Init
+
+-- this implementation prefers Set over Reset when they are both true
+node Switch( Set, Reset, Init: bool )
+returns ( X: bool );
+let
+  X = if Set then true else
+        if Reset then false else
+          (Init -> pre X);
+--%MAIN;
+tel
+
+-- this implementation prefers Reset over Set when they are both true
+node Switch2( Set, Reset, Init: bool )
+returns ( X: bool );
+let
+  X = if Reset then false else
+        if Set then true else
+          (Init -> pre X);
+-- %MAIN;
+tel
+
+
+-- Both implementations are correct with respect to the specs
+-- because the specs do not prescribe what to do when both
+-- Set and Reset are true
+
+-- this implementation is a more compact version of Switch1
+node Switch3( Set, Reset, Init : bool ) returns ( X : bool );
+let
+  X = Set or (not Reset and (Init -> pre X)) ;
+
+-- %MAIN;
+tel
+
+-- Use --%MAIN; to activate one of them for simulation

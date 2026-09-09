@@ -1,0 +1,11 @@
+----------------------------------------------------------------------
+-- node UpCounter,
+-- C starts at 0 and keeps increasing by 1 until
+-- Reset is true, in which case C goes back to 0
+----------------------------------------------------------------------
+
+node UpCounter( Reset: bool ) returns ( C: int );
+
+let
+  C = 0 -> if Reset then 0 else (pre C) + 1 ;
+tel

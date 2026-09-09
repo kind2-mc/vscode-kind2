@@ -1,0 +1,107 @@
+-----------------------------------------------------------------
+--  an integer switch
+
+node SwitchInt( Set : bool; X : int )
+returns ( Y : int );
+let
+  Y = if Set then X else (0 -> pre Y);
+tel
+
+
+------------------------------------------------------------------
+-- Auxiliary Temporal operators
+------------------------------------------------------------------
+
+node Sofar( X : bool )
+returns ( Y : bool );
+let
+  Y = X and (true -> pre Y);
+tel
+
+node First( X : int )
+returns ( a : int );
+let
+  a = X -> pre a;
+tel
+
+node Since( X, Y : bool )
+returns ( SinceXY : bool );
+let
+  SinceXY = X or (Y and (false -> pre SinceXY));
+tel
+
+node SinceIncl( X, Y : bool )
+returns ( SinceXY : bool );
+let
+  SinceXY = Y and (X or (false -> pre SinceXY));
+tel
+
+
+
+-----------------------------------------------------------------
+--  Prove that:
+--
+--   "the SwitchInt node ignores its integer input X when the
+--    input Set is false"
+
+node ReqSwitchIgnoresX( Set : bool; X1,X2: int ) returns ( P : bool );
+var Env : bool;
+let
+
+   Env = Sofar(Set => X1 = X2);
+   P  = Env => SwitchInt(Set,X1) = SwitchInt(Set,X2);
+
+-- %MAIN;
+-- %PROPERTY P;
+tel
+
+-----------------------------------------------------------------
+-- We would like to prove that:
+--
+--   SwitchInt(Set,X) is always the last set value of X"
+--
+--  Let us first do a simple version of this:
+--
+--   "If, since the last time the switch was set to 3, we have not
+--    set the switch, Y must be 3"
+
+node ReqSwitchIntSimple( Set : bool; X : int ) returns ( P, Q : bool );
+var Y : int;
+let
+  Y = SwitchInt( Set, X );
+
+  P = Since( Set and X = 3, not Set ) => Y = 3;
+
+  -- Please note what happens if you use the SinceIncl node here:
+  -- Try to verify this using Kind 2:
+  Q = SinceIncl( Set and X = 3, not Set ) => false;
+  -- If you assume a contradiction, what can you prove?
+
+-- %MAIN;
+-- %PROPERTY P;
+-- %PROPERTY Q;
+tel
+
+-----------------------------------------------------------------
+-- In order to prove that:
+--
+--   "If, since the last time the switch was set to a, we have not
+--    set the switch, Y must be a"
+--
+--  For all constants a, we need to introduce a constant stream a.
+--  We can do this using the temporal combinator First:
+
+node ReqSwitchInt( Set : bool; X : int; A : int ) returns ( P : bool );
+var Y : int; a : int;
+let
+  a = First( A );
+  Y = SwitchInt( Set, X );
+
+  -- "Y always has the last set value of X"
+  P = Since( Set and X = a, not Set ) => Y = a;
+
+--%MAIN;
+--%PROPERTY P;
+tel
+
+-----------------------------------------------------------------
