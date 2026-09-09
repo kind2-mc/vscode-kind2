@@ -77,10 +77,23 @@ jobs:
             echo 'VSIX packages automatically built from the `main` branch on every push.'
             echo "Built from ${GITHUB_SHA:0:7} on $(date -u '+%Y-%m-%d %H:%M UTC')."
           } > notes.md
-          # Replace the release outright so packages from older versions do not linger.
-          gh release delete latest --yes --cleanup-tag || true
-          gh release create latest packages/*/*.vsix \
-            --prerelease \
-            --target "$GITHUB_SHA" \
-            --title 'Kind 2 VS Code Extension (main branch)' \
-            --notes-file notes.md
+          if gh release view latest >/dev/null 2>&1; then
+            # Update in place. Deleting and re-creating the release would
+            # publish it again, which e-mails everyone watching the
+            # repository on every push to main.
+            gh api -X PATCH "repos/$GH_REPO/git/refs/tags/latest" \
+              -f sha="$GITHUB_SHA" -F force=true >/dev/null
+            gh release edit latest \
+              --prerelease \
+              --title 'Kind 2 VS Code Extension (main branch)' \
+              --notes-file notes.md
+            # Asset names carry no version, so each upload replaces its
+            # predecessor and nothing is left behind.
+            gh release upload latest packages/*/*.vsix --clobber
+          else
+            gh release create latest packages/*/*.vsix \
+              --prerelease \
+              --target "$GITHUB_SHA" \
+              --title 'Kind 2 VS Code Extension (main branch)' \
+              --notes-file notes.md
+          fi
