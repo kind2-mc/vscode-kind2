@@ -1,0 +1,7 @@
+# Store text files with LF in the repository, checking them out with the
+# platform's native convention. Prevents a Windows checkout from committing
+# CRLF back into the tree.
+* text=auto
+
+# Always LF: these run under bash, including on Windows.
+*.sh text eol=lf
