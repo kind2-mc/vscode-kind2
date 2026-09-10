@@ -8,8 +8,6 @@ Java 11+ run-time.
 * MacOS: `brew install --cask temurin`
 * Windows: install a JDK from [Adoptium](https://adoptium.net/), or run `winget install EclipseAdoptium.Temurin.17.JDK`.
 
-***Note:*** This extension only works with versions 1.5.1 and above of `kind2`.
-
 Windows is supported natively; running the extension through
 [WSL2](https://docs.microsoft.com/en-us/windows/wsl/about) is no longer required.
 
