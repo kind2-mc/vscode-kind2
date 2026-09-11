@@ -70,7 +70,7 @@
           "type": "string",
           "default": "",
           "order": 0,
-          "description": "Path to the kind2 executable used by the extension."
+          "description": "Path to the kind2 executable used by the extension. Ignored in web mode, where the remote LSP provides Kind 2 execution."
         },
         "kind2.web.lsp_url": {
           "title": "Web LSP URL",
@@ -174,7 +174,7 @@
           "type": "string",
           "default": "",
           "order": 0,
-          "description": "Executable of Z3 solver. Defaults to the Z3 executable bundled with the extension."
+          "description": "Executable of Z3 solver. Defaults to the Z3 executable bundled with the extension. Ignored in web mode, where the remote LSP handles solver execution."
         },
         "kind2.smt.cvc5_bin": {
           "title": "cvc5 Bin",
