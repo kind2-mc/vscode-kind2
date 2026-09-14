@@ -2,7 +2,7 @@
 This extension provides basic support for the Lustre programming language with [Kind 2 Model Checker](https://kind2-mc.github.io/kind2) annotations.
 
 ## Requirements
-Java 11+ run-time.
+Java 8+ run-time.
 * Debian-based Linux: `sudo apt install openjdk-17-jdk`
 * RHEL-based Linux: `sudo yum install java-17-openjdk`
 * MacOS: `brew install --cask temurin`
