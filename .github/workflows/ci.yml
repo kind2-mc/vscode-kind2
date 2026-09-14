@@ -41,6 +41,14 @@ jobs:
           *)     tar -xf ${{ matrix.kind2_asset }};;
         esac
         rm ${{ matrix.kind2_asset }}
+    - name: Record Kind 2 commit
+      # Kind 2 moves its 'latest' tag in place, so the tag (not the release's
+      # target_commitish, which goes stale) identifies the downloaded build.
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh api repos/kind2-mc/kind2/git/ref/tags/latest --jq .object.sha > kind2-sha.txt
+        cat kind2-sha.txt
     - name: Configure dependencies
       run: ./configure.sh ${{ matrix.platform }}
     - name: Package extension
@@ -50,7 +58,9 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.platform }}
-        path: "*.vsix"
+        path: |
+          *.vsix
+          kind2-sha.txt
 
   release:
     runs-on: ubuntu-latest
@@ -73,9 +83,26 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
+          kind2_link() {
+            echo "[\`${1:0:7}\`](https://github.com/kind2-mc/kind2/commit/$1)"
+          }
+          # Each build job downloads Kind 2 on its own, so the platforms could
+          # have picked up different builds if Kind 2 was updated in between.
+          kind2_shas=$(cat packages/*/kind2-sha.txt | sort -u)
           {
             echo 'VSIX packages automatically built from the `main` branch on every push.'
+            echo
             echo "Built from ${GITHUB_SHA:0:7} on $(date -u '+%Y-%m-%d %H:%M UTC')."
+            echo
+            if [ "$(echo "$kind2_shas" | wc -l)" -eq 1 ]; then
+              echo "Includes Kind 2 $(kind2_link "$kind2_shas")."
+            else
+              echo 'Includes Kind 2 builds:'
+              for f in packages/*/kind2-sha.txt; do
+                platform=$(basename "$(dirname "$f")")
+                echo "- $platform: $(kind2_link "$(cat "$f")")"
+              done
+            fi
           } > notes.md
           if gh release view latest >/dev/null 2>&1; then
             # Update in place. Deleting and re-creating the release would
