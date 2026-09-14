@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Z3_VERSION=4.13.0
+Z3_VERSION=5.1.0
 KIND2_VERSION=3.0.0
 SERVER_VERSION=0.5.0
 
@@ -41,11 +41,11 @@ case "$OSTYPE" in
   darwin*)
     case "$ARCH" in
       x86_64)
-        Z3_OS_VERSION=x64-osx-11.7.10
+        Z3_OS_VERSION=x64-osx-13.3
         KIND2_OS_VERSION=macos-12-x86_64
         ;;
       arm64)
-        Z3_OS_VERSION=arm64-osx-11.0
+        Z3_OS_VERSION=arm64-osx-13.3
         KIND2_OS_VERSION=macos-12-arm64
         ;;
       *)
@@ -55,11 +55,13 @@ case "$OSTYPE" in
   linux*)
     case "$ARCH" in
       x86_64)
-        Z3_OS_VERSION=x64-glibc-2.31
+        # Use the binary from the manylinux Python wheel: it is built against an
+        # older glibc than the release zip, so it runs on more Linux distributions.
+        Z3_WHEEL=z3_solver-$Z3_VERSION.0-py3-none-manylinux_2_27_x86_64.whl
         KIND2_OS_VERSION=linux-x86_64
         ;;
       arm64)
-        Z3_OS_VERSION=arm64-glibc-2.35
+        Z3_OS_VERSION=arm64-glibc-2.38
         KIND2_OS_VERSION=linux-arm64
         ;;
       *)
@@ -96,6 +98,11 @@ KIND2_PKG_NAME=kind2-v$KIND2_VERSION-$KIND2_OS_VERSION.$KIND2_PKG_EXT
 # Install Z3
 if [ -e $Z3_BIN ]; then
   echo "$Z3_BIN already present; skipping download."
+elif [ -n "${Z3_WHEEL:-}" ]; then
+  rm -f $Z3_WHEEL
+  wget https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_WHEEL
+  unzip -o -j $Z3_WHEEL z3_solver-$Z3_VERSION.0.data/data/bin/$Z3_BIN
+  rm $Z3_WHEEL
 else
   rm -f $Z3_ZIP_NAME.zip
   rm -rf $Z3_ZIP_NAME z3-z3-$Z3_VERSION
