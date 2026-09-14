@@ -97,32 +97,15 @@ KIND2_PKG_NAME=kind2-v$KIND2_VERSION-$KIND2_OS_VERSION.$KIND2_PKG_EXT
 if [ -e $Z3_BIN ]; then
   echo "$Z3_BIN already present; skipping download."
 else
-  case "$2" in
-    # z3-static)
-    #   wget https://github.com/Z3Prover/z3/archive/refs/tags/z3-$Z3_VERSION.tar.gz
-    #   tar xvf z3-$Z3_VERSION.tar.gz
-    #   rm z3-$Z3_VERSION.tar.gz
-    #   pushd z3-z3-$Z3_VERSION/
-    #   python3 scripts/mk_make.py --staticbin
-    #   pushd build/
-    #   make -j4
-    #   popd
-    #   popd
-    #   cp z3-z3-$Z3_VERSION/build/z3 .
-    #   strip z3
-    #   rm -r z3-z3-$Z3_VERSION/
-    #   ;;
-    *)
-      rm -f $Z3_ZIP_NAME.zip
-      rm -rf $Z3_ZIP_NAME z3-z3-$Z3_VERSION
-      wget https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_ZIP_NAME.zip
-      unzip -o $Z3_ZIP_NAME.zip
-      rm $Z3_ZIP_NAME.zip
-      cp $Z3_ZIP_NAME/bin/$Z3_BIN .
-      # z3.exe is dynamically linked against libz3.dll.
-      if [ -n "$EXE_SUFFIX" ]; then cp $Z3_ZIP_NAME/bin/libz3.dll .; fi
-      rm -r $Z3_ZIP_NAME;;
-  esac
+  rm -f $Z3_ZIP_NAME.zip
+  rm -rf $Z3_ZIP_NAME z3-z3-$Z3_VERSION
+  wget https://github.com/Z3Prover/z3/releases/download/z3-$Z3_VERSION/$Z3_ZIP_NAME.zip
+  unzip -o $Z3_ZIP_NAME.zip
+  rm $Z3_ZIP_NAME.zip
+  cp $Z3_ZIP_NAME/bin/$Z3_BIN .
+  # z3.exe is dynamically linked against libz3.dll.
+  if [ -n "$EXE_SUFFIX" ]; then cp $Z3_ZIP_NAME/bin/libz3.dll .; fi
+  rm -r $Z3_ZIP_NAME;;
 fi
 
 # Install Kind 2
