@@ -74,6 +74,11 @@ jobs:
       group: latest-release
       cancel-in-progress: false
     steps:
+      - name: Checkout pinned dependency versions
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: configure.sh
+          sparse-checkout-cone-mode: false
       - name: Download extension packages
         uses: actions/download-artifact@v8
         with:
@@ -86,6 +91,10 @@ jobs:
           kind2_link() {
             echo "[\`${1:0:7}\`](https://github.com/kind2-mc/kind2/commit/$1)"
           }
+          # Z3 and the language server are pinned in configure.sh, which every
+          # build job ran from this same commit.
+          z3_version=$(sed -n 's/^Z3_VERSION=//p' configure.sh)
+          server_version=$(sed -n 's/^SERVER_VERSION=//p' configure.sh)
           # Each build job downloads Kind 2 on its own, so the platforms could
           # have picked up different builds if Kind 2 was updated in between.
           kind2_shas=$(cat packages/*/kind2-sha.txt | sort -u)
@@ -94,15 +103,19 @@ jobs:
             echo
             echo "Built from ${GITHUB_SHA:0:7} on $(date -u '+%Y-%m-%d %H:%M UTC')."
             echo
+            echo 'Includes:'
             if [ "$(echo "$kind2_shas" | wc -l)" -eq 1 ]; then
-              echo "Includes Kind 2 $(kind2_link "$kind2_shas")."
+              echo "- Kind 2 $(kind2_link "$kind2_shas")"
             else
-              echo 'Includes Kind 2 builds:'
-              for f in packages/*/kind2-sha.txt; do
-                platform=$(basename "$(dirname "$f")")
-                echo "- $platform: $(kind2_link "$(cat "$f")")"
+              echo '- Kind 2 (differs across platforms):'
+              for sha in $kind2_shas; do
+                platforms=$(grep -lx "$sha" packages/*/kind2-sha.txt \
+                  | xargs -n1 dirname | xargs -n1 basename | paste -sd, - | sed 's/,/, /g')
+                echo "  - $(kind2_link "$sha"): $platforms"
               done
             fi
+            echo "- Z3 [$z3_version](https://github.com/Z3Prover/z3/releases/tag/z3-$z3_version)"
+            echo "- Kind 2 language server [$server_version](https://github.com/kind2-mc/kind2-language-server/releases/tag/$server_version)"
           } > notes.md
           if gh release view latest >/dev/null 2>&1; then
             # Update in place. Deleting and re-creating the release would
