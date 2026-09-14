@@ -105,7 +105,7 @@ else
   cp $Z3_ZIP_NAME/bin/$Z3_BIN .
   # z3.exe is dynamically linked against libz3.dll.
   if [ -n "$EXE_SUFFIX" ]; then cp $Z3_ZIP_NAME/bin/libz3.dll .; fi
-  rm -r $Z3_ZIP_NAME;;
+  rm -r $Z3_ZIP_NAME
 fi
 
 # Install Kind 2
