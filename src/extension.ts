@@ -9,6 +9,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { workspace } from 'vscode';
 import {
+  Executable,
   LanguageClient,
   LanguageClientOptions, ServerOptions,
   StreamInfo
@@ -38,9 +39,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
+  let serverExecutable: Executable = {
+    command: serverCmd,
+    options: { shell: process.platform === 'win32' }
+  };
+
   let serverOptions: ServerOptions = {
-    run: { command: serverCmd },
-    debug: { command: serverCmd }
+    run: serverExecutable,
+    debug: serverExecutable
   };
 
   // Options to control the language client
