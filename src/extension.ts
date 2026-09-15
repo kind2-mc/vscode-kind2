@@ -39,9 +39,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
-  let serverExecutable: Executable = {
-    command: serverCmd,
-    options: { shell: process.platform === 'win32' }
+  let serverExecutable: Executable = {  
+    command: process.platform === 'win32' ? `"${serverCmd}"` : serverCmd,  
+    options: { shell: process.platform === 'win32' }  
   };
 
   let serverOptions: ServerOptions = {
