@@ -57,8 +57,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
 
   provideCodeLenses(document: TextDocument, _token: CancellationToken): ProviderResult<CodeLens[]> {
     let codeLenses: CodeLens[] = [];
-    let file = this._files.find(file => file.uri === document.uri.toString(true));
-    if (file) {
+    let file = this._files.find(file => Uri.parse(file.uri).toString() === document.uri.toString());    if (file) {
       for (const component of file.components) {
         let range = new Range(component.line, 0, component.line, 0);
         if (component.state.length > 0 && component.state[0] === "running") {
@@ -333,7 +332,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
       }
     }
     for (const uri of decorations.keys()) {
-      let editor = window.visibleTextEditors.find(editor => editor.document.uri.toString(true) === uri);
+      let editor = window.visibleTextEditors.find(editor => editor.document.uri.toString() === Uri.parse(uri).toString());
       for (const state of <State[]>["pending", "running", "passed", "reachable", "failed", "unreachable", "stopped", "unknown", "errored", "realizable", "unrealizable", "inputs realizable", "contract realizable", 
                                     "inputs unrealizable", "contract unrealizable", "type realizable", "type unrealizable", "conflicting","ivc", 
                                   "mcs cut", "mcs property"]) {
