@@ -8,11 +8,11 @@ Java 8+ run-time.
 * MacOS: `brew install --cask temurin`
 * Windows: install a JDK from [Adoptium](https://adoptium.net/), or run `winget install EclipseAdoptium.Temurin.17.JDK`.
 
-Windows is supported natively; running the extension through
-[WSL2](https://docs.microsoft.com/en-us/windows/wsl/about) is no longer required.
+Since pre-release 0.15.0, Windows is supported natively; running the extension through
+[WSL2](https://docs.microsoft.com/en-us/windows/wsl/about) is no longer required or supported.
 
-### Windows through WSL2 (Advanced)
-Running the extension inside WSL2 remains supported, and uses the Linux build.
+### Windows through WSL2 (version 0.13.0 and earlier)
+Running the extension inside WSL2 is required for version 0.13.0 and earlier, and uses the Linux build.
 WSL1 is not supported. Follow these steps to run the extension on WSL2 (Windows
 10 version 1903+ or Windows 11):
 1. Install WSL
