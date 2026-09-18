@@ -43,7 +43,6 @@ The extension supports modular and compositional analysis modes of Kind 2. Those
 You can also enable/disable modular and compositional analysis modes from Kind's view. Click on their icons to enable them.
 ![Analysis modes icons](images/icons.png)
 
-
 ## Main Features
 * Syntax highlighting for Lustre and Kind 2 constructs.
 * Go-to-definition for top level declarations.
