@@ -1,3 +1,14 @@
+### Version 0.15.0 (pre-release)
+- Starting with this release, even minor versions (e.g. 0.16.x) are stable and odd minor versions (e.g. 0.15.x) are pre-releases, which you can get with "Switch to Pre-Release Version" in VS Code
+- Add native Windows support (WSL is no longer required or supported)
+- Add support for Java 8+ (previously 11+)
+- Add support for lemmas, and the `rec` and `decreases` keywords
+- Add syntax highlighting for datatype declarations and match expressions
+- Add support for incremental results
+- Update Kind 2 to latest development version in `main` branch
+- Update Z3 to version 5.1.0
+- Update language-server version to 0.7.1
+
 ### Version 0.13.0
 - Add support for merit and blame assignment (i.e. IVC/MCS)
 - Add support for displaying conflicting set when checking realizability
