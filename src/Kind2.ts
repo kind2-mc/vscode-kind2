@@ -392,13 +392,25 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     // Do not cancel running checks here, since every incremental 
     // update would cancel the check early 
     // This is now a main file.
+    const previousFileSet = this._fileMap.get(uri);
     this._fileMap.set(uri, new Set<String>());
+    let getComponentsFailed = false;
     const components: any[] = await this.sendKind2Request("kind2/getComponents", uri).then(values => {
       return (values as string[]).map(value => JSON.parse(value));
     }).catch(reason => {
       window.showErrorMessage(reason.message);
+      getComponentsFailed = true;
       return [];
     });
+    if (getComponentsFailed) {
+      // Restore previous state and leave the tree untouched on a transient failure.
+      if (previousFileSet) {
+        this._fileMap.set(uri, previousFileSet);
+      } else {
+        this._fileMap.delete(uri);
+      }
+      return;
+    }
     // Remove this file, if we need to replace its components.
     let mainFile = this._files.find(f => f.uri === uri);
     let newFiles: File[] = [];
@@ -480,7 +492,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
         mainComponent.state = ["stopped"];
         console.log("Check has been cancelled for " + mainComponent + "(state:" + mainComponent.state + ")")
       } else {
-        window.showErrorMessage(JSON.stringify(reason));
+        window.showErrorMessage(reason.message);
         mainComponent.analyses = [];
         mainComponent.state = ["errored"];
       }

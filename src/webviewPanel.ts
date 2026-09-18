@@ -66,7 +66,10 @@ export class WebPanel {
     });
 
     // Set the webview's initial html content
-    void this._setWebviewHtml();
+    void this._setWebviewHtml().catch(error => {
+      const message = error instanceof Error ? error.message : String(error);
+      vscode.window.showErrorMessage(`Failed to load Kind 2 simulation view: ${message}`);
+    });
     this.panel.iconPath = vscode.Uri.joinPath(this.extensionUri, 'icons', 'kind.png');
 
     // Listen for when the panel is disposed

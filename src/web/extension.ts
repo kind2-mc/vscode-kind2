@@ -47,9 +47,10 @@ export async function activate(context: vscode.ExtensionContext) {
         ? error.message
         : String(error);
 
-    void vscode.window.showWarningMessage(
+    vscode.window.showWarningMessage(
       `Kind2 web prototype running without LSP: ${message}. Attempted: ${gatewayUrl}.`
     );
+    return;
   }
 
 
@@ -132,19 +133,13 @@ export async function activate(context: vscode.ExtensionContext) {
   let settingsViewProvider: Kind2SettingsProvider = new Kind2SettingsProvider(context);
   const settingsView = vscode.window.createTreeView("kind2settings", { treeDataProvider: settingsViewProvider, canSelectMany: false, showCollapseAll: true });
 
-  // registerCommand('kind2/reveal', async (node: TreeNode) => await kind2.reveal(node, treeView));
+  registerCommand('kind2/reveal', async (node: TreeNode) => await kind2.reveal(node, treeView));
 
-
+  context.subscriptions.push(treeView);
   context.subscriptions.push(settingsView);
   const documentSelector: vscode.DocumentFilter = { language: "lustre" };
   context.subscriptions.push(vscode.languages.registerCodeLensProvider(documentSelector, kind2));
 
-  if (!client) {
-    vscode.window.showWarningMessage(
-      `Kind2 web prototype running without LSP: ${"Language client not initialized"}`
-    );
-    return;
-  }
   // In vscode-languageclient v8+, start() resolves when initialization is ready.
   await client.start();
   client.onNotification("kind2/checkResultUpdate", (uri: string, name:string, values: string[]) => kind2.handleCheck(uri, name, values));
