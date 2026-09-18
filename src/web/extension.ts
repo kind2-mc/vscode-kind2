@@ -21,15 +21,8 @@ import {
 let client: BaseLanguageClient;
 let kind2: Kind2;
 
-function getDefaultLspUrl(extensionUri: vscode.Uri): string {
-  const wsScheme = extensionUri.scheme === 'https' ? 'wss' : 'ws';
-  const hostWithOptionalPort = extensionUri.authority;
-  const hostOnly = hostWithOptionalPort.split(':')[0];
-
-  if (hostOnly.length > 0) {
-    return `${wsScheme}://${hostOnly}/app/lsp`;
-  }
-
+function getDefaultLspUrl(): string {
+  // Callers who run the gateway elsewhere must set the `kind2.web.lsp_url` setting explicitly.
   return 'ws://localhost:3001/lsp';
 }
 
@@ -43,7 +36,7 @@ export async function activate(context: vscode.ExtensionContext) {
     webConfiguration.get<string>('lsp_url')?.trim() ?? '';
   const gatewayUrl = configuredGatewayUrl.length > 0
     ? configuredGatewayUrl
-    : getDefaultLspUrl(context.extensionUri);
+    : getDefaultLspUrl();
 
   try {
     client = await createKind2LanguageClient(gatewayUrl);
