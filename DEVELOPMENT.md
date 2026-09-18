@@ -67,3 +67,32 @@ browser and load a workspace/folder.
 By default the web extension connects to `ws://localhost:3001/lsp`. If your
 gateway is running elsewhere, set the `kind2.web.lsp_url` setting (a full
 `wss://...` URL or a relative path) to point at it.
+
+### Sideloading onto vscode.dev
+
+Instead of the headless test host, you can sideload the built extension
+directly into [vscode.dev](https://vscode.dev). This is useful as a final
+sanity check against the real vscode.dev workbench rather than the
+`vscode-test-web` host.
+
+1) Build the web extension:
+
+```bash
+npm run esbuild-web
+```
+
+2) Serve the repo root over HTTP with CORS enabled, so vscode.dev (a
+different origin) is allowed to fetch the extension's files:
+
+```bash
+npx serve --cors -p 3000
+```
+
+3) Open [vscode.dev](https://vscode.dev), open the Command Palette
+(`Ctrl+Shift+P`), run **Developer: Install Extension From Location...**, and
+enter `http://localhost:3000`.
+
+vscode.dev will read `package.json` from that URL and install the extension.
+As with the headless host, the web extension connects to
+`ws://localhost:3001/lsp` by default — set `kind2.web.lsp_url` if your
+gateway is elsewhere.
