@@ -78,7 +78,7 @@
           "type": "string",
           "default": "",
           "order": 0,
-          "description": "WebSocket URL used by the web extension. Supports full URLs (wss://example.org/lsp) or relative paths (/lsp). If empty, the extension uses ws(s)://<current-host>/lsp."
+          "description": "WebSocket URL used by the web extension. Supports full URLs (wss://example.org/lsp) or relative paths (/lsp). If empty, the extension uses ws://localhost:3001/lsp."
         },
         "kind2.smt.smt_solver": {
           "title": "Main SMT Solver",
