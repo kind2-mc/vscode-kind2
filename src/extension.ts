@@ -9,6 +9,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { workspace } from 'vscode';
 import {
+  Executable,
   LanguageClient,
   LanguageClientOptions, ServerOptions,
   StreamInfo
@@ -32,14 +33,18 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // The server is implemented in node
   let serverCmd = context.asAbsolutePath(
-    path.join('kind2-language-server', 'bin', 'kind2-language-server')
-  );
+      path.join('kind2-language-server', 'bin',
+        process.platform === 'win32' ? 'kind2-language-server.bat' : 'kind2-language-server'));
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
+  let serverExecutable: Executable = {  
+    command: process.platform === 'win32' ? `"${serverCmd}"` : serverCmd,  
+    options: { shell: process.platform === 'win32' }  
+  };
   let serverOptions: ServerOptions = {
-    run: { command: serverCmd },
-    debug: { command: serverCmd }
+    run: serverExecutable,
+    debug: serverExecutable
   };
 
   // Options to control the language client

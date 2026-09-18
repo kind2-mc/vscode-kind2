@@ -46,13 +46,16 @@ The gateway needs the Kind 2 binary available in its `src/web/` directory. From 
 `kind2-language-server` repo:
 
 ```bash
+./gradlew install
 cd src/web
-node kind2-gateway.cjs
+npm install
+npm run start
 ```
 
 By default this listens on `ws://localhost:3001/lsp`.
 
 For additional configuration options, refer to the instructions in the `kind2-language-server` project
+
 ### 2) Run the web extension
 
 From this repo, build and serve the web extension in a headless test host:

@@ -661,8 +661,8 @@
     "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
     "esbuild-web-watch": "npm run esbuild-web -- --sourcemap --watch",
     "web:run": "npm run esbuild-web && npx vscode-test-web --browser chromium --extensionDevelopmentPath=. --open-devtools .",
-    "web:run:headless": "npm run esbuild-web && npx vscode-test-web --browser chromium --extensionDevelopmentPath=. --headless --host 0.0.0.0 --port 3000 ./src/web/lustre-examples",
-    "web:serve": "npm run esbuild-web && npx vscode-test-web --browser none --extensionDevelopmentPath=. --host 0.0.0.0 --port 3000 --verbose ./src/web/lustre-examples"
+    "web:run:headless": "npm run esbuild-web && npx vscode-test-web --browser chromium --extensionDevelopmentPath=. --headless --host 127.0.0.1 --port 3000 ./src/test/lustre-examples",
+    "web:serve": "npm run esbuild-web && npx vscode-test-web --browser none --extensionDevelopmentPath=. --host 127.0.0.1 --port 3000 --verbose ./src/test/lustre-examples"
   },
   "dependencies": {
     "path-browserify": "^1.0.1",
