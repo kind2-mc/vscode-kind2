@@ -1,7 +1,0 @@
--- Sofar(X) is true at any point iff X has been true from
--- the beginning until that point
-
-node Sofar( X : bool ) returns ( Y : bool );
-let
- Y = X -> (X and (pre Y));
-tel

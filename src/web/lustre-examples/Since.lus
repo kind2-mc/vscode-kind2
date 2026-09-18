@@ -1,7 +1,0 @@
--- Since(X,Y) is true precisely when X has been true at some point,
--- and Y has been continuously true afterwards
-
-node Since( X, Y : bool ) returns ( Z : bool );
-let
-  Z =  X or (Y and (false -> pre Z));
-tel

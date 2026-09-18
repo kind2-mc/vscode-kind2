@@ -1,7 +1,0 @@
--- SinceIncl(X,Y) is true iff X has been true at some point,
--- and Y has been continuously true from then on.
-
-node SinceIncl( X, Y : bool ) returns ( Z : bool );
-let
-  Z =  Y and (X or (false -> pre Z));
-tel
