@@ -51,6 +51,9 @@ export class WebPanel {
       this.resolveReady = resolve;
       this.rejectReady = reject;
     });
+    // The rejection is reported where it happens, and callers may never await
+    // this promise, so keep it from surfacing as an unhandled rejection.
+    this.readyPromise.catch(() => undefined);
 
     // Create and show a new webview panel
     this.panel = vscode.window.createWebviewPanel(WebPanel.viewType, 'Kind 2 Simulation View', column, {
