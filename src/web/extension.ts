@@ -141,7 +141,11 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.languages.registerCodeLensProvider(documentSelector, kind2));
 
   // In vscode-languageclient v8+, start() resolves when initialization is ready.
-  await client.start();
+  try{
+    await client.start();
+  } catch (error) {
+    console.error("Failed to start client:", error);
+  }
   client.onNotification("kind2/checkResultUpdate", (uri: string, name:string, values: string[]) => kind2.handleCheck(uri, name, values));
   client.onNotification("kind2/checkComplete", (uri: string, name:string, values: string[]) => kind2.checkComplete(uri, name));
 
