@@ -19,8 +19,9 @@ export class WebPanel {
 
   private readonly panel: vscode.WebviewPanel;
   private readonly extensionUri: vscode.Uri;
-  private ready: boolean;
-  private onReady: () => void = () => undefined;
+  private readonly readyPromise: Promise<void>;
+  private resolveReady!: () => void;
+  private rejectReady!: (error: Error) => void;
   private disposables: vscode.Disposable[] = [];
 
   public static createOrShow(extensionUri: vscode.Uri): WebPanel {
@@ -39,22 +40,17 @@ export class WebPanel {
   }
 
   public async sendMessage(message: any): Promise<boolean> {
-    await new Promise<void>((resolve) => {
-      if (this.ready) {
-        resolve();
-      }
-      else {
-        this.onReady = () => {
-          resolve();
-        }
-      }
-    });
+    await this.readyPromise;
     return await this.panel.webview.postMessage(message);
   }
 
   private constructor(extensionUri: vscode.Uri, column: vscode.ViewColumn) {
-    this.ready = false;
     this.extensionUri = extensionUri;
+
+    this.readyPromise = new Promise<void>((resolve, reject) => {
+      this.resolveReady = resolve;
+      this.rejectReady = reject;
+    });
 
     // Create and show a new webview panel
     this.panel = vscode.window.createWebviewPanel(WebPanel.viewType, 'Kind 2 Simulation View', column, {
@@ -67,8 +63,9 @@ export class WebPanel {
 
     // Set the webview's initial html content
     void this._setWebviewHtml().catch(error => {
-      const message = error instanceof Error ? error.message : String(error);
-      vscode.window.showErrorMessage(`Failed to load Kind 2 simulation view: ${message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.rejectReady(err);
+      vscode.window.showErrorMessage(`Failed to load Kind 2 simulation view: ${err.message}`);
     });
     this.panel.iconPath = vscode.Uri.joinPath(this.extensionUri, 'icons', 'kind.png');
 
@@ -80,14 +77,13 @@ export class WebPanel {
     this.panel.webview.onDidReceiveMessage(
       async (message: any) => {
         if (message === "ready") {
-          this.ready = true;
-          this.onReady();
+          this.resolveReady();
         } else if (message.command === "showErrorMessage") {
           console.log("Error message from webview: " + message.text);
           vscode.window.showErrorMessage(message.text);
         } else if (message.command === "closeWebView"){
-           console.log("Trying to close webview panel");
-            WebPanel.currentPanel?.panel.dispose();
+          console.log("Trying to close webview panel");
+          WebPanel.currentPanel?.panel.dispose();
         } else {
           await vscode.commands.executeCommand(message.command, message.args[0], message.args[1], message.args[2]);
         }
