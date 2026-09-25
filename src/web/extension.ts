@@ -4,67 +4,62 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
-import * as net from 'net';
-import * as path from 'path';
+// import * as path from 'path';
 import * as vscode from 'vscode';
 import { workspace } from 'vscode';
 import {
-  Executable,
-  LanguageClient,
-  LanguageClientOptions, ServerOptions,
-  StreamInfo
-} from 'vscode-languageclient/node';
-import { Kind2 } from './Kind2';
-import { Component, Property, TreeNode, Analysis, Container } from './treeNode';
-import { WebPanel } from './webviewPanel';
-import { Kind2SettingsProvider, SelectorNode, SettingNode} from './Kind2SettingsProvider';
+  BaseLanguageClient
+} from 'vscode-languageclient';
+import { Kind2 } from '../Kind2';
+import { Component, Property, TreeNode, Analysis, Container } from '../treeNode';
+import { WebPanel } from '../webviewPanel';
+import { Kind2SettingsProvider, SelectorNode, SettingNode} from '../Kind2SettingsProvider';
+import {
+  createKind2LanguageClient
+} from './languageClient';
 
-let client: LanguageClient;
+let client: BaseLanguageClient;
 let kind2: Kind2;
+
+function getDefaultLspUrl(): string {
+  // Callers who run the gateway elsewhere must set the `kind2.web.lsp_url` setting explicitly.
+  return 'ws://localhost:3001/lsp';
+}
 
 export async function activate(context: vscode.ExtensionContext) {
   let registerCommand = (command: string, callback: (...args: any[]) => any): void => {
     context.subscriptions.push(vscode.commands.registerCommand(command, callback));
   };
 
+  const webConfiguration = workspace.getConfiguration('kind2.web');
+  const configuredGatewayUrl =
+    webConfiguration.get<string>('lsp_url')?.trim() ?? '';
+  const gatewayUrl = configuredGatewayUrl.length > 0
+    ? configuredGatewayUrl
+    : getDefaultLspUrl();
+
+  const reportMissingLsp = (error: unknown): void => {
+    const message =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    vscode.window.showWarningMessage(
+      `Kind2 web prototype running without LSP: ${message}. Attempted: ${gatewayUrl}.`
+    );
+  };
+
+  try {
+    client = await createKind2LanguageClient(gatewayUrl);
+  } catch (error) {
+    reportMissingLsp(error);
+    return;
+  }
+
+
   registerCommand('angular-webview.start', () => {
     WebPanel.createOrShow(context.extensionUri);
   });
-
-  // The server is implemented in node
-  let serverCmd = context.asAbsolutePath(
-      path.join('kind2-language-server', 'bin',
-        process.platform === 'win32' ? 'kind2-language-server.bat' : 'kind2-language-server'));
-
-  // If the extension is launched in debug mode then the debug server options are used
-  // Otherwise the run options are used
-  let serverExecutable: Executable = {  
-    command: process.platform === 'win32' ? `"${serverCmd}"` : serverCmd,  
-    options: { shell: process.platform === 'win32' }  
-  };
-  let serverOptions: ServerOptions = {
-    run: serverExecutable,
-    debug: serverExecutable
-  };
-
-  // Options to control the language client
-  let clientOptions: LanguageClientOptions = {
-    // Register the server for plain text documents
-    documentSelector: [{ scheme: 'file', language: 'lustre' }],
-    synchronize: {
-      // Notify the server about file changes to '.clientrc files contained in the workspace
-      fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
-    }
-  };
-
-  // Create the language client and start the client.
-  client = new LanguageClient(
-    'vscode-kind2',
-    'Kind 2',
-    serverOptions,
-    // connectToTCPServer(),
-    clientOptions
-  );
 
   kind2 = new Kind2(context, client);
 
@@ -100,7 +95,7 @@ export async function activate(context: vscode.ExtensionContext) {
     kind2.changeTreeData(element.parent);
     kind2.updateDecorations();
   });
-  
+
   registerCommand('kind2/check', async (node: Component, options) => {
     kind2.reveal(node, treeView);
     await kind2.check(node);
@@ -137,10 +132,10 @@ export async function activate(context: vscode.ExtensionContext) {
   registerCommand('kind2/showSource', async (node: TreeNode | Container) => await kind2.showSource(node));
 
   const treeView = vscode.window.createTreeView("properties", { treeDataProvider: kind2, canSelectMany: false, showCollapseAll: true });
-  
+
   let settingsViewProvider: Kind2SettingsProvider = new Kind2SettingsProvider(context);
   const settingsView = vscode.window.createTreeView("kind2settings", { treeDataProvider: settingsViewProvider, canSelectMany: false, showCollapseAll: true });
-  
+
   registerCommand('kind2/reveal', async (node: TreeNode) => await kind2.reveal(node, treeView));
 
   context.subscriptions.push(treeView);
@@ -148,15 +143,20 @@ export async function activate(context: vscode.ExtensionContext) {
   const documentSelector: vscode.DocumentFilter = { language: "lustre" };
   context.subscriptions.push(vscode.languages.registerCodeLensProvider(documentSelector, kind2));
 
-  // Start the client. This will also launch the server and complete initialization.
-  await client.start();
-
+  // In vscode-languageclient v8+, start() resolves when initialization is ready.
+  try {
+    await client.start();
+  } catch (error) {
+    reportMissingLsp(error);
+    return;
+  }
+  vscode.window.showInformationMessage('Kind2 Language Client connected successfully.');
   client.onNotification("kind2/checkResultUpdate", (uri: string, name:string, values: string[]) => kind2.handleCheck(uri, name, values));
   client.onNotification("kind2/checkComplete", (uri: string, name:string, values: string[]) => kind2.checkComplete(uri, name));
 
   client.onNotification("kind2/minimalCutSetResultUpdate", (uri: string, name:string, values: string[]) => kind2.handleMinimalCutSet(uri, name, values));
   client.onNotification("kind2/minimalCutSetComplete", (uri: string, name:string, values: string[]) => kind2.minimalCutSetComplete(uri, name));
-  
+
   client.onNotification("kind2/realizabilityResultUpdate", (uri: string, name:string, values: string[]) => kind2.handleRealizability(uri, name, values));
   client.onNotification("kind2/realizabilityComplete", (uri: string, name:string, values: string[]) => kind2.realizabilityComplete(uri, name));
 
@@ -165,23 +165,10 @@ export async function activate(context: vscode.ExtensionContext) {
   client.onRequest("kind2/getDefaultZ3Path", () => kind2.getDefaultZ3Path());
 }
 
-function connectToTCPServer(): ServerOptions {
-  let serverExec: ServerOptions = () => {
-
-    return new Promise((resolve) => {
-      net.createServer(socket => {
-        let res: StreamInfo = { writer: socket, reader: socket };
-        resolve(res);
-      }).listen(23555, "localhost");
-    });
-  };
-  return serverExec;
-}
-
 export function deactivate(): Thenable<void> | undefined {
-  WebPanel.currentPanel?.dispose();
-  if (!client) {
-    return undefined;
-  }
-  return client.stop();
+    WebPanel.currentPanel?.dispose();
+    if (!client) {
+        return undefined;
+    }
+    return client.stop();
 }

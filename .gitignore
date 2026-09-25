@@ -3,6 +3,7 @@
 /kind2-language-server
 /linux
 /macos
+/.vscode-test-web
 /kind2
 /kind2.exe
 /z3
