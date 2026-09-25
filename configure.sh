@@ -4,6 +4,7 @@ Z3_VERSION=5.1.0
 KIND2_VERSION=3.0.0
 SERVER_VERSION=0.10.1
 
+
 ARCH=$(uname -m)
 
 case "$1" in
