@@ -1,8 +1,12 @@
 #!/bin/bash
 
+# Stop at the first failing command (e.g. a download that returns 404) so CI
+# cannot package an extension with missing dependencies.
+set -eo pipefail
+
 Z3_VERSION=5.1.0
 KIND2_VERSION=3.0.0
-SERVER_VERSION=0.10.1
+SERVER_VERSION=0.9.0
 
 ARCH=$(uname -m)
 
