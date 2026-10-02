@@ -22,6 +22,8 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   private readonly _decorationTypeMap: Map<State, TextEditorDecorationType>;
   // Last decorations passed to setDecorations, per document URI; read by integration tests.
   private readonly _appliedDecorations = new Map<string, Map<State, DecorationOptions[]>>();
+  // Outcome of the last kind2/interpret request; read by integration tests.
+  public lastInterpretForTesting: { main: string, result?: string, error?: string } | undefined;
 
   private getStateIconUri(state: State): Uri {
     const iconPath = statePath(state).split("/");

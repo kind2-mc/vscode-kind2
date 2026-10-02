@@ -60,25 +60,71 @@ export function checkableNodes(file: LoadedFile): Component[] {
   return file.components.filter(c => c.nodeDecl && !c.imported);
 }
 
-// Clicks the component's "Check Properties" code lens and waits for the check to finish.
-export async function checkComponent(file: LoadedFile, component: Component, timeout: number): Promise<void> {
+// Finds the component's code lens for the given command and runs it, as a click would.
+// Resolves when the command's handler returns.
+export async function clickCodeLens(file: LoadedFile, component: Component, command: string): Promise<void> {
   let lens: vscode.CodeLens | undefined;
   await waitFor(async () => {
     const lenses = await vscode.commands.executeCommand<vscode.CodeLens[]>(
       'vscode.executeCodeLensProvider', file.document.uri
     ) ?? [];
     lens = lenses.find(l =>
-      l.command?.command === 'kind2/check' && l.range.start.line === component.line);
+      l.command?.command === command && l.range.start.line === component.line);
     return lens !== undefined;
-  }, 10_000, 100, `"Check Properties" code lens for ${component.name}`);
+  }, 10_000, 100, `${command} code lens for ${component.name}`);
 
   await vscode.commands.executeCommand(lens!.command!.command, ...(lens!.command!.arguments ?? []));
+}
+
+const simulationViewTitle = 'Kind 2 Simulation View';
+
+function simulationTabs(): vscode.Tab[] {
+  return vscode.window.tabGroups.all
+    .flatMap(group => group.tabs)
+    .filter(tab => tab.input instanceof vscode.TabInputWebview && tab.label === simulationViewTitle);
+}
+
+// Clicks the component's "Simulate" code lens, waits for Kind 2's initial (empty) interpretation
+// to reach the simulator panel, then closes the panel. Returns the raw interpretation JSON.
+export async function simulateComponent(kind2: Kind2, file: LoadedFile, component: Component, timeout: number): Promise<string> {
+  const before = kind2.lastInterpretForTesting;
+  // The command returns once the panel has loaded ("ready") and been sent the interpretation.
+  await withTimeout(
+    clickCodeLens(file, component, 'kind2/interpret'),
+    timeout, `simulator for ${component.name} to load`
+  );
+
+  const outcome = kind2.lastInterpretForTesting;
+  if (outcome === before || outcome?.main !== component.name) {
+    throw new Error(`kind2/interpret did not run for ${component.name}`);
+  }
+  if (outcome.error !== undefined) {
+    throw new Error(`kind2/interpret failed for ${component.name}: ${outcome.error}`);
+  }
+  if (simulationTabs().length === 0) {
+    throw new Error(`simulator panel did not open for ${component.name}`);
+  }
+
+  await vscode.window.tabGroups.close(simulationTabs());
+  await waitFor(() => simulationTabs().length === 0, 5_000, 100, 'simulator panel to close');
+  return outcome.result!;
+}
+
+// Clicks the component's "Check Properties" code lens and waits for the check to finish.
+export async function checkComponent(file: LoadedFile, component: Component, timeout: number): Promise<void> {
+  await clickCodeLens(file, component, 'kind2/check');
   // Every component starts out pending, so a check whose results never reached this
   // Component (e.g. the lens passed a copy of it) stays pending and times out here.
-  await waitFor(
-    () => !component.hasRunningAnalysis && !['running', 'pending'].includes(component.state[0]),
-    timeout, 250, `check of ${component.name} to finish`
-  );
+  try {
+    await waitFor(
+      () => !component.hasRunningAnalysis && !['running', 'pending'].includes(component.state[0]),
+      timeout, 250, `check of ${component.name} to finish`
+    );
+  } catch (error) {
+    // Stop Kind 2 so a hung check doesn't keep running into the next file's checks.
+    await vscode.commands.executeCommand('kind2/cancel', component);
+    throw error;
+  }
 }
 
 export async function waitFor(
@@ -87,6 +133,9 @@ export async function waitFor(
   interval = 100,
   description = 'condition'
 ): Promise<void> {
+  if (!Number.isFinite(timeout)) {
+    throw new Error(`waitFor timeout must be a finite number, got ${timeout}`);
+  }
   const start = Date.now();
 
   while (!(await condition())) {
@@ -95,6 +144,18 @@ export async function waitFor(
     }
 
     await sleep(interval);
+  }
+}
+
+export async function withTimeout<T>(promise: Promise<T>, timeout: number, description: string): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  const expired = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Timed out after ${timeout}ms waiting for ${description}`)), timeout);
+  });
+  try {
+    return await Promise.race([promise, expired]);
+  } finally {
+    clearTimeout(timer);
   }
 }
 
