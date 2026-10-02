@@ -34,6 +34,47 @@ export function lustreFilesIn(dir: string): string[] {
     .map(name => path.join(dir, name));
 }
 
+export type ExpectedResult = 'passed' | 'failed';
+// .lus file name -> node name -> expected node state.
+export type ExpectedResults = Map<string, Map<string, ExpectedResult>>;
+
+// Reads the expected node results for the files in dir: KIND2_EXPECTED_FILE if set, otherwise
+// dir/expected.json. Format: { "abs.lus": { "AbsSpecAndBody": "passed", ... }, ... }.
+// A missing file means no expectations (nothing is checked).
+export function readExpectedResults(dir: string): { path: string, results: ExpectedResults } {
+  const file = path.resolve(process.env.KIND2_EXPECTED_FILE ?? path.join(dir, 'expected.json'));
+  const results: ExpectedResults = new Map();
+  if (!fs.existsSync(file)) {
+    return { path: file, results };
+  }
+
+  let json: unknown;
+  try {
+    json = JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (error) {
+    throw new Error(`${file} is not valid JSON: ${error instanceof Error ? error.message : error}`);
+  }
+  const isObject = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+  if (!isObject(json)) {
+    throw new Error(`${file} must map .lus file names to objects of node results`);
+  }
+  for (const [fileName, nodes] of Object.entries(json)) {
+    if (!isObject(nodes)) {
+      throw new Error(`${file}: "${fileName}" must map node names to "passed" or "failed"`);
+    }
+    const nodeResults = new Map<string, ExpectedResult>();
+    for (const [node, expected] of Object.entries(nodes)) {
+      if (expected !== 'passed' && expected !== 'failed') {
+        throw new Error(`${file}: "${fileName}" → "${node}" must be "passed" or "failed", got ${JSON.stringify(expected)}`);
+      }
+      nodeResults.set(node, expected);
+    }
+    results.set(fileName, nodeResults);
+  }
+  return { path: file, results };
+}
+
 export interface LoadedFile {
   document: vscode.TextDocument;
   uri: string;

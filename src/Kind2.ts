@@ -368,28 +368,6 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     return Array.from(applied.entries()).flatMap(([state, options]) =>
       options.map(option => ({ state, line: option.range.start.line })));
   }
-  public getDecoratedPropertyLines(
-    uri: string,
-    state: State
-  ): number[] {
-    const lines: number[] = [];
-
-    for (const file of this._files) {
-      if (file.uri !== uri) {
-        continue;
-      }
-
-      for (const component of file.components) {
-        for (const property of component.properties) {
-          if (property.state === state) {
-            lines.push(property.line);
-          }
-        }
-      }
-    }
-
-    return lines;
-  }
 
   // Components declared in the given file (not in files it includes).
   public getComponentsForTesting(uri: string): Component[] {
