@@ -173,7 +173,6 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
   }
   public getTreeItem(element: TreeNode): TreeItem | Thenable<TreeItem> {
-    console.log("Getting tree item for element " + " of type: " + element.constructor.name);
     let item: TreeItem;
     if (element instanceof File) {
       return this.makeFileTreeItem(element);
@@ -658,9 +657,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   public async handleCheck(uri: string, name: string, values: string[]) {
     let mainComponent = this.findMainComponent(uri, name);
     if(!this._runningChecks.has(mainComponent)) return;
-    console.log("Main component is:" + mainComponent);
     let results: any[] = values.map(s => JSON.parse(s));
-    console.log("Got new check results: " /*+ JSON.stringify(results).substring()*/);
     let modifiedComponents: Component[] = [];
     modifiedComponents.push(mainComponent);
     let previousAnalyses = new Map<string, Analysis>();
@@ -859,9 +856,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
 
   public async interpret(uri: string, main: string, json: string): Promise<void> {
     await this.sendKind2Request<string>("kind2/interpret", uri, main, json).then(async (interp: string) => {
+      this.lastInterpretForTesting = { main, result: interp };
       WebPanel.createOrShow(this._context.extensionUri);
       await WebPanel.currentPanel?.sendMessage({ uri: uri, main: main, json: interp, type: "interp" });
     }).catch(reason => {
+      this.lastInterpretForTesting = { main, error: reason.message };
       window.showErrorMessage(reason.message);
     });
   }
