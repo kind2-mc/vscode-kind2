@@ -20,6 +20,8 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   private readonly _treeDataChanged: EventEmitter<TreeNode | null | undefined>;
   private readonly _codeLensesChanged: EventEmitter<void>;
   private readonly _decorationTypeMap: Map<State, TextEditorDecorationType>;
+  // Last decorations passed to setDecorations, per document URI; read by integration tests.
+  private readonly _appliedDecorations = new Map<string, Map<State, DecorationOptions[]>>();
 
   private getStateIconUri(state: State): Uri {
     const iconPath = statePath(state).split("/");
@@ -351,7 +353,48 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
                                   "mcs cut", "mcs property"]) {
         editor?.setDecorations(this._decorationTypeMap.get(state)!, decorations.get(uri)?.get(state)!);
       }
+      if (editor) {
+        this._appliedDecorations.set(editor.document.uri.toString(), decorations.get(uri)!);
+      }
     }
+  }
+
+  public getAppliedDecorationsForTesting(uri: string): { state: State, line: number }[] {
+    const applied = this._appliedDecorations.get(Uri.parse(uri).toString());
+    if (!applied) {
+      return [];
+    }
+    return Array.from(applied.entries()).flatMap(([state, options]) =>
+      options.map(option => ({ state, line: option.range.start.line })));
+  }
+  public getDecoratedPropertyLines(
+    uri: string,
+    state: State
+  ): number[] {
+    const lines: number[] = [];
+
+    for (const file of this._files) {
+      if (file.uri !== uri) {
+        continue;
+      }
+
+      for (const component of file.components) {
+        for (const property of component.properties) {
+          if (property.state === state) {
+            lines.push(property.line);
+          }
+        }
+      }
+    }
+
+    return lines;
+  }
+
+  // Components declared in the given file (not in files it includes).
+  public getComponentsForTesting(uri: string): Component[] {
+    const target = Uri.parse(uri).toString();
+    const file = this._files.find(f => Uri.parse(f.uri).toString() === target);
+    return file ? file.components : [];
   }
 
   public getDefaultKind2Path(): string {
