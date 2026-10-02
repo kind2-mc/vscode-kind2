@@ -26,7 +26,7 @@ export function lustreFilesIn(dir: string): string[] {
 export interface LoadedFile {
   document: vscode.TextDocument;
   uri: string;
-  // Components declared in this file (not in files it includes).
+  // Components declared in this file.
   components: Component[];
 }
 
@@ -60,11 +60,23 @@ export function checkableNodes(file: LoadedFile): Component[] {
   return file.components.filter(c => c.nodeDecl && !c.imported);
 }
 
-// Runs a Kind 2 check on the component and waits for it to finish.
-export async function checkComponent(kind2: Kind2, component: Component, timeout: number): Promise<void> {
-  await kind2.check(component);
+// Clicks the component's "Check Properties" code lens and waits for the check to finish.
+export async function checkComponent(file: LoadedFile, component: Component, timeout: number): Promise<void> {
+  let lens: vscode.CodeLens | undefined;
+  await waitFor(async () => {
+    const lenses = await vscode.commands.executeCommand<vscode.CodeLens[]>(
+      'vscode.executeCodeLensProvider', file.document.uri
+    ) ?? [];
+    lens = lenses.find(l =>
+      l.command?.command === 'kind2/check' && l.range.start.line === component.line);
+    return lens !== undefined;
+  }, 10_000, 100, `"Check Properties" code lens for ${component.name}`);
+
+  await vscode.commands.executeCommand(lens!.command!.command, ...(lens!.command!.arguments ?? []));
+  // Every component starts out pending, so a check whose results never reached this
+  // Component (e.g. the lens passed a copy of it) stays pending and times out here.
   await waitFor(
-    () => !component.hasRunningAnalysis && component.state[0] !== 'running',
+    () => !component.hasRunningAnalysis && !['running', 'pending'].includes(component.state[0]),
     timeout, 250, `check of ${component.name} to finish`
   );
 }

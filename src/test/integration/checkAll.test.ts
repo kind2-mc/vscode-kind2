@@ -5,7 +5,7 @@ import type { Kind2 } from '../../Kind2';
 import type { Component } from '../../treeNode';
 import { checkableNodes, checkComponent, examplesRoot, getKind2, LoadedFile, lustreFilesIn, openLustreFile } from './helpers';
 
-// The default is the fast "easy" set; point KIND2_TEST_DIR at lustre-examples/hard for the slow set.
+// The default is src/test/lustre-examples; point KIND2_TEST_DIR at lustre-examples/hard for the slow set.
 const examplesDir = path.resolve(process.env.KIND2_TEST_DIR ?? examplesRoot);
 
 // Per-component time budget for a Kind 2 check. Override with KIND2_CHECK_TIMEOUT (ms).
@@ -29,7 +29,7 @@ suite(`Check all components in ${examplesDir}`, function () {
 
         this.timeout(30_000 + checkTimeout * checked.length);
         for (const component of checked) {
-          await checkComponent(kind2, component, checkTimeout);
+          await checkComponent(file, component, checkTimeout);
           const summary = component.properties.map(p => `${p.name}=${p.state}`).join(', ');
           console.log(`      ${component.name} [${component.state.join(',')}] ${summary}`);
         }
