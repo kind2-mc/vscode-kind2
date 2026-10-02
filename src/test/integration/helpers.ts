@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import type { Kind2 } from '../../Kind2';
 import type { Component } from '../../treeNode';
+import type { WebPanel } from '../../webviewPanel';
 
 export const examplesRoot = path.resolve(__dirname, '../../../src/test/lustre-examples');
 
@@ -12,7 +13,17 @@ export async function getKind2(): Promise<Kind2> {
     throw new Error('Kind 2 extension was not found');
   }
   await extension.activate();
-  return (extension.exports as { getKind2ForTesting: () => Kind2 }).getKind2ForTesting();
+  return (extension.exports as TestHooks).getKind2ForTesting();
+}
+
+interface TestHooks {
+  getKind2ForTesting: () => Kind2;
+  getWebPanelForTesting: () => WebPanel | undefined;
+}
+
+function getWebPanel(): WebPanel | undefined {
+  const extension = vscode.extensions.getExtension('kind2-mc.vscode-kind2');
+  return (extension?.exports as TestHooks | undefined)?.getWebPanelForTesting();
 }
 
 // The .lus files directly in dir (subfolders are not scanned), sorted by name.
@@ -84,30 +95,60 @@ function simulationTabs(): vscode.Tab[] {
     .filter(tab => tab.input instanceof vscode.TabInputWebview && tab.label === simulationViewTitle);
 }
 
-// Clicks the component's "Simulate" code lens, waits for Kind 2's initial (empty) interpretation
-// to reach the simulator panel, then closes the panel. Returns the raw interpretation JSON.
-export async function simulateComponent(kind2: Kind2, file: LoadedFile, component: Component, timeout: number): Promise<string> {
-  const before = kind2.lastInterpretForTesting;
-  // The command returns once the panel has loaded ("ready") and been sent the interpretation.
-  await withTimeout(
-    clickCodeLens(file, component, 'kind2/interpret'),
-    timeout, `simulator for ${component.name} to load`
-  );
+export interface SimulationOutcome {
+  // Kind 2's interpretation for the empty input trace, sent when the panel opens.
+  initial: string;
+  // Kind 2's interpretation after pressing Simulate with the default inputs, or undefined if
+  // Simulate is disabled for this node (skipReason says why, e.g. nondeterministic variables).
+  simulated?: string;
+  steps?: number;
+  skipReason?: string;
+}
 
+function outcomeOf(kind2: Kind2, before: Kind2['lastInterpretForTesting'], component: Component, step: string): string {
   const outcome = kind2.lastInterpretForTesting;
   if (outcome === before || outcome?.main !== component.name) {
-    throw new Error(`kind2/interpret did not run for ${component.name}`);
+    throw new Error(`kind2/interpret did not run for ${component.name} (${step})`);
   }
   if (outcome.error !== undefined) {
-    throw new Error(`kind2/interpret failed for ${component.name}: ${outcome.error}`);
+    throw new Error(`kind2/interpret failed for ${component.name} (${step}): ${outcome.error}`);
   }
-  if (simulationTabs().length === 0) {
-    throw new Error(`simulator panel did not open for ${component.name}`);
-  }
-
-  await vscode.window.tabGroups.close(simulationTabs());
-  await waitFor(() => simulationTabs().length === 0, 5_000, 100, 'simulator panel to close');
   return outcome.result!;
+}
+
+// Clicks the component's "Simulate" code lens and waits for Kind 2's initial (empty)
+// interpretation to reach the simulator panel, then presses the panel's Simulate button (via the
+// webview's test hook) and waits for that result too. Always closes the panel.
+export async function simulateComponent(kind2: Kind2, file: LoadedFile, component: Component, timeout: number): Promise<SimulationOutcome> {
+  try {
+    let before = kind2.lastInterpretForTesting;
+    // The command returns once the panel has loaded ("ready") and been sent the interpretation.
+    await withTimeout(
+      clickCodeLens(file, component, 'kind2/interpret'),
+      timeout, `simulator for ${component.name} to load`
+    );
+    const initial = outcomeOf(kind2, before, component, 'initial load');
+    const panel = getWebPanel();
+    if (!panel || simulationTabs().length === 0) {
+      throw new Error(`simulator panel did not open for ${component.name}`);
+    }
+
+    before = kind2.lastInterpretForTesting;
+    const reply = await withTimeout(
+      panel.requestForTesting('test:simulate'),
+      timeout, `simulator panel to press Simulate for ${component.name}`
+    );
+    if (!reply.simulated) {
+      return { initial, skipReason: reply.reason };
+    }
+    // The panel's request goes through the same kind2/interpret command as the code lens.
+    await waitFor(() => kind2.lastInterpretForTesting !== before, timeout, 100,
+      `simulation result for ${component.name}`);
+    return { initial, simulated: outcomeOf(kind2, before, component, 'simulate'), steps: reply.steps };
+  } finally {
+    await vscode.window.tabGroups.close(simulationTabs());
+    await waitFor(() => simulationTabs().length === 0, 5_000, 100, 'simulator panel to close');
+  }
 }
 
 // Clicks the component's "Check Properties" code lens and waits for the check to finish.

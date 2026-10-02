@@ -25,6 +25,10 @@ export class SimulationComponent implements OnInit {
     // Handle the message inside the webview
     window.addEventListener('message', event => {
       console.log(event);
+      if (event.data.type === "test:simulate") {
+        this.testSimulate(event.data.id);
+        return;
+      }
       if (event.data.uri !== undefined && event.data.main !== undefined && event.data.json !== undefined && event.data.type !== undefined) {
         this._uri = event.data.uri;
         this._main = event.data.main;
@@ -64,6 +68,22 @@ export class SimulationComponent implements OnInit {
 
   }
   public ngOnInit(): void {
+  }
+
+  // Test hook for the extension's integration tests (which cannot click inside the webview):
+  // presses Simulate with the inputs currently in the table (the defaults, unless edited)
+  // and replies with whether it could.
+  private testSimulate(id: number): void {
+    const reply = (fields: any) => vscode.postMessage({ command: "testResponse", id, ...fields });
+    if (this._components.length === 0) {
+      reply({ simulated: false, reason: "no interpretation loaded" });
+    } else if (this.simulateIsDisabled()) {
+      reply({ simulated: false, reason: this.simulateErrorMessage() || "counterexample mode" });
+    } else {
+      const steps = this.numCols(); // fills in default inputs if the table is still empty
+      this.simulate();
+      reply({ simulated: true, steps });
+    }
   }
 
   private flatten(interp: Interpretation): Interpretation[] {

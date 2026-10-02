@@ -165,7 +165,8 @@ export async function activate(context: vscode.ExtensionContext) {
   client.onRequest("kind2/getDefaultZ3Path", () => kind2.getDefaultZ3Path());
 
   return {
-    getKind2ForTesting: () => kind2
+    getKind2ForTesting: () => kind2,
+    getWebPanelForTesting: () => WebPanel.currentPanel
   };
 }
 

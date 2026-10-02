@@ -86,17 +86,32 @@ suite(`Check all components in ${examplesDir}`, function () {
         assert.deepStrictEqual(stale, [], 'running/pending icons remain after checks finished');
       });
 
-      // Unlike the tests above, this one performs its own action: it opens and closes the simulator.
-      test('simulator loads for every node', async function () {
-        this.timeout(simulateTimeout * checked.length + 10_000);
+      // Unlike the tests above, this one performs its own actions: for each node it opens the
+      // simulator, presses Simulate with the default inputs, and closes the simulator.
+      test('simulator loads and simulates every node', async function () {
+        // Two Kind 2 calls per node (initial load + simulate).
+        this.timeout(2 * simulateTimeout * checked.length + 10_000);
         const failures: string[] = [];
         for (const component of checked) {
           try {
-            const interp = await simulateComponent(kind2, file, component, simulateTimeout);
+            const outcome = await simulateComponent(kind2, file, component, simulateTimeout);
             // The simulator panel reads the streams of the first element (simulation.component.ts).
-            const streams = JSON.parse(interp)[0]?.streams;
-            if (!Array.isArray(streams)) {
-              failures.push(`${component.name}: interpretation has no streams: ${interp.slice(0, 200)}`);
+            if (!Array.isArray(JSON.parse(outcome.initial)[0]?.streams)) {
+              failures.push(`${component.name}: initial interpretation has no streams: ${outcome.initial.slice(0, 200)}`);
+              continue;
+            }
+            if (outcome.simulated === undefined) {
+              console.log(`      ${component.name}: Simulate disabled (${outcome.skipReason})`);
+              continue;
+            }
+            const streams: { name: string, class: string, instantValues: unknown[][] }[] =
+              JSON.parse(outcome.simulated)[0]?.streams ?? [];
+            // Every stream should have a value at every simulated step.
+            const incomplete = streams
+              .filter(s => s.instantValues.length !== outcome.steps || s.instantValues.some(v => v.length < 2))
+              .map(s => `${s.name} (${s.class}): ${s.instantValues.length}/${outcome.steps} steps`);
+            if (streams.length === 0 || incomplete.length > 0) {
+              failures.push(`${component.name}: simulation incomplete: ${incomplete.join(', ') || 'no streams'}`);
             }
           } catch (error) {
             failures.push(`${component.name}: ${error instanceof Error ? error.message : error}`);
