@@ -42,6 +42,7 @@ export async function activate(context: vscode.ExtensionContext) {
     client = await createKind2LanguageClient(gatewayUrl);
     vscode.window.showInformationMessage('Kind2 Language Client connected successfully.');
   } catch (error) {
+  const reportMissingLsp = (error: unknown): void => {
     const message =
       error instanceof Error
         ? error.message
@@ -50,6 +51,12 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.window.showWarningMessage(
       `Kind2 web prototype running without LSP: ${message}. Attempted: ${gatewayUrl}.`
     );
+  };
+
+  try {
+    client = await createKind2LanguageClient(gatewayUrl);
+  } catch (error) {
+    reportMissingLsp(error);
     return;
   }
 
@@ -141,11 +148,13 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.languages.registerCodeLensProvider(documentSelector, kind2));
 
   // In vscode-languageclient v8+, start() resolves when initialization is ready.
-  try{
+  try {
     await client.start();
   } catch (error) {
-    console.error("Failed to start client:", error);
+    reportMissingLsp(error);
+    return;
   }
+  vscode.window.showInformationMessage('Kind2 Language Client connected successfully.');
   client.onNotification("kind2/checkResultUpdate", (uri: string, name:string, values: string[]) => kind2.handleCheck(uri, name, values));
   client.onNotification("kind2/checkComplete", (uri: string, name:string, values: string[]) => kind2.checkComplete(uri, name));
 
@@ -159,7 +168,7 @@ export async function activate(context: vscode.ExtensionContext) {
   client.onRequest("kind2/getDefaultKind2Path", () => kind2.getDefaultKind2Path());
   client.onRequest("kind2/getDefaultZ3Path", () => kind2.getDefaultZ3Path());
 }
-
+}
 export function deactivate(): Thenable<void> | undefined {
     WebPanel.currentPanel?.dispose();
     if (!client) {

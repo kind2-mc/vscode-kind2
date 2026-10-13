@@ -175,6 +175,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
     }
   }
   public getTreeItem(element: TreeNode): TreeItem | Thenable<TreeItem> {
+    console.log("Getting tree item for element " + " of type: " + element.constructor.name);
     let item: TreeItem;
     if (element instanceof File) {
       return this.makeFileTreeItem(element);
@@ -836,7 +837,6 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
 
   public async interpret(uri: string, main: string, json: string): Promise<void> {
     await this.sendKind2Request<string>("kind2/interpret", uri, main, json).then(async (interp: string) => {
-      this.lastInterpretForTesting = { main, result: interp };
       WebPanel.createOrShow(this._context.extensionUri);
       await WebPanel.currentPanel?.sendMessage({ uri: uri, main: main, json: interp, type: "interp" });
     }).catch(reason => {

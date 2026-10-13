@@ -716,7 +716,7 @@
           "include": "#comment"
         },
         {
-          "include": "#matchBlock"
+          "include": "#matchExpr"
         },
         {
           "comment": "Keywords",
@@ -957,6 +957,9 @@
               "include": "#ifBlock"
             },
             {
+              "include": "#matchBlock"
+            },
+            {
               "include": "#equation"
             },
             {
@@ -970,6 +973,9 @@
           "patterns": [ 
             {
               "include": "#ifBlock"
+            },
+            {
+              "include": "#matchBlock"
             },
             {
               "include": "#equation"
@@ -1031,6 +1037,9 @@
               "include": "#condBlock"
             },
             {
+              "include": "#matchBlock"
+            },
+            {
               "include": "#equation"
             },
             {
@@ -1047,6 +1056,9 @@
             },
             {
               "include": "#condBlock"
+            },
+            {
+              "include": "#matchBlock"
             },
             {
               "include": "#equation"
@@ -1112,6 +1124,9 @@
                   "include": "#condBlock"
                 },
                 {
+                  "include": "#matchBlock"
+                },
+                {
                   "include": "#equation"
                 },
                 {
@@ -1144,6 +1159,9 @@
                 },
                 {
                   "include": "#condBlock"
+                },
+                {
+                  "include": "#matchBlock"
                 },
                 {
                   "include": "#equation"
@@ -1210,6 +1228,9 @@
             },
             {
               "include": "#condBlock"
+            },
+            {
+              "include": "#matchBlock"
             },
             {
               "include": "#equation"
@@ -1284,6 +1305,9 @@
         },
         {
           "include": "#condBlock"
+        },
+        {
+          "include": "#matchBlock"
         },
         {
           "include": "#equation"
@@ -1533,7 +1557,7 @@
         }
       ]
     },
-    "matchBlock": {
+    "matchExpr": {
       "begin": "\\b(match)\\b",
       "beginCaptures": {
         "1": {
@@ -1558,7 +1582,7 @@
           },
           "patterns": [
             {
-              "include": "#matchBlock"
+              "include": "#matchExpr"
             },
             {
               "include": "#expression"
@@ -1602,10 +1626,106 @@
               "end": "(?=\\||\\bend\\b)",
               "patterns": [
                 {
-                  "include": "#matchBlock"
+                  "include": "#matchExpr"
                 },
                 {
                   "include": "#expression"
+                },
+                {
+                  "include": "#comment"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "matchBlock": {
+      "comment": "Match block (statement level): each case defines node items.",
+      "begin": "\\b(match)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.lustre"
+        }
+      },
+      "end": "\\b(end)\\b",
+      "endCaptures": {
+        "1": {
+          "name": "keyword.other.lustre"
+        }
+      },
+      "patterns": [
+        {
+          "comment": "Matched expression.",
+          "begin": "(?<=match)",
+          "end": "\\b(with)\\b",
+          "endCaptures": {
+            "1": {
+              "name": "keyword.other.lustre"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#matchExpr"
+            },
+            {
+              "include": "#expression"
+            },
+            {
+              "include": "#comment"
+            }
+          ]
+        },
+        {
+          "comment": "Cases.",
+          "begin": "\\|",
+          "beginCaptures": {
+            "0": {
+              "name": "keyword.operator.lustre"
+            }
+          },
+          "end": "(?=\\||\\bend\\b)",
+          "patterns": [
+            {
+              "comment": "Pattern.",
+              "begin": "(?<=\\|)",
+              "end": "(?=:)",
+              "patterns": [
+                {
+                  "include": "#matchPattern"
+                },
+                {
+                  "include": "#comment"
+                }
+              ]
+            },
+            {
+              "comment": "Case body.",
+              "begin": ":",
+              "beginCaptures": {
+                "0": {
+                  "name": "keyword.operator.lustre"
+                }
+              },
+              "end": "(?=\\||\\bend\\b)",
+              "patterns": [
+                {
+                  "include": "#ifBlock"
+                },
+                {
+                  "include": "#whenBlock"
+                },
+                {
+                  "include": "#condBlock"
+                },
+                {
+                  "include": "#matchBlock"
+                },
+                {
+                  "include": "#equation"
                 },
                 {
                   "include": "#comment"
