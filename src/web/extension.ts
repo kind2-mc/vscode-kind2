@@ -38,10 +38,6 @@ export async function activate(context: vscode.ExtensionContext) {
     ? configuredGatewayUrl
     : getDefaultLspUrl();
 
-  try {
-    client = await createKind2LanguageClient(gatewayUrl);
-    vscode.window.showInformationMessage('Kind2 Language Client connected successfully.');
-  } catch (error) {
   const reportMissingLsp = (error: unknown): void => {
     const message =
       error instanceof Error
@@ -168,7 +164,7 @@ export async function activate(context: vscode.ExtensionContext) {
   client.onRequest("kind2/getDefaultKind2Path", () => kind2.getDefaultKind2Path());
   client.onRequest("kind2/getDefaultZ3Path", () => kind2.getDefaultZ3Path());
 }
-}
+
 export function deactivate(): Thenable<void> | undefined {
     WebPanel.currentPanel?.dispose();
     if (!client) {
