@@ -194,19 +194,33 @@ export async function simulateComponent(kind2: Kind2, file: LoadedFile, componen
 
 // Clicks the component's "Check Properties" code lens and waits for the check to finish.
 export async function checkComponent(file: LoadedFile, component: Component, timeout: number): Promise<void> {
-  await clickCodeLens(file, component, 'kind2/check');
+  // The kind2/check command only returns once the whole check is done, so don't await it here,
+  // or a hung check would never reach the timeout below.
+  let commandFailed = false;
+  let commandError: unknown;
+  const command = clickCodeLens(file, component, 'kind2/check').catch(error => {
+    commandFailed = true;
+    commandError = error;
+  });
   // Every component starts out pending, so a check whose results never reached this
   // Component (e.g. the lens passed a copy of it) stays pending and times out here.
   try {
-    await waitFor(
-      () => !component.hasRunningAnalysis && !['running', 'pending'].includes(component.state[0]),
-      timeout, 250, `check of ${component.name} to finish`
-    );
+    await waitFor(() => {
+      if (commandFailed) {
+        throw commandError;
+      }
+      return !component.hasRunningAnalysis && !['running', 'pending'].includes(component.state[0]);
+    }, timeout, 250, `check of ${component.name} to finish`);
   } catch (error) {
-    // Stop Kind 2 so a hung check doesn't keep running into the next file's checks.
-    await vscode.commands.executeCommand('kind2/cancel', component);
+    if (!commandFailed) {
+      // Stop Kind 2 so a hung check doesn't keep running into the next file's checks,
+      // and wait for the cancellation to land before the next check starts.
+      await vscode.commands.executeCommand('kind2/cancel', component);
+      await withTimeout(command, 10_000, `cancelled check of ${component.name} to stop`).catch(() => {});
+    }
     throw error;
   }
+  await command;
 }
 
 export async function waitFor(
