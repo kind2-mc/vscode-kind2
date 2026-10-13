@@ -663,7 +663,7 @@
     "web:run": "npm run esbuild-web && npx vscode-test-web --browser chromium --extensionDevelopmentPath=. --open-devtools .",
     "web:run:headless": "npm run esbuild-web && npx vscode-test-web --browser chromium --extensionDevelopmentPath=. --headless --host 127.0.0.1 --port 3000 ./src/test/lustre-examples",
     "web:serve": "npm run esbuild-web && npx vscode-test-web --browser none --extensionDevelopmentPath=. --host 127.0.0.1 --port 3000 --verbose ./src/test/lustre-examples",
-    "test:build": "esbuild \"src/test/**/*.test.ts\" --bundle --outbase=src/test --outdir=out/test --platform=node --format=cjs --external:vscode",
+    "test:build": "esbuild \"src/test/integration/**/*.test.ts\" --bundle --outbase=src/test --outdir=out/test --platform=node --format=cjs --external:vscode",
     "test:integration": "npm run esbuild-base && npm run test:build && vscode-test"
   },
   "dependencies": {
