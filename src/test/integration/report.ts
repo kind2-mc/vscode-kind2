@@ -12,6 +12,8 @@ export interface NodeResult {
   state: string[];
   // Property state -> count, e.g. { passed: 3, failed: 1 }.
   properties: Record<string, number>;
+  // Names of the properties whose state is unknown.
+  unknownProperties: string[];
   checkMs: number;
   // Set when the check itself failed (e.g. timed out).
   error?: string;
@@ -42,6 +44,19 @@ const shortTitles: Record<string, string> = {
 };
 
 export const FOLDER = '(folder)';
+
+// Why a node's results don't match its expected result, or undefined if they do. Used by both
+// the 'nodes match expected results' test and the report's Expected column, so they agree.
+export function expectedMismatch(expected: string, state: string[], unknownProperties: string[]): string | undefined {
+  if (state.length !== 1 || state[0] !== expected) {
+    return `expected ${expected}, got ${state.join(',')}`;
+  }
+  // A node with passed and unknown properties still shows as passed (Component.state).
+  if (expected === 'passed' && unknownProperties.length > 0) {
+    return `expected passed, but these properties are unknown: ${unknownProperties.join(', ')}`;
+  }
+  return undefined;
+}
 
 export class Report {
   private readonly dir: string | undefined;
@@ -154,9 +169,9 @@ export class Report {
       for (const n of f.nodes) {
         const props = Object.entries(n.properties).map(([s, c]) => `${s} ${c}`).join(', ');
         const want = this.config.expected.get(f.file)?.get(n.name);
-        const actual = n.state.join(',');
-        const expectedCell = want === undefined ? '' : want === actual ? `✔ ${want}` : `✘ expected ${want}`;
-        lines.push(row([f.file, n.name, n.error ? `error: ${n.error}` : actual, props, expectedCell,
+        const mismatch = want === undefined ? undefined : expectedMismatch(want, n.state, n.unknownProperties);
+        const expectedCell = want === undefined ? '' : mismatch === undefined ? `✔ ${want}` : `✘ ${mismatch}`;
+        lines.push(row([f.file, n.name, n.error ? `error: ${n.error}` : n.state.join(','), props, expectedCell,
           `${(n.checkMs / 1000).toFixed(1)}s`]));
       }
     }

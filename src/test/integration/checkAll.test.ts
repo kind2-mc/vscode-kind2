@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import type { Kind2 } from '../../Kind2';
 import type { Component } from '../../treeNode';
-import { FOLDER, Report } from './report';
+import { expectedMismatch, FOLDER, Report } from './report';
 import { checkableNodes, checkComponent, componentNamed, examplesRoot, getKind2, LoadedFile, lustreFilesIn, openLustreFile, readExpectedResults, simulateComponent } from './helpers';
 
 // The default is src/test/lustre-examples.
@@ -96,6 +96,7 @@ suite(`Check all components in ${examplesDir}`, function () {
             name: component.name,
             state: component.state,
             properties,
+            unknownProperties: component.properties.filter(p => p.state === 'unknown').map(p => p.name),
             checkMs: Date.now() - checkStarted,
             error: checkError === undefined ? undefined : (checkError instanceof Error ? checkError.message : String(checkError)),
           });
@@ -163,14 +164,10 @@ suite(`Check all components in ${examplesDir}`, function () {
             mismatches.push(`${name}: not a checked node in this file`);
             continue;
           }
-          if (component.state.length !== 1 || component.state[0] !== result) {
-            mismatches.push(`${name}: expected ${result}, got ${component.state.join(',')}`);
-            continue;
-          }
-          // A node with passed and unknown properties still shows as passed (Component.state).
           const unknown = component.properties.filter(p => p.state === 'unknown').map(p => p.name);
-          if (result === 'passed' && unknown.length > 0) {
-            mismatches.push(`${name}: expected passed, but these properties are unknown: ${unknown.join(', ')}`);
+          const mismatch = expectedMismatch(result, component.state, unknown);
+          if (mismatch !== undefined) {
+            mismatches.push(`${name}: ${mismatch}`);
           }
         }
         assert.deepStrictEqual(mismatches, [], `results differ from ${expected.path}`);
