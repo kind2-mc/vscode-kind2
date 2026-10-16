@@ -157,9 +157,14 @@ function outcomeOf(kind2: Kind2, before: Kind2['lastInterpretForTesting'], compo
   return outcome.result!;
 }
 
+// The simulator fills an empty input table with this many steps (numCols in simulation.component.ts).
+const defaultSimulationSteps = 10;
+
+interface InterpretationStream { name: string, class: string, instantValues: unknown[][] }
+
 // Clicks the component's "Simulate" code lens and waits for Kind 2's initial (empty)
-// interpretation to reach the simulator panel, then presses the panel's Simulate button (via the
-// webview's test hook) and waits for that result too. Always closes the panel.
+// interpretation to reach the simulator panel, then presses the panel's Simulate button and
+// waits for that result too. Always closes the panel.
 export async function simulateComponent(kind2: Kind2, file: LoadedFile, component: Component, timeout: number): Promise<SimulationOutcome> {
   try {
     let before = kind2.lastInterpretForTesting;
@@ -174,18 +179,24 @@ export async function simulateComponent(kind2: Kind2, file: LoadedFile, componen
       throw new Error(`simulator panel did not open for ${component.name}`);
     }
 
-    before = kind2.lastInterpretForTesting;
-    const reply = await withTimeout(
-      panel.requestForTesting('test:simulate'),
-      timeout, `simulator panel to press Simulate for ${component.name}`
-    );
-    if (!reply.simulated) {
-      return { initial, skipReason: reply.reason };
+    // The panel shows the streams of the first element (simulation.component.ts).
+    const streams: InterpretationStream[] | undefined = JSON.parse(initial)[0]?.streams;
+    if (!Array.isArray(streams) || streams.length === 0) {
+      throw new Error(`initial interpretation has no streams: ${initial.slice(0, 200)}`);
     }
-    // The panel's request goes through the same kind2/interpret command as the code lens.
+    // The panel disables Simulate for nodes with free constants (nonDeterministicVarsOf).
+    const constants = streams.filter(s => s.class === 'constant').map(s => s.name);
+    if (constants.length > 0) {
+      return { initial, skipReason: `nondeterministic constants: ${constants.join(', ')}` };
+    }
+    const steps = streams[0].instantValues.length || defaultSimulationSteps;
+
+    // The panel's Simulate goes through the same kind2/interpret command as the code lens.
+    before = kind2.lastInterpretForTesting;
+    await panel.sendMessage({ type: 'simulate' });
     await waitFor(() => kind2.lastInterpretForTesting !== before, timeout, 100,
       `simulation result for ${component.name}`);
-    return { initial, simulated: outcomeOf(kind2, before, component, 'simulate'), steps: reply.steps };
+    return { initial, simulated: outcomeOf(kind2, before, component, 'simulate'), steps };
   } finally {
     await vscode.window.tabGroups.close(simulationTabs());
     await waitFor(() => simulationTabs().length === 0, 5_000, 100, 'simulator panel to close');

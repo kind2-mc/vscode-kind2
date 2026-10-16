@@ -25,8 +25,8 @@ export class SimulationComponent implements OnInit {
     // Handle the message inside the webview
     window.addEventListener('message', event => {
       console.log(event);
-      if (event.data.type === "test:simulate") {
-        this.testSimulate(event.data.id);
+      if (event.data.type === "simulate") {
+        this.pressSimulate();
         return;
       }
       if (event.data.uri !== undefined && event.data.main !== undefined && event.data.json !== undefined && event.data.type !== undefined) {
@@ -70,20 +70,15 @@ export class SimulationComponent implements OnInit {
   public ngOnInit(): void {
   }
 
-  // Test hook for the extension's integration tests (which cannot click inside the webview):
-  // presses Simulate with the inputs currently in the table (the defaults, unless edited)
-  // and replies with whether it could.
-  private testSimulate(id: number): void {
-    const reply = (fields: any) => vscode.postMessage({ command: "testResponse", id, ...fields });
-    if (this._components.length === 0) {
-      reply({ simulated: false, reason: "no interpretation loaded" });
-    } else if (this.simulateIsDisabled()) {
-      reply({ simulated: false, reason: this.simulateErrorMessage() || "counterexample mode" });
-    } else {
-      const steps = this.numCols(); // fills in default inputs if the table is still empty
-      this.simulate();
-      reply({ simulated: true, steps });
+  // Same as clicking Simulate with the inputs currently in the table (the defaults, unless
+  // edited). Lets the extension's integration tests drive the panel, since they can't click
+  // inside a webview. Does nothing when the button would be disabled or there is nothing to run.
+  private pressSimulate(): void {
+    if (this._components.length === 0 || this._components[0].streams.length === 0 || this.simulateIsDisabled()) {
+      return;
     }
+    this.numCols(); // fills in default inputs if the table is still empty
+    this.simulate();
   }
 
   private flatten(interp: Interpretation): Interpretation[] {

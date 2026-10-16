@@ -183,11 +183,6 @@ suite(`Check all components in ${examplesDir}`, function () {
         for (const component of checked) {
           try {
             const outcome = await simulateComponent(kind2, file, component, simulateTimeout);
-            // The simulator panel reads the streams of the first element (simulation.component.ts).
-            if (!Array.isArray(JSON.parse(outcome.initial)[0]?.streams)) {
-              failures.push(`${component.name}: initial interpretation has no streams: ${outcome.initial.slice(0, 200)}`);
-              continue;
-            }
             if (outcome.simulated === undefined) {
               console.log(`      ${component.name}: Simulate disabled (${outcome.skipReason})`);
               continue;
