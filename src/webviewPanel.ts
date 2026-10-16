@@ -24,7 +24,7 @@ export class WebPanel {
   private rejectReady!: (error: Error) => void;
   private disposables: vscode.Disposable[] = [];
   private nextTestRequestId = 0;
-  private readonly pendingTestRequests = new Map<number, (response: any) => void>();
+  private readonly pendingTestRequests = new Map<number, { resolve: (response: any) => void, reject: (error: Error) => void }>();
 
   public static createOrShow(extensionUri: vscode.Uri): WebPanel {
     const column = vscode.ViewColumn.Beside;
@@ -48,11 +48,15 @@ export class WebPanel {
 
   // Sends a test-only request (e.g. "test:simulate") to the simulator app and resolves with
   // its "testResponse" reply. Used by integration tests, which cannot reach into the webview.
+  // Rejects if the message can't be sent (e.g. the app failed to load) or the panel is closed first.
   public requestForTesting(type: string): Promise<any> {
     const id = this.nextTestRequestId++;
-    return new Promise(resolve => {
-      this.pendingTestRequests.set(id, resolve);
-      void this.sendMessage({ type, id });
+    return new Promise((resolve, reject) => {
+      this.pendingTestRequests.set(id, { resolve, reject });
+      this.sendMessage({ type, id }).catch(error => {
+        this.pendingTestRequests.delete(id);
+        reject(error instanceof Error ? error : new Error(String(error)));
+      });
     });
   }
 
@@ -100,7 +104,7 @@ export class WebPanel {
           console.log("Trying to close webview panel");
           WebPanel.currentPanel?.panel.dispose();
         } else if (message.command === "testResponse") {
-          this.pendingTestRequests.get(message.id)?.(message);
+          this.pendingTestRequests.get(message.id)?.resolve(message);
           this.pendingTestRequests.delete(message.id);
         } else {
           await vscode.commands.executeCommand(message.command, message.args[0], message.args[1], message.args[2]);
@@ -113,6 +117,11 @@ export class WebPanel {
 
   public dispose(): void {
     WebPanel.currentPanel = undefined;
+
+    for (const request of this.pendingTestRequests.values()) {
+      request.reject(new Error("Kind 2 simulation view was closed before replying"));
+    }
+    this.pendingTestRequests.clear();
 
     // Clean up our resources
     this.panel.dispose();
