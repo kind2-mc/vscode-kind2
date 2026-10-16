@@ -20,7 +20,8 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   private readonly _treeDataChanged: EventEmitter<TreeNode | null | undefined>;
   private readonly _codeLensesChanged: EventEmitter<void>;
   private readonly _decorationTypeMap: Map<State, TextEditorDecorationType>;
-  // Last decorations passed to setDecorations, per document URI; read by integration tests.
+  // Decorations currently applied to each visible document (by URI), as last passed to
+  // setDecorations; read by integration tests.
   private readonly _appliedDecorations = new Map<string, Map<State, DecorationOptions[]>>();
   // Outcome of the last kind2/interpret request; read by integration tests.
   public lastInterpretForTesting: { main: string, result?: string, error?: string } | undefined;
@@ -355,8 +356,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
                                   "mcs cut", "mcs property"]) {
         editor?.setDecorations(this._decorationTypeMap.get(state)!, decorations.get(uri)?.get(state)!);
       }
+      // Mirror what is on screen: a file with no visible editor shows no decorations.
       if (editor) {
         this._appliedDecorations.set(editor.document.uri.toString(), decorations.get(uri)!);
+      } else {
+        this._appliedDecorations.delete(Uri.parse(uri).toString());
       }
     }
   }
