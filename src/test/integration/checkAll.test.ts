@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import type { Kind2 } from '../../Kind2';
 import type { Component } from '../../treeNode';
 import { FOLDER, Report } from './report';
-import { checkableNodes, checkComponent, examplesRoot, getKind2, LoadedFile, lustreFilesIn, openLustreFile, readExpectedResults, simulateComponent } from './helpers';
+import { checkableNodes, checkComponent, componentNamed, examplesRoot, getKind2, LoadedFile, lustreFilesIn, openLustreFile, readExpectedResults, simulateComponent } from './helpers';
 
 // The default is src/test/lustre-examples.
 const examplesDir = path.resolve(process.env.KIND2_TEST_DIR ?? examplesRoot);
@@ -58,7 +58,8 @@ suite(`Check all components in ${examplesDir}`, function () {
     suite(path.basename(filePath), function () {
       let kind2: Kind2;
       let file: LoadedFile;
-      let checked: Component[];
+      // Read again each time rather than kept, since Kind 2 may replace the Component objects.
+      const checked = (): Component[] => checkableNodes(file);
 
       const fileName = path.basename(filePath);
       let started: number;
@@ -69,23 +70,24 @@ suite(`Check all components in ${examplesDir}`, function () {
         try {
           kind2 = await getKind2();
           file = await openLustreFile(kind2, filePath);
-          checked = checkableNodes(file);
-          assert.ok(checked.length > 0, 'file has no checkable nodes');
+          assert.ok(checked().length > 0, 'file has no checkable nodes');
         } catch (error) {
           report.loadFailed(fileName, error);
           throw error;
         }
         report.loaded(fileName);
 
-        this.timeout(30_000 + checkTimeout * checked.length);
-        for (const component of checked) {
+        const names = checked().map(c => c.name);
+        this.timeout(30_000 + checkTimeout * names.length);
+        for (const name of names) {
           const checkStarted = Date.now();
           let checkError: unknown;
           try {
-            await checkComponent(file, component, checkTimeout);
+            await checkComponent(file, name, checkTimeout);
           } catch (error) {
             checkError = error;
           }
+          const component = componentNamed(file, name);
           const properties: Record<string, number> = {};
           for (const p of component.properties) {
             properties[p.state] = (properties[p.state] ?? 0) + 1;
@@ -111,7 +113,7 @@ suite(`Check all components in ${examplesDir}`, function () {
       });
 
       test('no component or property errored', function () {
-        const errored = checked
+        const errored = checked()
           .filter(c => c.state.includes('errored') || c.properties.some(p => p.state === 'errored'))
           .map(c => c.name);
         assert.deepStrictEqual(errored, []);
@@ -123,7 +125,7 @@ suite(`Check all components in ${examplesDir}`, function () {
           applied.some(d => d.state === state && d.line === line);
         const missing: string[] = [];
 
-        for (const component of checked) {
+        for (const component of checked()) {
           for (const state of component.state) {
             if (!has(state, component.line)) {
               missing.push(`${component.name} (line ${component.line + 1}): ${state}`);
@@ -143,7 +145,7 @@ suite(`Check all components in ${examplesDir}`, function () {
 
         assert.deepStrictEqual(missing, [], 'expected gutter icons were not applied');
         // Unchecked components (imported nodes, types) legitimately stay pending.
-        const checkedLines = new Set(checked.flatMap(c => [c.line, c.contractLine]));
+        const checkedLines = new Set(checked().flatMap(c => [c.line, c.contractLine]));
         const stale = applied.filter(d =>
           d.state === 'running' || (d.state === 'pending' && checkedLines.has(d.line)));
         assert.deepStrictEqual(stale, [], 'running/pending icons remain after checks finished');
@@ -156,7 +158,7 @@ suite(`Check all components in ${examplesDir}`, function () {
         }
         const mismatches: string[] = [];
         for (const [name, result] of expectedNodes!) {
-          const component = checked.find(c => c.name === name);
+          const component = checked().find(c => c.name === name);
           if (component === undefined) {
             mismatches.push(`${name}: not a checked node in this file`);
             continue;
@@ -178,9 +180,9 @@ suite(`Check all components in ${examplesDir}`, function () {
       // simulator, presses Simulate with the default inputs, and closes the simulator.
       test('simulator loads and simulates every node', async function () {
         // Two Kind 2 calls per node (initial load + simulate).
-        this.timeout(2 * simulateTimeout * checked.length + 10_000);
+        this.timeout(2 * simulateTimeout * checked().length + 10_000);
         const failures: string[] = [];
-        for (const component of checked) {
+        for (const component of checked()) {
           try {
             const outcome = await simulateComponent(kind2, file, component, simulateTimeout);
             if (outcome.simulated === undefined) {

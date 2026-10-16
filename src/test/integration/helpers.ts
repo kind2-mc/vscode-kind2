@@ -78,8 +78,10 @@ export function readExpectedResults(dir: string): { path: string, results: Expec
 export interface LoadedFile {
   document: vscode.TextDocument;
   uri: string;
-  // Components declared in this file.
-  components: Component[];
+  // Components declared in this file, as Kind 2 has them now. Kind 2 replaces a file's Component
+  // objects whenever the server re-sends its components (kind2/updateComponents), so read this
+  // again instead of keeping the objects around.
+  readonly components: Component[];
 }
 
 // Opens a Lustre file in an editor and waits for the language server to report its components.
@@ -104,12 +106,21 @@ export async function openLustreFile(kind2: Kind2, filePath: string, timeout = 3
     throw new Error(`${name} has parse errors:\n  ${errors.join('\n  ')}`);
   }
 
-  return { document, uri, components: kind2.getComponentsForTesting(uri) };
+  return { document, uri, get components() { return kind2.getComponentsForTesting(uri); } };
 }
 
 // Same set that gets a "Check Properties" code lens on a node.
 export function checkableNodes(file: LoadedFile): Component[] {
   return file.components.filter(c => c.nodeDecl && !c.imported);
+}
+
+// The file's current Component with the given name (see LoadedFile.components).
+export function componentNamed(file: LoadedFile, name: string): Component {
+  const component = file.components.find(c => c.name === name);
+  if (!component) {
+    throw new Error(`${name} is no longer a component of ${path.basename(file.document.fileName)}`);
+  }
+  return component;
 }
 
 // Finds the component's code lens for the given command and runs it, as a click would.
@@ -203,31 +214,32 @@ export async function simulateComponent(kind2: Kind2, file: LoadedFile, componen
   }
 }
 
-// Clicks the component's "Check Properties" code lens and waits for the check to finish.
-export async function checkComponent(file: LoadedFile, component: Component, timeout: number): Promise<void> {
+// Clicks the node's "Check Properties" code lens and waits for the check to finish.
+export async function checkComponent(file: LoadedFile, name: string, timeout: number): Promise<void> {
   // The kind2/check command only returns once the whole check is done, so don't await it here,
   // or a hung check would never reach the timeout below.
   let commandFailed = false;
   let commandError: unknown;
-  const command = clickCodeLens(file, component, 'kind2/check').catch(error => {
+  const command = clickCodeLens(file, componentNamed(file, name), 'kind2/check').catch(error => {
     commandFailed = true;
     commandError = error;
   });
-  // Every component starts out pending, so a check whose results never reached this
-  // Component (e.g. the lens passed a copy of it) stays pending and times out here.
+  // Every component starts out pending, so a check whose results never reached the node's
+  // current Component stays pending and times out here.
   try {
     await waitFor(() => {
       if (commandFailed) {
         throw commandError;
       }
+      const component = componentNamed(file, name);
       return !component.hasRunningAnalysis && !['running', 'pending'].includes(component.state[0]);
-    }, timeout, 250, `check of ${component.name} to finish`);
+    }, timeout, 250, `check of ${name} to finish`);
   } catch (error) {
     if (!commandFailed) {
       // Stop Kind 2 so a hung check doesn't keep running into the next file's checks,
       // and wait for the cancellation to land before the next check starts.
-      await vscode.commands.executeCommand('kind2/cancel', component);
-      await withTimeout(command, 10_000, `cancelled check of ${component.name} to stop`).catch(() => {});
+      await vscode.commands.executeCommand('kind2/cancel', componentNamed(file, name));
+      await withTimeout(command, 10_000, `cancelled check of ${name} to stop`).catch(() => {});
     }
     throw error;
   }
