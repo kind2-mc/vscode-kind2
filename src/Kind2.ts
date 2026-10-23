@@ -20,6 +20,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   private readonly _treeDataChanged: EventEmitter<TreeNode | null | undefined>;
   private readonly _codeLensesChanged: EventEmitter<void>;
   private readonly _decorationTypeMap: Map<State, TextEditorDecorationType>;
+  // Decorations currently applied to each visible document (by URI), as last passed to
+  // setDecorations; read by integration tests.
+  private readonly _appliedDecorations = new Map<string, Map<State, DecorationOptions[]>>();
+  // Outcome of the last kind2/interpret request; read by integration tests.
+  public lastInterpretForTesting: { main: string, result?: string, error?: string } | undefined;
 
   private getStateIconUri(state: State): Uri {
     const iconPath = statePath(state).split("/");
@@ -351,7 +356,29 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
                                   "mcs cut", "mcs property"]) {
         editor?.setDecorations(this._decorationTypeMap.get(state)!, decorations.get(uri)?.get(state)!);
       }
+      // Mirror what is on screen: a file with no visible editor shows no decorations.
+      if (editor) {
+        this._appliedDecorations.set(editor.document.uri.toString(), decorations.get(uri)!);
+      } else {
+        this._appliedDecorations.delete(Uri.parse(uri).toString());
+      }
     }
+  }
+
+  public getAppliedDecorationsForTesting(uri: string): { state: State, line: number }[] {
+    const applied = this._appliedDecorations.get(Uri.parse(uri).toString());
+    if (!applied) {
+      return [];
+    }
+    return Array.from(applied.entries()).flatMap(([state, options]) =>
+      options.map(option => ({ state, line: option.range.start.line })));
+  }
+
+  // Components declared in the given file (not in files it includes).
+  public getComponentsForTesting(uri: string): Component[] {
+    const target = Uri.parse(uri).toString();
+    const file = this._files.find(f => Uri.parse(f.uri).toString() === target);
+    return file ? file.components : [];
   }
 
   public getDefaultKind2Path(): string {
@@ -615,9 +642,7 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
   public async handleCheck(uri: string, name: string, values: string[]) {
     let mainComponent = this.findMainComponent(uri, name);
     if(!this._runningChecks.has(mainComponent)) return;
-    console.log("Main component is:" + mainComponent);
     let results: any[] = values.map(s => JSON.parse(s));
-    console.log("Got new check results: " /*+ JSON.stringify(results).substring()*/);
     let modifiedComponents: Component[] = [];
     modifiedComponents.push(mainComponent);
     let previousAnalyses = new Map<string, Analysis>();
@@ -816,9 +841,11 @@ export class Kind2 implements TreeDataProvider<TreeNode>, CodeLensProvider {
 
   public async interpret(uri: string, main: string, json: string): Promise<void> {
     await this.sendKind2Request<string>("kind2/interpret", uri, main, json).then(async (interp: string) => {
+      this.lastInterpretForTesting = { main, result: interp };
       WebPanel.createOrShow(this._context.extensionUri);
       await WebPanel.currentPanel?.sendMessage({ uri: uri, main: main, json: interp, type: "interp" });
     }).catch(reason => {
+      this.lastInterpretForTesting = { main, error: reason.message };
       window.showErrorMessage(reason.message);
     });
   }

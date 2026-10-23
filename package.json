@@ -662,7 +662,9 @@
     "esbuild-web-watch": "npm run esbuild-web -- --sourcemap --watch",
     "web:run": "npm run esbuild-web && npx vscode-test-web --browser chromium --extensionDevelopmentPath=. --open-devtools .",
     "web:run:headless": "npm run esbuild-web && npx vscode-test-web --browser chromium --extensionDevelopmentPath=. --headless --host 127.0.0.1 --port 3000 ./src/test/lustre-examples",
-    "web:serve": "npm run esbuild-web && npx vscode-test-web --browser none --extensionDevelopmentPath=. --host 127.0.0.1 --port 3000 --verbose ./src/test/lustre-examples"
+    "web:serve": "npm run esbuild-web && npx vscode-test-web --browser none --extensionDevelopmentPath=. --host 127.0.0.1 --port 3000 --verbose ./src/test/lustre-examples",
+    "test:build": "esbuild \"src/test/integration/**/*.test.ts\" --bundle --outbase=src/test --outdir=out/test --platform=node --format=cjs --external:vscode",
+    "test:integration": "npm run esbuild-base && npm run test:build && vscode-test"
   },
   "dependencies": {
     "path-browserify": "^1.0.1",
@@ -675,7 +677,8 @@
     "@types/node": "^22.15.24",
     "@types/vscode": "^1.67.0",
     "@typescript-eslint/parser": "^5.30.0",
-    "@vscode/test-electron": "^2.1.5",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^2.5.2",
     "@vscode/test-web": "^0.0.81",
     "@vscode/vsce": "^3.4.2",
     "esbuild": "^0.25.12",
