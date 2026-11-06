@@ -23,7 +23,7 @@ let kind2: Kind2;
 
 function getDefaultLspUrl(): string {
   // Callers who run the gateway elsewhere must set the `kind2.web.lsp_url` setting explicitly.
-  return 'ws://localhost:3001/lsp';
+  return 'wss://kind.cs.uiowa.edu/app/lsp';
 }
 
 export async function activate(context: vscode.ExtensionContext) {
