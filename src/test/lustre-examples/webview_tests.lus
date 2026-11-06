@@ -67,9 +67,9 @@ let
 
 tel
 
-function id_vector_set(in: Vector^3) returns (out: Vector^3);
+function id_vector_set(inp: Vector^3) returns (out: Vector^3);
 let 
-  out = in;
+  out = inp;
 tel
 
 
@@ -98,7 +98,7 @@ let
   result = arr;
 tel
 
-function id_2d(arr: int^100^100) returns (result: int^100^100);
+function id_2d(arr: int^100^10) returns (result: int^100^10);
 let 
   result = arr;
 tel
