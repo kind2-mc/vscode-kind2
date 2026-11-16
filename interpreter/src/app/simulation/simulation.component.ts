@@ -25,6 +25,10 @@ export class SimulationComponent implements OnInit {
     // Handle the message inside the webview
     window.addEventListener('message', event => {
       console.log(event);
+      if (event.data.type === "simulate") {
+        this.pressSimulate();
+        return;
+      }
       if (event.data.uri !== undefined && event.data.main !== undefined && event.data.json !== undefined && event.data.type !== undefined) {
         this._uri = event.data.uri;
         this._main = event.data.main;
@@ -64,6 +68,17 @@ export class SimulationComponent implements OnInit {
 
   }
   public ngOnInit(): void {
+  }
+
+  // Same as clicking Simulate with the inputs currently in the table (the defaults, unless
+  // edited). Lets the extension's integration tests drive the panel, since they can't click
+  // inside a webview. Does nothing when the button would be disabled or there is nothing to run.
+  private pressSimulate(): void {
+    if (this._components.length === 0 || this._components[0].streams.length === 0 || this.simulateIsDisabled()) {
+      return;
+    }
+    this.numCols(); // fills in default inputs if the table is still empty
+    this.simulate();
   }
 
   private flatten(interp: Interpretation): Interpretation[] {
