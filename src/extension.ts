@@ -18,6 +18,7 @@ import { Kind2 } from './Kind2';
 import { Component, Property, TreeNode, Analysis, Container } from './treeNode';
 import { WebPanel } from './webviewPanel';
 import { Kind2SettingsProvider, SelectorNode, SettingNode} from './Kind2SettingsProvider';
+import { initializationOptions } from './protocol';
 
 let client: LanguageClient;
 let kind2: Kind2;
@@ -51,6 +52,7 @@ export async function activate(context: vscode.ExtensionContext) {
   let clientOptions: LanguageClientOptions = {
     // Register the server for plain text documents
     documentSelector: [{ scheme: 'file', language: 'lustre' }],
+    initializationOptions,
     synchronize: {
       // Notify the server about file changes to '.clientrc files contained in the workspace
       fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
