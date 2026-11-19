@@ -8,7 +8,8 @@
 import * as vscode from 'vscode';
 import { workspace } from 'vscode';
 import {
-  BaseLanguageClient
+  BaseLanguageClient,
+  ResponseError
 } from 'vscode-languageclient';
 import { Kind2 } from '../Kind2';
 import { Component, Property, TreeNode, Analysis, Container } from '../treeNode';
@@ -147,7 +148,12 @@ export async function activate(context: vscode.ExtensionContext) {
   try {
     await client.start();
   } catch (error) {
-    reportMissingLsp(error);
+    // An error response to initialize, such as the server rejecting this
+    // extension's protocol version, is already shown by the language client
+    // with the server's message. Only report other failures as a missing LSP.
+    if (!(error instanceof ResponseError)) {
+      reportMissingLsp(error);
+    }
     return;
   }
   vscode.window.showInformationMessage('Kind2 Language Client connected successfully.');

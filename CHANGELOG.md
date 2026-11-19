@@ -1,5 +1,7 @@
 ### Version 0.15.1 (pre-release)
 - Add syntax highlighting for match blocks
+- The web version now connects to `wss://kind.cs.uiowa.edu/app/lsp/v1` by default
+- Send the extension's protocol version to the language server, so that an incompatible server can say so clearly
 
 ### Version 0.15.0 (pre-release)
 - Starting with this release, even minor versions (e.g. 0.16.x) are stable and odd minor versions (e.g. 0.15.x) are pre-releases, which you can get with "Switch to Pre-Release Version" in VS Code
