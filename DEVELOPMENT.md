@@ -67,9 +67,10 @@ npm run web:run:headless
 This serves the extension at `http://localhost:3000`. Open that URL in a
 browser and load a workspace/folder.
 
-By default the web extension connects to `ws://localhost:3001/lsp`. If your
-gateway is running elsewhere, set the `kind2.web.lsp_url` setting (a full
-`wss://...` URL or a relative path) to point at it.
+By default the web extension connects to the public server at
+`wss://kind.cs.uiowa.edu/app/lsp/v1`. To use your local gateway, set the
+`kind2.web.lsp_url` setting to `ws://localhost:3001/lsp` (or another full
+`wss://...` URL or a relative path).
 
 ### Sideloading onto vscode.dev
 
@@ -97,5 +98,5 @@ enter `http://localhost:3000`.
 
 vscode.dev will read `package.json` from that URL and install the extension.
 As with the headless host, the web extension connects to
-`ws://localhost:3001/lsp` by default — set `kind2.web.lsp_url` if your
-gateway is elsewhere.
+`wss://kind.cs.uiowa.edu/app/lsp/v1` by default — set `kind2.web.lsp_url`
+to `ws://localhost:3001/lsp` to use your local gateway.

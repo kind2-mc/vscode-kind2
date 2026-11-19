@@ -14,6 +14,7 @@ import {
   WebSocketMessageWriter,
   toSocket
 } from 'vscode-ws-jsonrpc';
+import { initializationOptions } from '../protocol';
 
 /**
  * Connects to an LSP endpoint exposed over WebSocket.
@@ -30,6 +31,7 @@ export async function createKind2LanguageClient(
     documentSelector: [
       { language: 'lustre' }
     ],
+    initializationOptions,
     synchronize: {
       fileEvents:
         vscode.workspace.createFileSystemWatcher('**/.clientrc')
